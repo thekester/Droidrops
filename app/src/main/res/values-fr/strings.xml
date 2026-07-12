@@ -160,7 +160,7 @@
     <string name="external">Externe</string>
     <string name="mark_all_articles_read">Marquer les articles comme lus</string>
     <string name="mark_all_articles_read_question">Voulez-vous vraiment marquer tous les articles comme lus ?</string>
-    <string name="readrops_crashed">Readrops a planté.</string>
+    <string name="readrops_crashed">Droidrops a planté.</string>
     <string name="crash_message">Si vous voyez ceci, cela signifie que l\'application a rencontré une erreur inattendue. Si cela est possible, merci de bien vouloir signaler cette erreur sur Github.</string>
     <string name="report_error_github">Signaler l\'erreur sur Github</string>
     <string name="copy_error_clipboard">Copier l\'erreur dans le presse-papier</string>
@@ -205,8 +205,8 @@
     <string name="use_default_color">Utiliser la couleur par défaut</string>
     <string name="warning">Attention</string>
     <string name="understand">J\'accepte</string>
-    <string name="greader_warning">"Google Reader est une très vielle API et reste peu documentée. Il est probable qu'elle ne soit pas implémentée de la même manière dans chaque agrégateur et ainsi ne pas fonctionner correctement.\n\nSi vous rencontrez des problèmes de synchronisation, merci de les remonter sur le dépôt Github de Readrops. "</string>
-    <string name="fever_warning">Fever est une vielle API, limitée et dépréciée. Elle ne supporte pas la gestion des flux et des dossiers. Elle est également mal documentée et risque de ne pas être implémentée de la même manière chez chaque agrégateur, ne permettant pas son bon fonctionnement.\n\nSi vous rencontrez des problèmes de synchronisation, merci de les remonter sur le dépôt Github de Readrops.</string>
+    <string name="greader_warning">"Google Reader est une très vielle API et reste peu documentée. Il est probable qu'elle ne soit pas implémentée de la même manière dans chaque agrégateur et ainsi ne pas fonctionner correctement.\n\nSi vous rencontrez des problèmes de synchronisation, merci de les remonter sur le dépôt Github de Droidrops. "</string>
+    <string name="fever_warning">Fever est une vielle API, limitée et dépréciée. Elle ne supporte pas la gestion des flux et des dossiers. Elle est également mal documentée et risque de ne pas être implémentée de la même manière chez chaque agrégateur, ne permettant pas son bon fonctionnement.\n\nSi vous rencontrez des problèmes de synchronisation, merci de les remonter sur le dépôt Github de Droidrops.</string>
     <string name="api">API</string>
 
     <!-- custom share intent text -->

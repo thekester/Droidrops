@@ -113,7 +113,7 @@
     <string name="open_source_libraries">開放原始碼函式庫</string>
     <string name="unread">%1$d 未讀</string>
     <string name="preferences">偏好</string>
-    <string name="readrops_crashed">Readrops 崩潰了。</string>
+    <string name="readrops_crashed">Droidrops 崩潰了。</string>
     <string name="copy_error_clipboard">將錯誤訊息複製至剪貼簿</string>
     <string name="copied">已複製！</string>
     <string name="provide_full_url">請提供完整的 API URL</string>
@@ -163,8 +163,8 @@
     <string name="feed_color">Feed 顏色</string>
     <string name="warning">警告</string>
     <string name="synchronize_at_launch">在應用程式啟動時同步</string>
-    <string name="greader_warning">Google Reader API 非常老舊且缺乏文檔，每個聚合器實作方式可能都不一樣，因此可能不起作用。\n\n如果您遇到任何同步問題，請將其回報至 Readrops 的 Github 倉庫。</string>
-    <string name="fever_warning">Fever API 非常老舊、備受限制且已被棄用，不支持管理 feed 和資料夾，文檔狀態也很糟糕，每個聚合器實作方式可能都不一樣，因此可能不起作用。\n\n如果您遇到任何同步問題，請將其回報至 Readrops 的 Github 倉庫。</string>
+    <string name="greader_warning">Google Reader API 非常老舊且缺乏文檔，每個聚合器實作方式可能都不一樣，因此可能不起作用。\n\n如果您遇到任何同步問題，請將其回報至 Droidrops 的 Github 倉庫。</string>
+    <string name="fever_warning">Fever API 非常老舊、備受限制且已被棄用，不支持管理 feed 和資料夾，文檔狀態也很糟糕，每個聚合器實作方式可能都不一樣，因此可能不起作用。\n\n如果您遇到任何同步問題，請將其回報至 Droidrops 的 Github 倉庫。</string>
     <string name="reset">重置</string>
     <string name="understand">我了解</string>
     <string name="default_category">預設類別</string>

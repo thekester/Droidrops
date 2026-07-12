@@ -161,10 +161,10 @@
     <string name="local_view">Vista local</string>
     <string name="external">Externo</string>
     <string name="localised_quotes">%s</string>
-    <string name="fever_warning">Fever é uma API muito antiga, limitada e depreciada. Não suporta o gerenciamento de feeds e pastas. Também é mal documentado, pode não ser implementado para cada agregador da mesma forma e, portanto, pode não funcionar bem.\n\nSe você encontrar qualquer problema de sincronização, por favor, informe-os ao repositório do Readrops no Github.</string>
+    <string name="fever_warning">Fever é uma API muito antiga, limitada e depreciada. Não suporta o gerenciamento de feeds e pastas. Também é mal documentado, pode não ser implementado para cada agregador da mesma forma e, portanto, pode não funcionar bem.\n\nSe você encontrar qualquer problema de sincronização, por favor, informe-os ao repositório do Droidrops no Github.</string>
     <string name="remove_author_documentation">quando aplicado a qualquer variável, este filtro irá remover dele o conteúdo da variável <tt>author</tt></string>
     <string name="localised_dict_item">%s: %s</string>
-    <string name="greader_warning">Google Reader é uma API muito antiga e falta de documentação. Pode não ser implementado para cada agregador da mesma forma e, portanto, pode não funcionar bem.\n\nSe você encontrar qualquer problema de sincronização, por favor, informe-os ao repositório do Readrops no Github.</string>
+    <string name="greader_warning">Google Reader é uma API muito antiga e falta de documentação. Pode não ser implementado para cada agregador da mesma forma e, portanto, pode não funcionar bem.\n\nSe você encontrar qualquer problema de sincronização, por favor, informe-os ao repositório do Droidrops no Github.</string>
     <string name="order_field_tooltip">Feeds RSS sempre contêm artigos antigos e é improvável que você verá em sua linha do tempo se você ordená-lo por data. Ordenando pelo identificador do artigo permitirá que você mostre todos os novos artigos inseridos não importando a data que eles têm.</string>
     <string name="identifier">Identificação</string>
     <string name="external_view">Vista externa</string>
@@ -204,7 +204,7 @@
     <string name="delete_folder_question">Você quer excluir a pasta %1$s? Todos os feeds vinculados também serão excluídos.</string>
     <string name="update_color">Atualizar a cor</string>
     <string name="mark_all_articles_read">Marcar todos os artigos como lido</string>
-    <string name="readrops_crashed">Readrops falhou.</string>
+    <string name="readrops_crashed">Droidrops falhou.</string>
     <string name="crash_message">Eu vejo isso, significa que o aplicativo correu para um erro inesperado. Por favor, se puder, informe o erro no Github.</string>
     <string name="report_error_github">Relatar o erro no Github</string>
     <string name="copy_error_clipboard">Copiar erro para a área de transferência</string>

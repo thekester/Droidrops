@@ -19,10 +19,10 @@ android {
     namespace = "com.readrops.app"
 
     defaultConfig {
-        applicationId = "com.readrops.app"
+        applicationId = "com.droidrops.app"
 
-        versionCode = 23
-        versionName = "2.2.2"
+        versionCode = 24
+        versionName = "2.2.3"
 
         testInstrumentationRunner = "com.readrops.app.ReadropsTestRunner"
     }

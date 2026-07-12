@@ -143,7 +143,7 @@
     <string name="delete_folder_question">¿Quieres eliminar la carpeta %1$s ? Todos los feeds vinculados también se eliminarán.</string>
     <string name="mark_all_articles_read_question">¿Estás seguro de que quieres marcar todos los artículos como leídos?</string>
     <string name="delete_feed_question">¿Quieres eliminar el feed %1$s ?</string>
-    <string name="readrops_crashed">Redrops falló.</string>
+    <string name="readrops_crashed">Droidrops falló.</string>
     <string name="crash_message">Si ves esto, significa que la aplicación tuvo un error inesperado. Por favor si puedes, informa del error en Github.</string>
     <string name="litecoin_copy_address">Litecoin (copiar dirección)</string>
     <string name="bitcoin_copy_address">Bitcoin (copiar dirección)</string>
@@ -176,7 +176,7 @@
     <string name="order_by">Ordenar por</string>
     <string name="with_direction">Con direccion</string>
     <string name="warning">Advertencia</string>
-    <string name="greader_warning">Google Reader es una API muy antigua a la que le falta documentación. Puede que no se aplique igual en todos los agregadores y por tanto puede que no funcione bien.\n\nSi encuentra algún problema de sincronización, por favor repórtelo al repositorio de GitHub de Readrops.</string>
+    <string name="greader_warning">Google Reader es una API muy antigua a la que le falta documentación. Puede que no se aplique igual en todos los agregadores y por tanto puede que no funcione bien.\n\nSi encuentra algún problema de sincronización, por favor repórtelo al repositorio de GitHub de Droidrops.</string>
     <string name="api">API</string>
     <string name="selected">(%1$s seleccionado)</string>
     <string name="enter_url">Introduzca una URL</string>

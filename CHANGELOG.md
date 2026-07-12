@@ -1,3 +1,17 @@
+# v2.2.3
+
+This release rebrands the fork as Droidrops and keeps the recent stability fixes.
+
+## Changes
+
+- Rename the app to Droidrops and switch to a fork-specific `applicationId`
+- Update repository, changelog, and issue links to the fork
+- Update CI launch targets for the new package name
+
+## Fixes
+
+- Keep the release fixes for `#353`, `#356`, and `#360`
+
 # v2.2.2
 
 This release focuses on stability, feed compatibility, and crash fixes.

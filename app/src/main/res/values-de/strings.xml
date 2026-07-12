@@ -167,7 +167,7 @@
     <string name="show_oldest_articles_first">Älteste Artikel zuerst anzeigen</string>
     <string name="delete_feed_question">Möchten Sie den Feed %1$s löschen?</string>
     <string name="external">Extern</string>
-    <string name="readrops_crashed">Readrops ist abgestützt.</string>
+    <string name="readrops_crashed">Droidrops ist abgestürzt.</string>
     <string name="copied">Kopiert!</string>
     <string name="bitcoin_copy_address">Bitcoin (Adresse kopieren)</string>
     <string name="litecoin_copy_address">Litecoin (Adresse kopieren)</string>

@@ -110,7 +110,7 @@
     <string name="update_color">更新颜色</string>
     <string name="mark_all_articles_read">将所有文章标记为已读</string>
     <string name="mark_all_articles_read_question">是否确定要将所有文章标记为已读？</string>
-    <string name="readrops_crashed">Readrops 崩溃了。</string>
+    <string name="readrops_crashed">Droidrops 崩溃了。</string>
     <string name="report_error_github">在 GitHub 上报告错误</string>
     <string name="copy_error_clipboard">将错误消息复制到剪贴板</string>
     <string name="copied">已复制！</string>
@@ -218,8 +218,8 @@
     <string name="swipe_to_left_action">向左滑动操作</string>
     <string name="freshrss_delete_folder_question">是否要删除文件夹 %1$s？所有关联的订阅将移至默认文件夹。</string>
     <string name="no_network">没有可用的网络连接</string>
-    <string name="greader_warning">Google Reader 是非常古老的 API，且缺乏文档。在每个聚合器的实现方式可能不尽相同，因此可能无法很好地运行。\n\n如果遇到任何同步问题，请向 Readrops GitHub 仓库报告。</string>
-    <string name="fever_warning">Fever 是非常古老、有限和过时的 API。它不支持 Feed 和文件夹管理。此外，它的文档也不完善，在每个聚合器的实现方式可能不尽相同，因此可能无法很好地运行。\n\n如果遇到任何同步问题，请向 Readrops GitHub 仓库报告。</string>
+    <string name="greader_warning">Google Reader 是非常古老的 API，且缺乏文档。在每个聚合器的实现方式可能不尽相同，因此可能无法很好地运行。\n\n如果遇到任何同步问题，请向 Droidrops GitHub 仓库报告。</string>
+    <string name="fever_warning">Fever 是非常古老、有限和过时的 API。它不支持 Feed 和文件夹管理。此外，它的文档也不完善，在每个聚合器的实现方式可能不尽相同，因此可能无法很好地运行。\n\n如果遇到任何同步问题，请向 Droidrops GitHub 仓库报告。</string>
     <string name="remove_author_documentation">当应用于任意变量时，此筛选器将从中移除变量 <tt>author</tt> 的内容</string>
     <string name="localised_quotes">“%s”</string>
     <string name="swipe_to_right_action">向右滑动操作</string>

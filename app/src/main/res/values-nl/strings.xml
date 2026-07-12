@@ -85,7 +85,7 @@
     <string name="show_oldest_articles_first">Oudste artikelen eerst tonen</string>
     <string name="mark_all_articles_read">Alle artikelen markeren als gelezen</string>
     <string name="mark_all_articles_read_question">Weet je zeker dat je alle items als gelezen wilt markeren?</string>
-    <string name="readrops_crashed">Readrops is gecrasht.</string>
+    <string name="readrops_crashed">Droidrops is gecrasht.</string>
     <string name="bitcoin_copy_address">Bitcoin (adres kopiëren)</string>
     <string name="litecoin_copy_address">Litecoin (adres kopiëren)</string>
     <string name="add_feed">Feed toevoegen</string>
