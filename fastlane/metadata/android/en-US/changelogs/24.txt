@@ -1,0 +1,4 @@
+* Rebrand the fork as Droidrops
+* Switch to a fork-specific application id
+* Add a public privacy policy
+* Update release metadata for Google Play and F-Droid preparation

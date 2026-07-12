@@ -80,8 +80,6 @@
     <string name="no_rss_feed_found">ஆர்.எச்.எச் ஊட்டம் எதுவும் கிடைக்கவில்லை</string>
     <string name="not_valid_rss_feed">வழங்கப்பட்ட முகவரி சரியான RSS ஊட்டம் அல்ல</string>
     <string name="copied">நகலெடுக்கப்பட்டது!</string>
-    <string name="bitcoin_copy_address">பிட்காயின் (நகல் முகவரி)</string>
-    <string name="litecoin_copy_address">லிட்காயின் (நகல் முகவரி)</string>
     <string name="downloaded_file">பதிவிறக்கம் செய்யப்பட்ட கோப்பு!</string>
     <string name="provide_full_url">முழு பநிஇ முகவரி ஐ வழங்கவும்</string>
     <string name="provide_root_url">பணி ரூட் முகவரி ஐ வழங்கவும்</string>
@@ -159,7 +157,6 @@
     <string name="http_error_5XX">Http பிழை %1$d, சேவையக பிழை</string>
     <string name="http_error">Http பிழை %1$d</string>
     <string name="enable_all">அனைத்தையும் இயக்கு</string>
-    <string name="make_donation">நன்கொடை செய்யுங்கள்</string>
     <string name="other_accounts">பிற கணக்குகள்</string>
     <string name="update">புதுப்பிப்பு</string>
     <string name="unread">%1$d படிக்கவில்லை</string>
@@ -186,7 +183,6 @@
     <string name="crash_message">இதை நீங்கள் காண்கிறீர்கள், இதன் பொருள் பயன்பாடு எதிர்பாராத பிழையில் இயங்கியது. தயவுசெய்து உங்களால் முடிந்தால், கிட்அப்பில் பிழையைப் புகாரளிக்கவும்.</string>
     <string name="report_error_github">கிட்அப்பில் பிழையைப் புகாரளிக்கவும்</string>
     <string name="copy_error_clipboard">பிழையை இடைநிலைப்பலகைக்கு நகலெடுக்கவும்</string>
-    <string name="donation_text">நான் எனது வேலையை பயனுள்ளதாகக் கருதுகிறேன், நீங்கள் என்னை ஆதரிக்க விரும்புகிறீர்கள், என்னை நன்கொடையாக மாற்றுவதை நீங்கள் கருத்தில் கொள்ளலாம்.</string>
     <string name="order_field_tooltip">ஆர்எச்எச் ஊட்டங்கள் எப்போதுமே பழைய கட்டுரைகளைக் கொண்டிருக்கின்றன, நீங்கள் தேதியின்படி ஆர்டர் செய்தால் உங்கள் காலவரிசையில் நீங்கள் காண்பது சாத்தியமில்லை. கட்டுரை அடையாளங்காட்டி மூலம் ஆர்டர் செய்வது, புதிய செருகப்பட்ட கட்டுரைகள் அனைத்தையும் அவர்கள் வைத்திருந்த தேதியைக் காட்ட உங்களை அனுமதிக்கிறது.</string>
     <string name="descending">இறங்கு</string>
     <string name="order_by">வழங்கியவர்</string>

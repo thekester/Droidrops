@@ -54,10 +54,8 @@
     <string name="hour_6">每 6 小時</string>
     <string name="choose_folder">選擇資料夾</string>
     <string name="share_image">分享圖片</string>
-    <string name="litecoin_copy_address">Litecoin (複製錢包地址)</string>
     <string name="disable_battery_optimization">關閉電池最佳化</string>
     <string name="system">跟隨系統</string>
-    <string name="bitcoin_copy_address">Bitcoin (複製錢包地址)</string>
     <string name="new_account">新帳戶</string>
     <string name="crash_message">如果您看見此訊息，意味著應用程式遇到意料之外的錯誤。有空的話請您幫忙在 Github 上回報錯誤。</string>
     <string name="unable_open_file">無法開啟檔案</string>
@@ -78,7 +76,6 @@
     <string name="show_notifications_background_sync">在背景同步完成後顯示通知</string>
     <string name="select_color">選擇顏色</string>
     <string name="use_default_color">使用預設顏色</string>
-    <string name="donation_text">如果您覺得我編寫的這個應用程式還不錯並且想支持我的話，可以考慮一下捐款。</string>
     <string name="add_feed_title">新增 feed</string>
     <string name="feed_url">Feed URL</string>
     <string name="validate">確認</string>
@@ -109,7 +106,6 @@
     <string name="http_error_4XX">HTTP 錯誤 %1$d，請檢查您填於欄位的資訊是否正確</string>
     <string name="enable_all">全部啟用</string>
     <string name="disable_all">全部停用</string>
-    <string name="make_donation">捐款</string>
     <string name="open_source_libraries">開放原始碼函式庫</string>
     <string name="unread">%1$d 未讀</string>
     <string name="preferences">偏好</string>

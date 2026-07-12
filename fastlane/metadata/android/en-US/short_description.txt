@@ -1,1 +1,1 @@
-multi-services RSS client
+Droidrops RSS client

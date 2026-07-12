@@ -58,14 +58,6 @@ object MoreTab : Tab, KoinComponent {
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current
 
-        var showDonationDialog by remember { mutableStateOf(false) }
-
-        if (showDonationDialog) {
-            DonationDialog(
-                onDismiss = { showDonationDialog = false }
-            )
-        }
-
         Surface(color = MaterialTheme.colorScheme.background) {
             Column(
                 horizontalAlignment = Alignment.CenterHorizontally,
@@ -169,13 +161,13 @@ object MoreTab : Tab, KoinComponent {
                 )
 
                 SelectableIconText(
-                    icon = painterResource(id = R.drawable.ic_donation),
-                    text = stringResource(id = R.string.make_donation),
+                    icon = painterResource(id = R.drawable.ic_open_in_browser),
+                    text = stringResource(id = R.string.privacy_policy),
                     style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
                     spacing = MaterialTheme.spacing.largeSpacing,
                     padding = MaterialTheme.spacing.mediumSpacing,
                     tint = MaterialTheme.colorScheme.primary,
-                    onClick = { showDonationDialog = true }
+                    onClick = { context.openUrl(context.getString(R.string.privacy_policy_url)) }
                 )
 
                 if (BuildConfig.DEBUG) {

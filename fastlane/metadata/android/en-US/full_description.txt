@@ -1,4 +1,4 @@
-Readrops is a multi-services RSS client for Android. Its name is composed of "Read" and "drops", where drops are articles in an ocean of news.
+Droidrops is a fork of Readrops and a multi-services RSS client for Android. Its name is composed of "Read" and "drops", where drops are articles in an ocean of news.
 
 Features :
 
@@ -13,3 +13,5 @@ Features :
 - OPML import/export
 - Background synchronisation
 - Notifications
+- Privacy policy included in the app and repository
+- Independent fork with its own issue tracker and release notes

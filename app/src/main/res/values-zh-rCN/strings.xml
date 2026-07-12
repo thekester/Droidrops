@@ -88,7 +88,6 @@
     <string name="http_error_5XX">HTTP 错误 %1$d，服务器错误</string>
     <string name="http_error">HTTP 错误 %1$d</string>
     <string name="open_source_libraries">开放源代码库</string>
-    <string name="make_donation">捐赠</string>
     <string name="other_accounts">其他账号</string>
     <string name="rename_account">重命名账号</string>
     <string name="preferences">首选项</string>
@@ -114,9 +113,6 @@
     <string name="report_error_github">在 GitHub 上报告错误</string>
     <string name="copy_error_clipboard">将错误消息复制到剪贴板</string>
     <string name="copied">已复制！</string>
-    <string name="bitcoin_copy_address">比特币（复制地址）</string>
-    <string name="litecoin_copy_address">莱特币（复制地址）</string>
-    <string name="donation_text">如果您发现我的工作很有用并且愿意支持我，您可以考虑向我捐款。</string>
     <string name="provide_full_url">请提供完整的 API URL</string>
     <string name="provide_root_url">请提供服务根 URL</string>
     <string name="identifier">标识符</string>

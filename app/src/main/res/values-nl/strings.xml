@@ -86,8 +86,6 @@
     <string name="mark_all_articles_read">Alle artikelen markeren als gelezen</string>
     <string name="mark_all_articles_read_question">Weet je zeker dat je alle items als gelezen wilt markeren?</string>
     <string name="readrops_crashed">Droidrops is gecrasht.</string>
-    <string name="bitcoin_copy_address">Bitcoin (adres kopiëren)</string>
-    <string name="litecoin_copy_address">Litecoin (adres kopiëren)</string>
     <string name="add_feed">Feed toevoegen</string>
     <string name="account_url">Account-url</string>
     <string name="edit_folder">Map bewerken</string>
@@ -109,7 +107,6 @@
     <string name="filters">Filters</string>
     <string name="http_error">Http-fout %1$d</string>
     <string name="feed_url_read_only">De api heeft geen ondersteuning voor het aanpassen van feedurl\'s</string>
-    <string name="make_donation">Doneren</string>
     <string name="other_accounts">Andere accounts</string>
     <string name="rename_account">Accountnaam wĳzigen</string>
     <string name="name">Naam</string>
@@ -125,7 +122,6 @@
     <string name="report_error_github">Melden op GitHub</string>
     <string name="copy_error_clipboard">Foutmelding kopiëren naar klembord</string>
     <string name="copied">Gekopieerd!</string>
-    <string name="donation_text">Als je mijn werk waardeert en me wilt ondersteunen, overweeg dan een donatie te doen.</string>
     <string name="downloaded_file">Het bestand is gedownload!</string>
     <string name="provide_full_url">Voer de volledige api-url in</string>
     <string name="provide_root_url">Voer de volledige hoofd-url in</string>

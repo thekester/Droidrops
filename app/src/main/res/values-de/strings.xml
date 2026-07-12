@@ -122,7 +122,6 @@
     <string name="mark_items_read_on_scroll">Einträge während des Scrollens als gelesen markieren</string>
     <string name="filters">Filter</string>
     <string name="details">Details</string>
-    <string name="make_donation">Eine Spende machen</string>
     <string name="hide_feeds_subtitle">Feeds, die keine ungelesenen Artikel mehr enthalten, werden in der Seitenleiste versteckt</string>
     <string name="regular">Regulär</string>
     <string name="large">Groß</string>
@@ -133,7 +132,6 @@
     <string name="crash_message">Wenn dieser Fehler angezeigt wird bedeutet das, dass die App auf einen unerwarteten Fehler gestoßen ist. Sofern möglich bitte den Fehler auf Github melden.</string>
     <string name="report_error_github">Den Fehler auf Github melden</string>
     <string name="copy_error_clipboard">Fehler in die Zwischenablage kopieren</string>
-    <string name="donation_text">Wenn du meine Arbeit nützlich findest und mich unterstützen möchtest, kannst du mir eine Spende zukommen lassen.</string>
     <string name="downloaded_file">Datei heruntergeladen!</string>
     <string name="delete_folder_question">Möchten Sie den Ordner %1$s löschen? Alle verknüpften Feeds werden ebenfalls gelöscht.</string>
     <string name="system_notifications_disabled">Systembenachrichtigungen sind derzeit deaktiviert. Hier klicken, um sie zu aktivieren</string>
@@ -169,8 +167,6 @@
     <string name="external">Extern</string>
     <string name="readrops_crashed">Droidrops ist abgestürzt.</string>
     <string name="copied">Kopiert!</string>
-    <string name="bitcoin_copy_address">Bitcoin (Adresse kopieren)</string>
-    <string name="litecoin_copy_address">Litecoin (Adresse kopieren)</string>
     <string name="provide_full_url">Bitte geben Sie die vollständige API-URL an</string>
     <string name="http_error_4XX">HTTP-Fehler %1$d, bitte überprüfe die Felder</string>
     <string name="http_error_5XX">HTTP-Fehler %1$d, Serverfehler</string>

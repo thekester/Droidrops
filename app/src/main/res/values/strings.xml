@@ -127,9 +127,10 @@
     <string name="enable_all">Enable all</string>
     <string name="disable_all">Disable all</string>
     <string name="open_source_libraries">Open source libraries</string>
-    <string name="make_donation">Make a donation</string>
     <string name="app_changelog_url" translatable="false">https://github.com/thekester/Droidrops/blob/develop/CHANGELOG.md</string>
     <string name="app_issues_url" translatable="false">https://github.com/thekester/Droidrops/issues</string>
+    <string name="privacy_policy_url" translatable="false">https://raw.githubusercontent.com/thekester/Droidrops/develop/PRIVACY_POLICY.md</string>
+    <string name="privacy_policy">Privacy policy</string>
     <string name="other_accounts">Other accounts</string>
     <string name="update">Update</string>
     <string name="rename_account">Rename account</string>
@@ -171,13 +172,6 @@
     <string name="report_error_github">Report the error on Github</string>
     <string name="copy_error_clipboard">Copy error to clipboard</string>
     <string name="copied">Copied!</string>
-    <string name="paypal" translatable="false">Paypal</string>
-    <string name="paypal_url" translatable="false">https://paypal.me/readropsapp</string>
-    <string name="bitcoin_address" translatable="false">bc1qlkzlcsvvtn3y6mek5umv5tc4ln09l64x6y42hr</string>
-    <string name="litecoin_address" translatable="false">MTuf45ZvxhMWWo4v8YBbFDTLsFcGtpcPNT</string>
-    <string name="bitcoin_copy_address">Bitcoin (copy address)</string>
-    <string name="litecoin_copy_address">Litecoin (copy address)</string>
-    <string name="donation_text">I you find my work useful and you would like to support me, you can consider making me a donation.</string>
     <string name="downloaded_file">Downloaded file!</string>
     <string name="provide_full_url">Please provide the full API URL</string>
     <string name="provide_root_url">Please provide the service root URL</string>

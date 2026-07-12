@@ -98,7 +98,6 @@
     <string name="unable_open_file">Incapaz de abrir o arquivo</string>
     <string name="http_error">Erro HTTP %1$d</string>
     <string name="updating_account">Conta de atualização %1$s</string>
-    <string name="make_donation">Faça uma doação</string>
     <string name="name">Nome</string>
     <string name="url">URL</string>
     <string name="preferences">Preferências</string>
@@ -154,7 +153,6 @@
     <string name="no_article">Sem artigos</string>
     <string name="delete_feed_question">Você quer excluir o feed %1$s?</string>
     <string name="mark_all_articles_read_question">Você realmente quer marcar todos os itens como lido?</string>
-    <string name="donation_text">Se você acha que o meu trabalho é útil e gostaria de me apoiar, você pode considerar fazer uma doação.</string>
     <string name="downloaded_file">Arquivo baixado!</string>
     <string name="descending">Descendente</string>
     <string name="ascending">Ascendente</string>
@@ -169,7 +167,6 @@
     <string name="identifier">Identificação</string>
     <string name="external_view">Vista externa</string>
     <string name="freshrss_delete_folder_question">Você quer excluir a pasta %1$s? Todos os feeds vinculados serão colocados na pasta padrão.</string>
-    <string name="litecoin_copy_address">Litecoin (copiar endereço)</string>
     <string name="reset">Redefinir</string>
     <string name="actions">Ações</string>
     <string name="load_color_new_favicon">Carregar cor de um novo favicon</string>
@@ -209,7 +206,6 @@
     <string name="report_error_github">Relatar o erro no Github</string>
     <string name="copy_error_clipboard">Copiar erro para a área de transferência</string>
     <string name="copied">Copiado!</string>
-    <string name="bitcoin_copy_address">Bitcoin (copiar endereço)</string>
     <string name="provide_full_url">Por favor, forneça a URL completa da API</string>
     <string name="provide_root_url">Por favor, forneça o URL raiz do serviço</string>
     <string name="use_custom_share_intent_tpl">Personalize o texto ao compartilhar em outros aplicativos</string>
