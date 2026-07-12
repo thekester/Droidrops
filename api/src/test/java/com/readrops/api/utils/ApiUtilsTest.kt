@@ -27,7 +27,14 @@ class ApiUtilsTest {
     fun md5hashTest() {
         val value = ApiUtils.md5hash("test")
 
-        assertEquals(value, "98f6bcd4621d373cade4e832627b4f6")
+        assertEquals("098f6bcd4621d373cade4e832627b4f6", value)
+    }
+
+    @Test
+    fun md5hashPreservesLeadingZerosTest() {
+        val value = ApiUtils.md5hash("user4013:pass4013")
+
+        assertEquals("0003296c0fa9a2bad56701b3fff82f21", value)
     }
 
     @Test

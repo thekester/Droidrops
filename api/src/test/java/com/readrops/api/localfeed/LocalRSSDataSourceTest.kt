@@ -72,7 +72,7 @@ class LocalRSSDataSourceTest : KoinTest {
         val feed = pair?.first!!
 
         assertEquals(feed.name, "Hacker News")
-        assertEquals(feed.url, "http://localhost:8080/rss")
+        assertEquals(feed.url, url.toString())
         assertEquals(feed.siteUrl, "https://news.ycombinator.com/")
         assertEquals(feed.description, "Links for the intellectually curious, ranked by readers.")
 
@@ -123,8 +123,8 @@ class LocalRSSDataSourceTest : KoinTest {
 
         val pair = localRSSDataSource.queryRSSResource(url.toString(), null)!!
 
-        assertEquals(pair.first.url, "http://localhost:8080/rss")
-        assertEquals(pair.first.siteUrl, "http://localhost")
+        assertEquals(pair.first.url, url.toString())
+        assertEquals(pair.first.siteUrl, "${url.scheme}://${url.host}")
     }
 
     @Test
@@ -137,8 +137,8 @@ class LocalRSSDataSourceTest : KoinTest {
 
         val pair = localRSSDataSource.queryRSSResource(url.toString(), null)!!
 
-        assertEquals(pair.first.url, "http://localhost:8080/rss")
-        assertEquals(pair.first.siteUrl, "http://localhost")
+        assertEquals(pair.first.url, url.toString())
+        assertEquals(pair.first.siteUrl, "${url.scheme}://${url.host}")
     }
 
     @Test

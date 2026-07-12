@@ -25,6 +25,7 @@ import com.readrops.api.services.nextcloudnews.adapters.NextcloudNewsFoldersAdap
 import com.readrops.api.services.nextcloudnews.adapters.NextcloudNewsItemsAdapter
 import com.readrops.api.utils.AuthInterceptor
 import com.readrops.api.utils.ErrorInterceptor
+import com.readrops.api.utils.UserAgentInterceptor
 import com.readrops.db.entities.Item
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
@@ -41,10 +42,13 @@ val apiModule = module {
         OkHttpClient.Builder()
             .callTimeout(1, TimeUnit.MINUTES)
             .readTimeout(1, TimeUnit.MINUTES)
+            .addInterceptor(get<UserAgentInterceptor>())
             .addInterceptor(get<AuthInterceptor>())
             .addInterceptor(get<ErrorInterceptor>())
             .build()
     }
+
+    single { UserAgentInterceptor() }
 
     single { AuthInterceptor() }
 

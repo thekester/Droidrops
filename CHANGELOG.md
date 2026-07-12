@@ -1,3 +1,16 @@
+# v2.2.2
+
+This release focuses on stability, feed compatibility, and crash fixes.
+
+## Fixes
+
+- Fix RSS article opening errors when a feed exposes non-web links (#353)
+- Fix crash when resuming the app from recent apps on some devices (#356)
+- Replace the default `okhttp` user agent with a neutral app-specific one to avoid server blocklists (#360)
+- Fix date parsing for RSS feeds using numeric timezone offsets like `+1300`
+- Preserve leading zeroes in MD5 hashes used by some authentication flows
+- Improve URL handling for local assets and other non-web intents
+
 # v2.1.1
 
 - Fix unclickable feeds at the bottom of the drawer  on long lists (#301)

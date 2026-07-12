@@ -17,9 +17,25 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.getSystemService
 import androidx.core.net.toUri
 
-fun Context.openUrl(url: String) = startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+private fun Uri.isWebUrl(): Boolean = scheme == "http" || scheme == "https"
+
+fun Context.openUrl(url: String) {
+    val uri = url.toUri()
+
+    if (!uri.isWebUrl()) {
+        return
+    }
+
+    startActivity(Intent(Intent.ACTION_VIEW, uri))
+}
 
 fun Context.openInCustomTab(url: String, theme: String?, color: Color) {
+    val uri = url.toUri()
+
+    if (!uri.isWebUrl()) {
+        return
+    }
+
     val colorScheme = when (theme) {
         "light" -> CustomTabsIntent.COLOR_SCHEME_LIGHT
         "dark" -> CustomTabsIntent.COLOR_SCHEME_DARK
@@ -37,7 +53,7 @@ fun Context.openInCustomTab(url: String, theme: String?, color: Color) {
         .setUrlBarHidingEnabled(true)
         .setColorScheme(colorScheme)
         .build()
-        .launchUrl(this, url.toUri())
+        .launchUrl(this, uri)
 }
 
 // TODO arbitrary value, we might want to use windowClasses in the future

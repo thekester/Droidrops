@@ -4,9 +4,9 @@ import android.annotation.SuppressLint
 import android.util.Log
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
+import java.time.ZonedDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
-import java.time.format.DateTimeFormatterBuilder
 import java.time.format.FormatStyle
 import java.util.Locale
 import java.util.TimeZone
@@ -15,31 +15,19 @@ object DateUtils {
 
     private val TAG = DateUtils::class.java.simpleName
 
-    /**
-     * Base of common RSS 2 date formats.
-     * Examples :
-     * Fri, 04 Jan 2019 22:21:46 GMT
-     * Fri, 04 Jan 2019 22:21:46 +0000
-     *
-     * Base pattern is "EEE, dd MMM yyyy HH:mm:ss" but as java.time android desugaring is very strict,
-     * using the date to guess the day of week prevents some parsing failures
-     */
-    private const val RSS_2_BASE_PATTERN = "dd MMM yyyy HH:mm:ss"
-
-    private const val GMT_PATTERN = "ZZZ"
-
-    private const val OFFSET_PATTERN = "Z"
-
-    private const val ISO_PATTERN = ".SSSZZ"
-
-    private const val EDT_PATTERN = "zzz"
-
-    private const val ZONE_OFFSET_PATTERN = ".SSSxxx"
-
-    /**
-     * Date pattern for format : 2019-01-04T22:21:46+00:00
-     */
-    private const val ATOM_JSON_DATE_FORMAT = "yyyy-MM-dd'T'HH:mm:ss"
+    private val dateFormatters = listOf(
+        DateTimeFormatter.RFC_1123_DATE_TIME,
+        DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss zzz", Locale.ENGLISH),
+        DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss Z", Locale.ENGLISH),
+        DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss XXX", Locale.ENGLISH),
+        DateTimeFormatter.ofPattern("dd MMM yyyy HH:mm:ss", Locale.ENGLISH),
+        DateTimeFormatter.ISO_OFFSET_DATE_TIME,
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSXXX", Locale.ENGLISH),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSZ", Locale.ENGLISH),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssXXX", Locale.ENGLISH),
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssZ", Locale.ENGLISH),
+        DateTimeFormatter.ISO_LOCAL_DATE_TIME,
+    )
 
     val defaultOffset: ZoneOffset
         get() = OffsetDateTime.now(TimeZone.getDefault().toZoneId())
@@ -57,32 +45,35 @@ object DateUtils {
             return LocalDateTime.now()
         }
 
-        // RSS2 base pattern, we remove the day of week to avoid some parsing failures
-        // from java.time android desugaring version
-        val formattedValue = if (value.contains(",") == true) {
-            value.removeRange(0..4)
-        } else {
-            value
+        val formattedValues = buildList {
+            add(value.trim())
+            if (value.contains(",")) {
+                add(value.substringAfter(",").trim())
+            }
         }
 
-        return try {
-            val formatter = DateTimeFormatterBuilder()
-                .appendOptional(DateTimeFormatter.ofPattern("$RSS_2_BASE_PATTERN ")) // with timezone
-                .appendOptional(DateTimeFormatter.ofPattern(RSS_2_BASE_PATTERN)) // no timezone, important order here
-                .appendOptional(DateTimeFormatter.ofPattern(ATOM_JSON_DATE_FORMAT))
-                .appendOptional(DateTimeFormatter.ofPattern(EDT_PATTERN))
-                .appendOptional(DateTimeFormatter.ofPattern(ZONE_OFFSET_PATTERN))
-                .appendOptional(DateTimeFormatter.ofPattern(GMT_PATTERN))
-                .appendOptional(DateTimeFormatter.ofPattern(OFFSET_PATTERN))
-                .appendOptional(DateTimeFormatter.ofPattern(ISO_PATTERN))
-                .toFormatter()
-                .withLocale(Locale.ENGLISH)
+        for (formattedValue in formattedValues) {
+            for (formatter in dateFormatters) {
+                val parsed = runCatching {
+                    formatter.parseBest(
+                        formattedValue,
+                        ZonedDateTime::from,
+                        OffsetDateTime::from,
+                        LocalDateTime::from
+                    )
+                }.getOrNull() ?: continue
 
-            LocalDateTime.from(formatter.parse(formattedValue))
-        } catch (e: Exception) {
-            Log.e(TAG, "Unable to parse $formattedValue: ${e.message}")
-            LocalDateTime.now()
+                return when (parsed) {
+                    is ZonedDateTime -> parsed.toLocalDateTime()
+                    is OffsetDateTime -> parsed.toLocalDateTime()
+                    is LocalDateTime -> parsed
+                    else -> continue
+                }
+            }
         }
+
+        Log.e(TAG, "Unable to parse $value")
+        return LocalDateTime.now()
     }
 
     /**

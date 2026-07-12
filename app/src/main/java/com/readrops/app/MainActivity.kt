@@ -97,7 +97,7 @@ class MainActivity : ComponentActivity(), KoinComponent {
                         disposeBehavior = NavigatorDisposeBehavior(
                             // prevent screenModels being recreated when opening a screen from a tab
                             disposeNestedNavigators = false,
-                            disposeSteps = false
+                            disposeSteps = true
                         )
                     ) { navigator ->
                         LaunchedEffect(Unit) {

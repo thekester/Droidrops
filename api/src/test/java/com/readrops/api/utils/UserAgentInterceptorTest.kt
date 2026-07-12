@@ -1,8 +1,6 @@
 package com.readrops.api.utils
 
-import com.readrops.api.services.greader.GReaderCredentials
 import junit.framework.TestCase.assertEquals
-import junit.framework.TestCase.assertNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.mockwebserver.MockResponse
@@ -11,9 +9,9 @@ import org.junit.After
 import org.junit.Before
 import org.junit.Test
 
-class AuthInterceptorTest {
+class UserAgentInterceptorTest {
 
-    private val interceptor = AuthInterceptor()
+    private val interceptor = UserAgentInterceptor()
     private val mockServer = MockWebServer()
     private lateinit var okHttpClient: OkHttpClient
 
@@ -29,25 +27,12 @@ class AuthInterceptorTest {
     }
 
     @Test
-    fun credentialsUrlTest() {
+    fun userAgentIsCustomTest() {
         mockServer.enqueue(MockResponse())
-        interceptor.credentials = GReaderCredentials("token", mockServer.url("/rss").toString())
 
         okHttpClient.newCall(Request.Builder().url(mockServer.url("/url")).build()).execute()
         val request = mockServer.takeRequest()
 
-        assertEquals(request.headers["Authorization"], "GoogleLogin auth=token")
-    }
-
-    @Test
-    fun nullCredentialsTest() {
-        mockServer.enqueue(MockResponse())
-        interceptor.credentials = null
-
-        okHttpClient.newCall(Request.Builder().url(mockServer.url("/url")).build()).execute()
-        val request = mockServer.takeRequest()
-
-        assertEquals(request.requestUrl.toString(), mockServer.url("/url").toString())
-        assertNull(request.headers["Authorization"])
+        assertEquals("Readrops Android", request.headers["User-Agent"])
     }
 }

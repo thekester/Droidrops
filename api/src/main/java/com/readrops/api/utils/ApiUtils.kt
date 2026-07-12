@@ -48,7 +48,7 @@ object ApiUtils {
         val bytes = MessageDigest.getInstance("MD5")
                 .digest(value.toByteArray())
 
-        return BigInteger(1, bytes).toString(16)
+        return BigInteger(1, bytes).toString(16).padStart(32, '0')
     }
 
     fun handleRssSpecialCases(url: String): String {
