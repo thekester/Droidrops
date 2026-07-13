@@ -13,12 +13,23 @@
 
 ## F-Droid
 
-- Keep the source public and tag the release.
-- Publish the corresponding source code for each binary release.
-- Prefer a package name that is unique and clearly tied to the fork.
-- Keep the app free of proprietary dependencies and tracking SDKs.
-- Provide the build instructions used by the repo.
-- Make the fork identity clear in the metadata and description.
+- F-Droid needs a public source repo, a FOSS license, FOSS dependencies, and a release tag for the version you want to publish.
+- Forks must have a distinct Android application id, and the name/icon/string changes should clearly identify the fork.
+- The upstream source repo should contain the store metadata files in `fastlane/metadata/android/en-US/`.
+- The actual package submission lives in the separate `fdroiddata` repo on GitLab, not in this app repo.
+- Use the helper script to automate the repeatable parts:
+  - `.\scripts\prepare-fdroid-release.ps1`
+  - It rebuilds the release APK.
+  - It writes a metadata template to `build/fdroid/metadata/com.droidrops.app.yml`.
+  - It writes a release report with the commit, expected tag, APK path, and SHA-256.
+
+Manual steps that still need you:
+
+1. Create and push the release tag if it does not already exist, for example `v2.2.3`.
+2. Go to `https://gitlab.com/fdroid/fdroiddata`.
+3. Create or update `metadata/com.droidrops.app.yml` from the generated template in `build/fdroid/metadata/`.
+4. Run `fdroid lint com.droidrops.app` and `fdroid build com.droidrops.app` in `fdroiddata` to validate the recipe.
+5. Open the merge request in `fdroiddata` and respond to maintainer feedback.
 
 ## Notes
 
