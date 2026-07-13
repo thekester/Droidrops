@@ -22,14 +22,18 @@
   - It rebuilds the release APK.
   - It writes a metadata template to `build/fdroid/metadata/com.droidrops.app.yml`.
   - It writes a release report with the commit, expected tag, APK path, and SHA-256.
+- Use the publish script when you want to push the metadata to your GitLab fork and open the merge request automatically:
+  - `.\scripts\publish-fdroid-release.ps1`
+  - It uses `GITLAB_TOKEN` or `-GitLabToken`.
+  - It creates a branch in your fork, uploads `metadata/com.droidrops.app.yml`, and opens the MR against `fdroid/fdroiddata`.
+- Use the status helper if you want a quick read on the local `fdroiddata` checkout:
+  - `.\scripts\fdroiddata-status.ps1`
 
 Manual steps that still need you:
 
-1. Create and push the release tag if it does not already exist, for example `v2.2.3`.
-2. Go to `https://gitlab.com/fdroid/fdroiddata`.
-3. Create or update `metadata/com.droidrops.app.yml` from the generated template in `build/fdroid/metadata/`.
-4. Run `fdroid lint com.droidrops.app` and `fdroid build com.droidrops.app` in `fdroiddata` to validate the recipe.
-5. Open the merge request in `fdroiddata` and respond to maintainer feedback.
+1. Make sure the release tag exists in the source repo, for example `v2.2.3`.
+2. If you use `publish-fdroid-release.ps1`, review the merge request it creates and respond to maintainer feedback.
+3. If you submit manually instead, go to `https://gitlab.com/fdroid/fdroiddata`, copy the generated `metadata/com.droidrops.app.yml`, run `fdroid lint com.droidrops.app` and `fdroid build com.droidrops.app`, then open the merge request yourself.
 
 ## Notes
 
