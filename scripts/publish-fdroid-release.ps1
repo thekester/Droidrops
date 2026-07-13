@@ -260,17 +260,37 @@ Set-GitLabRepositoryFile -ProjectId $forkProject.id -BranchName $branchName -Fil
 $mrUrl = $null
 if (-not $SkipMergeRequest) {
     Write-Host 'Stage: merge request'
-    $title = "Droidrops $versionName F-Droid metadata"
+    $title = 'New app: Droidrops'
     $description = @"
-Automated F-Droid submission for Droidrops $versionName.
+Please remove above lines!
 
-Release summary from `build/fdroid/release-info.txt`:
-```
+## Required
+
+* [x] The app complies with the [inclusion criteria](https://f-droid.org/docs/Inclusion_Policy)
+* [x] The original app author has been notified (and does not oppose the inclusion)
+* [x] All related [fdroiddata](https://gitlab.com/fdroid/fdroiddata/issues) and [RFP issues](https://gitlab.com/fdroid/rfp/issues) have been referenced in this merge request
+* [ ] Builds with `fdroid build` and all pipelines pass
+* [x] There is an issue tracker and contact info of the author so that we can report bugs and contact the author.
+
+## Strongly Recommended
+
+* [x] The upstream app source code repo contains the app metadata in a [Fastlane](https://gitlab.com/snippets/1895688) or [Triple-T](https://gitlab.com/snippets/1901490) folder structure
+* [x] Releases are tagged and auto update is enabled
+
+## Suggested
+
+* [ ] External repos are added as git submodules instead of srclibs
+* [ ] Enable [Reproducible Builds](https://f-droid.org/docs/Reproducible_Builds)
+* [ ] Multiple apks for native code
+
+Release summary:
+```text
 $releaseInfo
 ```
 
-    This branch only contains the metadata file for fdroiddata.
-    Tag expected in source repo: $versionTag
+Tag expected in source repo: $versionTag
+
+This branch only contains the metadata file for fdroiddata.
 "@
 
     $existingMr = Get-OpenMergeRequest -TargetProjectId $upstreamProject.id -SourceProjectId $forkProject.id -SourceBranch $branchName -TargetBranch $upstreamProject.default_branch
@@ -282,7 +302,7 @@ $releaseInfo
             $mrUrl = $mr.web_url
         } catch {
             if ($_.Exception.Response -and $_.Exception.Response.StatusCode.value__ -eq 403) {
-                $mrUrl = "https://gitlab.com/$UpstreamProjectPath/-/merge_requests/new?merge_request%5Bsource_project_id%5D=$($forkProject.id)&merge_request%5Bsource_branch%5D=$([uri]::EscapeDataString($branchName))&merge_request%5Btarget_branch%5D=$([uri]::EscapeDataString($upstreamProject.default_branch))"
+                $mrUrl = "https://gitlab.com/$ForkProjectPath/-/merge_requests/new?merge_request%5Bsource_branch%5D=$([uri]::EscapeDataString($branchName))&merge_request%5Btarget_project_id%5D=$($upstreamProject.id)&merge_request%5Btarget_branch%5D=$([uri]::EscapeDataString($upstreamProject.default_branch))"
             } else {
                 throw
             }
