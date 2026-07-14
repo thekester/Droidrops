@@ -47,7 +47,7 @@ function Get-HttpStatusCodeFromError {
 function Invoke-GitLabApi {
     param(
         [Parameter(Mandatory = $true)]
-        [ValidateSet('GET', 'POST', 'PUT')]
+        [ValidateSet('GET', 'POST', 'PUT', 'DELETE')]
         [string]$Method,
 
         [Parameter(Mandatory = $true)]
@@ -127,6 +127,50 @@ function Set-GitLabRepositoryFile {
     Send-GitLabMultipartFileRequest -Method $method -Uri $fileUri -BranchName $BranchName -CommitMessage $CommitMessage -Content $Content
 }
 
+function Normalize-LfContent {
+    param([Parameter(Mandatory = $true)][string]$Content)
+
+    return (($Content -replace "`r", "").TrimEnd("`n")) + "`n"
+}
+
+function Test-GitLabRepositoryFileExists {
+    param(
+        [Parameter(Mandatory = $true)][int]$ProjectId,
+        [Parameter(Mandatory = $true)][string]$BranchName,
+        [Parameter(Mandatory = $true)][string]$FilePath
+    )
+
+    $encodedPath = [uri]::EscapeDataString($FilePath)
+    $fileReadUri = "https://gitlab.com/api/v4/projects/$ProjectId/repository/files/${encodedPath}?ref=$([uri]::EscapeDataString($BranchName))"
+
+    try {
+        Invoke-GitLabApi -Method GET -Uri $fileReadUri | Out-Null
+        return $true
+    } catch {
+        if ((Get-HttpStatusCodeFromError -ErrorRecord $_) -eq 404) {
+            return $false
+        }
+        throw
+    }
+}
+
+function Remove-GitLabRepositoryFile {
+    param(
+        [Parameter(Mandatory = $true)][int]$ProjectId,
+        [Parameter(Mandatory = $true)][string]$BranchName,
+        [Parameter(Mandatory = $true)][string]$FilePath,
+        [Parameter(Mandatory = $true)][string]$CommitMessage
+    )
+
+    if (-not (Test-GitLabRepositoryFileExists -ProjectId $ProjectId -BranchName $BranchName -FilePath $FilePath)) {
+        return
+    }
+
+    $encodedPath = [uri]::EscapeDataString($FilePath)
+    $fileUri = "https://gitlab.com/api/v4/projects/$ProjectId/repository/files/${encodedPath}"
+    Invoke-GitLabApi -Method DELETE -Uri "${fileUri}?branch=$([uri]::EscapeDataString($BranchName))&commit_message=$([uri]::EscapeDataString($CommitMessage))" | Out-Null
+}
+
 function Send-GitLabMultipartFileRequest {
     param(
         [Parameter(Mandatory = $true)][ValidateSet('POST', 'PUT')][string]$Method,
@@ -144,10 +188,13 @@ function Send-GitLabMultipartFileRequest {
         try {
             $branchContent = [System.Net.Http.StringContent]::new($BranchName, [System.Text.Encoding]::UTF8)
             $commitContent = [System.Net.Http.StringContent]::new($CommitMessage, [System.Text.Encoding]::UTF8)
-            $fileContent = [System.Net.Http.StringContent]::new($Content, [System.Text.Encoding]::UTF8, 'text/plain')
+            $encodingContent = [System.Net.Http.StringContent]::new('base64', [System.Text.Encoding]::UTF8)
+            $fileBytes = [System.Text.Encoding]::UTF8.GetBytes($Content)
+            $fileContent = [System.Net.Http.StringContent]::new([Convert]::ToBase64String($fileBytes), [System.Text.Encoding]::UTF8, 'text/plain')
 
             $multipart.Add($branchContent, 'branch')
             $multipart.Add($commitContent, 'commit_message')
+            $multipart.Add($encodingContent, 'encoding')
             $multipart.Add($fileContent, 'content')
 
             switch ($Method) {
@@ -163,6 +210,7 @@ function Send-GitLabMultipartFileRequest {
             $multipart.Dispose()
             $branchContent.Dispose()
             $commitContent.Dispose()
+            $encodingContent.Dispose()
             $fileContent.Dispose()
         }
     } finally {
@@ -211,8 +259,8 @@ function Get-FdroidMergeRequestBody {
         [Parameter(Mandatory = $true)][string]$VersionName,
         [Parameter(Mandatory = $true)][string]$VersionTag,
         [Parameter(Mandatory = $true)][string]$ReleaseInfo,
-        [Parameter(Mandatory = $true)][string]$RfpIssueNumber,
-        [Parameter(Mandatory = $true)][string]$FdroiddataIssueNumber
+        [string]$RfpIssueNumber,
+        [string]$FdroiddataIssueNumber
     )
 
     $lines = @(
@@ -248,7 +296,7 @@ function Get-FdroidMergeRequestBody {
         $ReleaseInfo
         '```'
         ''
-        'This branch only contains the metadata file for fdroiddata.'
+        'This branch only contains the metadata file for fdroiddata. Summary and description are maintained in the source repo fastlane metadata.'
     )
 
     if (-not [string]::IsNullOrWhiteSpace($RfpIssueNumber) -or -not [string]::IsNullOrWhiteSpace($FdroiddataIssueNumber)) {
@@ -319,10 +367,11 @@ if ($null -eq $existingBranch) {
 }
 
 Write-Host 'Stage: upload metadata'
-$metadataContent = Get-Content -Raw -Path $MetadataPath
+$metadataContent = Normalize-LfContent -Content (Get-Content -Raw -Path $MetadataPath)
 $releaseInfo = Get-Content -Raw -Path $ReleaseInfoPath
 $metadataCommitMessage = "Add F-Droid metadata for Droidrops $versionName"
 Set-GitLabRepositoryFile -ProjectId $forkProject.id -BranchName $branchName -FilePath "metadata/$metadataFileName" -Content $metadataContent -CommitMessage $metadataCommitMessage
+Remove-GitLabRepositoryFile -ProjectId $forkProject.id -BranchName $branchName -FilePath 'metadata/com.droidrops.app/en-US/summary.txt' -CommitMessage $metadataCommitMessage
 
 $mrUrl = $null
 if (-not $SkipMergeRequest) {

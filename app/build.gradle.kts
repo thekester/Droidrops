@@ -14,9 +14,33 @@ val props = Properties().apply {
     }
 }
 
+fun readProperty(name: String): String? = props.getProperty(name)?.trim()?.takeIf { it.isNotEmpty() }
+
+val releaseStoreFile = readProperty("release.storeFile")
+val releaseStorePassword = readProperty("release.storePassword")
+val releaseKeyAlias = readProperty("release.keyAlias")
+val releaseKeyPassword = readProperty("release.keyPassword")
+val hasReleaseSigningConfig = listOf(
+    releaseStoreFile,
+    releaseStorePassword,
+    releaseKeyAlias,
+    releaseKeyPassword
+).all { !it.isNullOrBlank() }
+
 
 android {
     namespace = "com.readrops.app"
+
+    if (hasReleaseSigningConfig) {
+        signingConfigs {
+            create("release") {
+                storeFile = rootProject.file(releaseStoreFile!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
+        }
+    }
 
     defaultConfig {
         applicationId = "com.droidrops.app"
@@ -31,6 +55,10 @@ android {
         release {
             isMinifyEnabled = true
             isShrinkResources = true
+
+            if (hasReleaseSigningConfig) {
+                signingConfig = signingConfigs.getByName("release")
+            }
 
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

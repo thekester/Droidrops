@@ -16,6 +16,10 @@
 - F-Droid needs a public source repo, a FOSS license, FOSS dependencies, and a release tag for the version you want to publish.
 - Forks must have a distinct Android application id, and the name/icon/string changes should clearly identify the fork.
 - The upstream source repo should contain the store metadata files in `fastlane/metadata/android/en-US/`.
+- F-Droid pulls the summary and description from that Fastlane metadata, so do not duplicate them in `fdroiddata`.
+- If you want a reproducible-build submission with `Binaries` and `AllowedAPKSigningKeys`, keep a release signing key for the fork and back it up safely.
+- In that setup, also upload the signed release APK to the matching GitHub release tag so `Binaries` can point to it.
+- When generating that signed release APK, use `apksigner --alignment-preserved`; a plain re-sign rewrites ZIP layout and breaks F-Droid reproducibility.
 - The actual package submission lives in the separate `fdroiddata` repo on GitLab, not in this app repo.
 - Use the helper script to automate the repeatable parts:
   - `.\scripts\prepare-fdroid-release.ps1`
