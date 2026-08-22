@@ -82,4 +82,17 @@ class ATOMAdapterTest {
             assertEquals("https://i3.ytimg.com/vi/.../hqdefault.jpg", imageLink)
         }
     }
+
+    /**
+     * Feeds pretty printed by static site generators wrap long titles over several lines.
+     * Keeping them raw pushed the line breaks into the timeline, so titles are normalized
+     * the same way in every format.
+     */
+    @Test
+    fun multilineTitleTest() {
+        val stream = TestUtils.loadResource("localfeed/atom/atom_items_multiline_title.xml")
+        val item = adapter.fromXml(stream.konsumeXml()).second[0]
+
+        TestCase.assertEquals("A title written across several lines", item.title)
+    }
 }

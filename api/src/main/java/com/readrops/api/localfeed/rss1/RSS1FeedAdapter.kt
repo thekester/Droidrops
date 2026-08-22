@@ -11,6 +11,7 @@ import com.readrops.api.utils.extensions.nonNullText
 import com.readrops.api.utils.extensions.nullableText
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Item
+import com.readrops.api.utils.ApiUtils
 
 class RSS1FeedAdapter : XmlAdapter<Pair<Feed, List<Item>>> {
 
@@ -47,7 +48,7 @@ class RSS1FeedAdapter : XmlAdapter<Pair<Feed, List<Item>>> {
         allChildrenAutoIgnore(names) {
             with(feed) {
                 when (tagName) {
-                    "title" -> name = nonNullText()
+                    "title" -> name = ApiUtils.cleanText(nonNullText())
                     "link" -> siteUrl = nonNullText()
                     "description" -> description = nullableText()
                     "image" -> imageUrl = attributes.getValueOrNull(

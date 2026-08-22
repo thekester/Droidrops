@@ -13,6 +13,7 @@ import com.readrops.db.entities.Item
 import com.readrops.db.entities.Tag
 import com.readrops.db.util.DateUtils
 import java.time.LocalDateTime
+import com.readrops.api.utils.ApiUtils
 
 class RSS1ItemAdapter : XmlAdapter<Item> {
 
@@ -29,7 +30,7 @@ class RSS1ItemAdapter : XmlAdapter<Item> {
         return item.apply {
             konsumer.allChildrenAutoIgnore(names) {
                 when (tagName) {
-                    "title" -> title = nonNullText()
+                    "title" -> title = ApiUtils.cleanText(nonNullText())
                     "link" -> link = nullableText()
                     "dc:date" -> pubDate = DateUtils.parse(nullableText())
                     "dc:creator" -> authors += nullableText()

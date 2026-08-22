@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+    <title>Pretty printed feed</title>
+    <entry>
+        <title>
+            A title written across
+            several lines
+        </title>
+        <link rel="alternate" href="https://example.org/entry"/>
+        <updated>2020-08-05T14:03:48Z</updated>
+    </entry>
+</feed>

@@ -11,6 +11,7 @@ import com.squareup.moshi.JsonAdapter
 import com.squareup.moshi.JsonReader
 import com.squareup.moshi.JsonWriter
 import java.time.LocalDateTime
+import com.readrops.api.utils.ApiUtils
 
 class JSONItemsAdapter : JsonAdapter<List<Item>>() {
 
@@ -35,7 +36,7 @@ class JSONItemsAdapter : JsonAdapter<List<Item>>() {
                     when (selectName(names)) {
                         0 -> remoteId = nextNonEmptyString()
                         1 -> link = nextNonEmptyString()
-                        2 -> title = nextNonEmptyString()
+                        2 -> title = ApiUtils.cleanText(nextNonEmptyString())
                         3 -> contentHtml = nextNullableString()
                         4 -> contentText = nextNullableString()
                         5 -> description = nextNullableString()

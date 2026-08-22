@@ -11,6 +11,7 @@ import com.readrops.api.utils.extensions.nonNullText
 import com.readrops.api.utils.extensions.nullableText
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Item
+import com.readrops.api.utils.ApiUtils
 
 class ATOMFeedAdapter : XmlAdapter<Pair<Feed, List<Item>>> {
 
@@ -25,7 +26,7 @@ class ATOMFeedAdapter : XmlAdapter<Pair<Feed, List<Item>>> {
                 it.allChildrenAutoIgnore(names) {
                     with(feed) {
                         when (tagName) {
-                            "title" -> name = nonNullText()
+                            "title" -> name = ApiUtils.cleanText(nonNullText())
                             "link" -> parseLink(this@allChildrenAutoIgnore, feed)
                             "subtitle" -> description = nullableText()
                             "logo" -> imageUrl = nullableText()
