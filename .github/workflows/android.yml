@@ -13,8 +13,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    env:
-      CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
 
     steps:
       - uses: actions/checkout@v7
@@ -45,7 +43,6 @@ jobs:
             adb shell pm grant com.droidrops.app android.permission.POST_NOTIFICATIONS
             ./gradlew connectedCheck jacocoFullReport -PwarningsAsErrors=true
       - name: Upload coverage to Codecov
-        if: ${{ env.CODECOV_TOKEN != '' }}
         uses: codecov/codecov-action@v7
         with:
           files: ./build/reports/jacoco/jacocoFullReport/jacocoFullReport.xml
