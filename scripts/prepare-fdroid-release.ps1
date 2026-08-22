@@ -181,7 +181,7 @@ $hasReleaseSigningConfig = -not [string]::IsNullOrWhiteSpace($releaseStoreFile) 
     -not [string]::IsNullOrWhiteSpace($releaseKeyPassword)
 
 Write-Host "Building release APK for $applicationId $versionName ($versionCode)"
-& .\gradlew.bat :app:assembleRelease --no-daemon
+& .\gradlew.bat :app:assembleRelease --no-daemon -PfdroidUnsigned=true
 
 $apkUnsignedSource = Join-Path $repoRoot 'app/build/outputs/apk/release/app-release-unsigned.apk'
 $apkSignedSource = Join-Path $repoRoot 'app/build/outputs/apk/release/app-release.apk'

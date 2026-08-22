@@ -26,12 +26,14 @@ val hasReleaseSigningConfig = listOf(
     releaseKeyAlias,
     releaseKeyPassword
 ).all { !it.isNullOrBlank() }
+val fdroidUnsigned = providers.gradleProperty("fdroidUnsigned").orNull == "true"
+val useReleaseSigningConfig = hasReleaseSigningConfig && !fdroidUnsigned
 
 
 android {
     namespace = "com.readrops.app"
 
-    if (hasReleaseSigningConfig) {
+    if (useReleaseSigningConfig) {
         signingConfigs {
             create("release") {
                 storeFile = rootProject.file(releaseStoreFile!!)
@@ -61,7 +63,7 @@ android {
                 debugSymbolLevel = "FULL"
             }
 
-            if (hasReleaseSigningConfig) {
+            if (useReleaseSigningConfig) {
                 signingConfig = signingConfigs.getByName("release")
             }
 
