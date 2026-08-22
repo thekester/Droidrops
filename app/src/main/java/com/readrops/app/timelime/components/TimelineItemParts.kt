@@ -165,7 +165,7 @@ fun LargeTimelineItem(
 ) {
     val displayColor = itemWithFeed.displayColor(CardDefaults.cardColors().containerColor.toArgb())
 
-    if (itemWithFeed.item.cleanDescription == null && !itemWithFeed.item.hasImage) {
+    if (itemWithFeed.item.cleanDescription.isNullOrBlank() && !itemWithFeed.item.hasImage) {
         RegularTimelineItem(
             itemWithFeed = itemWithFeed,
             onClick = onClick,
@@ -205,11 +205,11 @@ fun LargeTimelineItem(
                     ShortSpacer()
 
                     TimelineItemTitle(
-                title = itemWithFeed.item.title!!,
-                isRead = itemWithFeed.isRead
-            )
+                        title = itemWithFeed.item.title!!,
+                        isRead = itemWithFeed.isRead
+                    )
 
-                    if (itemWithFeed.item.cleanDescription != null) {
+                    if (!itemWithFeed.item.cleanDescription.isNullOrBlank()) {
                         ShortSpacer()
 
                         Text(

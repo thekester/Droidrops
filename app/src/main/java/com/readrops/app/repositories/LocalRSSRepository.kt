@@ -147,13 +147,15 @@ class LocalRSSRepository(
         for (item in items) {
             if (!database.itemDao().itemExists(item.remoteId!!, feed.accountId)) {
                 if (item.description != null) {
-                    item.cleanDescription = Jsoup.parse(item.description!!).text()
+                    // a description made only of markup, a lone image for instance, strips down
+                    // to an empty string: storing null keeps it out of the layout entirely
+                    item.cleanDescription = Jsoup.parse(item.description!!).text().ifBlank { null }
                 }
 
                 if (item.content != null) {
                     item.readTime = Utils.readTimeFromString(item.content!!)
-                } else if (item.description != null) {
-                    item.readTime = Utils.readTimeFromString(item.cleanDescription!!)
+                } else {
+                    item.cleanDescription?.let { item.readTime = Utils.readTimeFromString(it) }
                 }
 
                 item.feedId = feed.id
