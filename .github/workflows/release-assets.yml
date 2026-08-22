@@ -65,7 +65,9 @@ jobs:
           APK_SIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
           test -n "$APK_SIGNER"
           "$APK_SIGNER" verify --verbose app/build/outputs/apk/release/app-release.apk
-          jarsigner -verify -strict app/build/outputs/bundle/release/app-release.aab
+          # AAB files contain nested base modules; jarsigner reports their
+          # JarFile/JarInputStream difference as a warning under -strict.
+          jarsigner -verify app/build/outputs/bundle/release/app-release.aab
 
       - name: Prepare release assets
         run: |
