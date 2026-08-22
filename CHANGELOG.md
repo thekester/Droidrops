@@ -1,3 +1,13 @@
+# v2.2.4
+
+This release fixes synchronization after server-side category changes and new feed subscriptions.
+
+## Fixes
+
+- Keep the local category and timeline filter when a category is renamed on the server
+- Refresh newly subscribed feeds and their existing posts immediately
+- Prevent duplicate posts when a newly subscribed feed is returned by the next synchronization
+
 # v2.2.3
 
 This release rebrands the fork as Droidrops and keeps the recent stability fixes.

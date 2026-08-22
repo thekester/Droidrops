@@ -1,0 +1,3 @@
+Fix synchronization after server-side category renames.
+Refresh newly subscribed feeds and their existing posts immediately.
+Prevent duplicate posts during the next synchronization.
