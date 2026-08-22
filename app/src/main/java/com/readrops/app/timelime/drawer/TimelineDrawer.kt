@@ -186,7 +186,7 @@ fun DrawerDefaultItems(
     NavigationDrawerItem(
         label = {
             Text(
-                "${stringResource(id = R.string.new_articles)} (${
+                "${stringResource(id = R.string.last_24_hours)} (${
                     stringResource(
                         id = R.string.unread,
                         unreadNewItemsCount

@@ -36,6 +36,8 @@ import com.readrops.app.item.view.ItemNestedScrollView
 import com.readrops.app.item.view.ItemWebView
 import com.readrops.app.util.extensions.displayColor
 import com.readrops.db.pojo.ItemWithFeed
+import androidx.compose.ui.res.stringResource
+import com.readrops.app.R
 
 @Composable
 fun ItemScreenPage(
@@ -47,6 +49,7 @@ fun ItemScreenPage(
     onSetStarState: (Boolean) -> Unit,
     onOpenImageDialog: (String) -> Unit,
     onPop: () -> Unit,
+    openVideosInYoutube: Boolean,
     modifier: Modifier = Modifier
 ) {
     val item = itemWithFeed.item
@@ -121,7 +124,7 @@ fun ItemScreenPage(
                                 ) {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                        contentDescription = null,
+                                        contentDescription = stringResource(R.string.back),
                                     )
                                 }
 
@@ -145,7 +148,8 @@ fun ItemScreenPage(
                             itemWithFeed = itemWithFeed,
                             accentColor = accentColor,
                             backgroundColor = backgroundColor,
-                            onBackgroundColor = onBackgroundColor
+                            onBackgroundColor = onBackgroundColor,
+                            openVideosInYoutube = openVideosInYoutube
                         )
 
                         refreshAndroidView = false

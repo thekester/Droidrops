@@ -185,7 +185,7 @@
     <string name="choose_folder">Choose a folder</string>
     <string name="selected">(%1$s selected)</string>
     <string name="add_selected_feeds">Add %1$s selected feeds</string>
-    <string name="enter_url">Enter an URL</string>
+    <string name="enter_url">Website or feed URL</string>
     <string name="feed_already_exists">Feed already exists</string>
     <string name="invalid_folder">Invalid folder</string>
     <string name="invalid_feed">Invalid feed</string>
@@ -236,4 +236,27 @@
     <string name="no_network">No network connection available</string>
     <string name="empty_file">File is empty</string>
     <string name="color_contrast_too_low">Contrast with background is too low. The default color will be used instead when using this theme.</string>
+    <string name="show_password">Show password</string>
+    <string name="hide_password">Hide password</string>
+    <string name="expand_all_folders">Expand all folders</string>
+    <string name="collapse_all_folders">Collapse all folders</string>
+    <string name="expand_folder">Expand folder</string>
+    <string name="collapse_folder">Collapse folder</string>
+    <string name="remove_from_favorite">Remove from favorites</string>
+    <string name="clear">Clear</string>
+    <string name="open_navigation_menu">Open navigation menu</string>
+    <string name="more_options">More options</string>
+    <string name="source_code">Source code</string>
+    <string name="changelog">Changelog</string>
+    <string name="report_a_bug">Report a bug</string>
+    <string name="more_information">More information</string>
+    <string name="enter_url_helper">Paste a website address and Droidrops will find its feeds for you.</string>
+    <string name="learn_more_about">What is %1$s?</string>
+    <string name="link_not_supported">This link type is not supported</string>
+    <string name="no_app_to_open_link">No app available to open this link</string>
+    <string name="last_24_hours">Last 24 hours</string>
+    <string name="feed_provides_no_content">This feed only links to the article, it does not include its text.</string>
+    <string name="open_original_article">Open the original article</string>
+    <string name="open_videos_in_youtube">Open videos in YouTube</string>
+    <string name="watch_on_youtube">Watch on YouTube</string>
 </resources>

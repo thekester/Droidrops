@@ -71,7 +71,7 @@ class PreferencesScreen : AndroidScreen() {
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.back)
                             )
                         }
                     }
@@ -163,12 +163,18 @@ class PreferencesScreen : AndroidScreen() {
                                 title = stringResource(R.string.synchronize_at_launch)
                             )
 
+                            SwitchPreferenceWidget(
+                                preference = loadedState.openVideosInYoutube.second,
+                                isChecked = loadedState.openVideosInYoutube.first,
+                                title = stringResource(R.string.open_videos_in_youtube)
+                            )
+
                             ListPreferenceWidget(
                                 preference = loadedState.mainFilterPref.second,
                                 selectedKey = loadedState.mainFilterPref.first,
                                 entries = mapOf(
                                     "ALL" to stringResource(R.string.articles),
-                                    "NEW" to stringResource(R.string.new_articles),
+                                    "NEW" to stringResource(R.string.last_24_hours),
                                     "STARS" to stringResource(R.string.favorites)
                                 ),
                                 title = stringResource(R.string.default_category),

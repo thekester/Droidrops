@@ -55,7 +55,7 @@ fun TextFieldDialog(
                     ) {
                         Icon(
                             imageVector = Icons.Default.Clear,
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.clear)
                         )
                     }
                 }

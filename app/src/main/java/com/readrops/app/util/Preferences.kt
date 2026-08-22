@@ -92,10 +92,20 @@ class Preferences(
         default = "DESC" // or "ASC", uppercase important, used with Enum.valueOf()
     )
 
+    // don't interrupt the first article of every feed with a technical question:
+    // the choice stays available per feed and in the preferences
     val globalOpenInAsk = Preference(
         dataStore = dataStore,
         key = booleanPreferencesKey("open_in_ask"),
-        default = true
+        default = false
+    )
+
+    // false: the embedded player stays in the article
+    // true: a thumbnail opens the video in YouTube, which suits native app and Premium users
+    val openVideosInYoutube = Preference(
+        dataStore = dataStore,
+        key = booleanPreferencesKey("open_videos_in_youtube"),
+        default = false
     )
 
     val mainFilter = Preference(

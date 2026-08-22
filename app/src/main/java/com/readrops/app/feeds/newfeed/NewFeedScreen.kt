@@ -75,7 +75,7 @@ class NewFeedScreen(val url: String? = null) : AndroidScreen() {
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.back)
                             )
                         }
                     },
@@ -104,7 +104,7 @@ class NewFeedScreen(val url: String? = null) : AndroidScreen() {
                             ) {
                                 Icon(
                                     imageVector = Icons.Default.Clear,
-                                    contentDescription = null
+                                    contentDescription = stringResource(R.string.clear)
                                 )
                             }
                         }
@@ -117,7 +117,12 @@ class NewFeedScreen(val url: String? = null) : AndroidScreen() {
                         screenModel.validate()
                     }),
                     isError = state.isURLError,
-                    supportingText = { Text(state.urlError?.errorText().orEmpty()) },
+                    supportingText = {
+                        Text(
+                            text = state.urlError?.errorText()
+                                ?: stringResource(R.string.enter_url_helper)
+                        )
+                    },
                     modifier = Modifier.fillMaxWidth()
                 )
 

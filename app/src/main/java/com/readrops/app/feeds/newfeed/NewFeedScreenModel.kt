@@ -143,10 +143,15 @@ class NewFeedScreenModel(
         }
     }
 
+    // the field invites pasting a bare website address, so give it a scheme
+    // before parsing: OkHttp rejects a schemeless url
+    private fun String.withScheme(): String =
+        if (startsWith("http://") || startsWith("https://")) this else "https://$this"
+
     private fun loadFeeds() {
         screenModelScope.launch(dispatcher) {
             mutableState.update { it.copy(error = null, isLoading = true) }
-            val url = state.value.actualUrl
+            val url = state.value.actualUrl.withScheme()
 
             try {
                 if (dataSource.isUrlRSSResource(url)) {

@@ -133,17 +133,19 @@ class ItemScreenModel(
         screenModelScope.launch(dispatcher) {
             combine(
                 preferences.openLinksWith.flow,
-                preferences.theme.flow
-            ) { openLinksWith, theme ->
-                openLinksWith to theme
-            }.collect { (openLinksWith, theme) ->
+                preferences.theme.flow,
+                preferences.openVideosInYoutube.flow
+            ) { openLinksWith, theme, openVideosInYoutube ->
+                Triple(openLinksWith, theme, openVideosInYoutube)
+            }.collect { (openLinksWith, theme, openVideosInYoutube) ->
                 mutableState.update {
                     it.copy(
                         openInExternalBrowser = when (openLinksWith) {
                             "external_navigator" -> true
                             else -> false
                         },
-                        theme = theme
+                        theme = theme,
+                        openVideosInYoutube = openVideosInYoutube
                     )
                 }
             }
@@ -372,11 +374,18 @@ class ItemScreenModel(
         // If the coroutine is cancelled for whatever reason, only items state will be lost, which is not a big deal
         // and should happen very rarely
         GlobalScope.launch(dispatcher) {
-            repository.setItemsRead(
-                items = state.value.stateChanges
-                    .filter { it.readChange }
-                    .map { it.item }
-            )
+            // a read change records a toggle, not a direction: an item that was already read
+            // has been switched to unread and must not be pushed through setItemsRead
+            val (becameRead, becameUnread) = state.value.stateChanges
+                .filter { it.readChange }
+                .map { it.item }
+                .partition { !it.isRead }
+
+            if (becameRead.isNotEmpty()) {
+                repository.setItemsRead(becameRead)
+            }
+
+            becameUnread.forEach { repository.setItemReadState(it.apply { isRead = false }) }
 
             state.value.stateChanges
                 .filter { it.starChange }
@@ -396,6 +405,7 @@ data class ItemState(
     val fileDownloadedEvent: Boolean = false,
     val openInExternalBrowser: Boolean = false,
     val theme: String? = "",
+    val openVideosInYoutube: Boolean = false,
     val error: String? = null,
     val stateChanges: List<StateChange> = listOf()
 )

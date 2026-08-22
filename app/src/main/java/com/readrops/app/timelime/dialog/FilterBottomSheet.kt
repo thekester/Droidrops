@@ -116,7 +116,7 @@ fun FilterBottomSheet(
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Info,
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.more_information)
                             )
                         }
                     }

@@ -104,7 +104,7 @@ class NotificationsScreen(val account: Account) : AndroidScreen() {
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.back)
                             )
                         }
                     },

@@ -20,6 +20,7 @@ import com.readrops.app.util.DefaultPreview
 import com.readrops.app.util.extensions.canDisplayOnBackground
 import com.readrops.app.util.theme.ReadropsTheme
 import com.readrops.app.util.theme.spacing
+import androidx.compose.ui.res.stringResource
 
 data class BottomBarState(
     val isRead: Boolean = false,
@@ -61,7 +62,9 @@ fun ItemScreenBottomBar(
                         }
                     ),
                     tint = onAccentColor,
-                    contentDescription = null
+                    contentDescription = stringResource(
+                        if (state.isRead) R.string.mark_unread else R.string.mark_read
+                    )
                 )
             }
 
@@ -75,7 +78,10 @@ fun ItemScreenBottomBar(
                         else R.drawable.ic_star_outline
                     ),
                     tint = onAccentColor,
-                    contentDescription = null
+                    contentDescription = stringResource(
+                        if (state.isStarred) R.string.remove_from_favorite
+                        else R.string.add_to_favorite
+                    )
                 )
             }
 
@@ -85,7 +91,7 @@ fun ItemScreenBottomBar(
                 Icon(
                     imageVector = Icons.Default.Share,
                     tint = onAccentColor,
-                    contentDescription = null
+                    contentDescription = stringResource(R.string.share_article)
                 )
             }
 
@@ -96,7 +102,7 @@ fun ItemScreenBottomBar(
                     Icon(
                         painter = painterResource(id = R.drawable.ic_open_in_browser),
                         tint = onAccentColor,
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.open_url)
                     )
                 }
             }

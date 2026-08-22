@@ -1,0 +1,3 @@
+- Improve feed synchronization after category renames and new subscriptions.
+- Improve RSS parsing, article links, video handling, and date conversion.
+- Add accessibility improvements and documentation links for supported services.

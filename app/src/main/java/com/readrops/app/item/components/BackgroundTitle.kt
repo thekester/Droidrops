@@ -25,6 +25,7 @@ import com.readrops.app.util.DefaultPreview
 import com.readrops.app.util.theme.MediumSpacer
 import com.readrops.app.util.theme.ReadropsTheme
 import com.readrops.db.pojo.ItemWithFeed
+import androidx.compose.ui.res.stringResource
 
 @Composable
 fun BackgroundTitle(
@@ -63,7 +64,7 @@ fun BackgroundTitle(
                 ) {
                     Icon(
                         imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                        contentDescription = null,
+                        contentDescription = stringResource(R.string.back),
                         tint = Color.White
                     )
                 }

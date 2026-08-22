@@ -47,8 +47,8 @@ android {
     defaultConfig {
         applicationId = "com.droidrops.app"
 
-        versionCode = 26
-        versionName = "2.2.5"
+        versionCode = 27
+        versionName = "2.2.6"
 
         testInstrumentationRunner = "com.readrops.app.ReadropsTestRunner"
     }
@@ -125,6 +125,8 @@ dependencies {
     implementation(project(":db"))
 
     coreLibraryDesugaring(libs.jdk.desugar)
+
+    implementation(libs.androidx.webkit)
 
     implementation(libs.corektx)
     implementation(libs.appcompat)

@@ -40,7 +40,7 @@ class AboutLibrariesScreen : AndroidScreen() {
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.back)
                             )
                         }
                     },

@@ -60,6 +60,8 @@ import com.readrops.db.entities.account.ACCOUNT_APIS
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
 import org.koin.core.parameter.parametersOf
+import androidx.compose.material3.TextButton
+import com.readrops.app.util.extensions.openUrl
 
 enum class AccountCredentialsScreenMode {
     NEW_CREDENTIALS,
@@ -86,6 +88,7 @@ class AccountCredentialsScreen(
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
+        val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
         val keyboardController = LocalSoftwareKeyboardController.current
         val accountError = AccountError.from(account, LocalContext.current)
@@ -120,7 +123,7 @@ class AccountCredentialsScreen(
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.back)
                             )
                         }
                     }
@@ -152,6 +155,20 @@ class AccountCredentialsScreen(
                         text = stringResource(id = account.type!!.nameRes),
                         style = MaterialTheme.typography.headlineMedium
                     )
+
+                    // help link for users who don't know the service yet
+                    account.type!!.documentationUrl?.let { documentationUrl ->
+                        TextButton(
+                            onClick = { context.openUrl(documentationUrl) }
+                        ) {
+                            Text(
+                                text = stringResource(
+                                    id = R.string.learn_more_about,
+                                    stringResource(id = account.type!!.nameRes)
+                                )
+                            )
+                        }
+                    }
 
                     MediumSpacer()
 
@@ -226,7 +243,10 @@ class AccountCredentialsScreen(
                                             R.drawable.ic_visible_off
                                         } else R.drawable.ic_visible
                                     ),
-                                    contentDescription = null
+                                    contentDescription = stringResource(
+                                        if (state.isPasswordVisible) R.string.hide_password
+                                        else R.string.show_password
+                                    )
                                 )
                             }
                         },

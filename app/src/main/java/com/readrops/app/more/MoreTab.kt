@@ -113,7 +113,7 @@ object MoreTab : Tab, KoinComponent {
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_github),
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.source_code),
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -123,7 +123,7 @@ object MoreTab : Tab, KoinComponent {
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_changelog),
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.changelog),
                             modifier = Modifier.size(24.dp)
                         )
                     }
@@ -133,7 +133,7 @@ object MoreTab : Tab, KoinComponent {
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_bug_report),
-                            contentDescription = null
+                            contentDescription = stringResource(R.string.report_a_bug)
                         )
                     }
                 }

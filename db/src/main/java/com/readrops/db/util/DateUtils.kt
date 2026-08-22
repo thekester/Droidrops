@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.util.Log
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
+import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.ZoneOffset
 import java.time.format.DateTimeFormatter
@@ -63,9 +64,17 @@ object DateUtils {
                     )
                 }.getOrNull() ?: continue
 
+                // An offset denotes a precise instant, so it must be converted to the
+                // reader's zone instead of being dropped. Keeping the author's wall clock
+                // skewed sorting across feeds from different zones, and the last 24 hours
+                // filter, which both work on the stored pub_date.
                 return when (parsed) {
-                    is ZonedDateTime -> parsed.toLocalDateTime()
-                    is OffsetDateTime -> parsed.toLocalDateTime()
+                    is ZonedDateTime -> parsed.withZoneSameInstant(ZoneId.systemDefault())
+                        .toLocalDateTime()
+
+                    is OffsetDateTime -> parsed.atZoneSameInstant(ZoneId.systemDefault())
+                        .toLocalDateTime()
+
                     is LocalDateTime -> parsed
                     else -> continue
                 }

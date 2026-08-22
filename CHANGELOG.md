@@ -1,3 +1,17 @@
+# v2.2.6
+
+This release improves feed synchronization, article rendering, accessibility, and date handling.
+
+## Fixes
+
+- Refresh newly subscribed feeds and their posts immediately.
+- Handle server-side category renames without losing the selected timeline.
+- Batch Google Reader item-state updates reliably.
+- Handle RSS documents served with an incorrect content type.
+- Improve article links, video handling, and local asset loading.
+- Fix date conversion for feeds using timezone offsets.
+- Add accessibility descriptions to key controls and improve account URL handling.
+
 # v2.2.4
 
 This release fixes synchronization after server-side category changes and new feed subscriptions.

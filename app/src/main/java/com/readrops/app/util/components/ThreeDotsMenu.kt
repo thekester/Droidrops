@@ -14,6 +14,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import com.readrops.app.R
 
 @Composable
 fun ThreeDotsMenu(
@@ -31,7 +33,7 @@ fun ThreeDotsMenu(
         ) {
             Icon(
                 imageVector = Icons.Default.MoreVert,
-                contentDescription = null,
+                contentDescription = stringResource(R.string.more_options),
             )
         }
 

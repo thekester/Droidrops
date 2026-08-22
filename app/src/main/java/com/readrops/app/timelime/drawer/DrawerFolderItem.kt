@@ -38,6 +38,8 @@ import androidx.compose.ui.unit.dp
 import com.readrops.app.util.components.FeedIcon
 import com.readrops.app.util.theme.DrawerSpacing
 import com.readrops.db.entities.Feed
+import androidx.compose.ui.res.stringResource
+import com.readrops.app.R
 
 @Composable
 fun DrawerFolderItem(
@@ -111,7 +113,9 @@ fun DrawerFolderItem(
                 ) {
                     Icon(
                         imageVector = Icons.Default.ArrowDropDown,
-                        contentDescription = null,
+                        contentDescription = stringResource(
+                            if (isExpanded) R.string.collapse_folder else R.string.expand_folder
+                        ),
                         modifier = Modifier.fillMaxSize().padding(12.dp).rotate(rotationState),
                     )
                 }

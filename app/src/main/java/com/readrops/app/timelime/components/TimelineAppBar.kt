@@ -36,7 +36,7 @@ fun TimelineAppBar(
                     text = when (state.filters.mainFilter) {
                         MainFilter.STARS -> stringResource(R.string.favorites)
                         MainFilter.ALL -> stringResource(R.string.articles)
-                        MainFilter.NEW -> stringResource(R.string.new_articles)
+                        MainFilter.NEW -> stringResource(R.string.last_24_hours)
                     },
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
@@ -63,7 +63,7 @@ fun TimelineAppBar(
                 ) {
                     Icon(
                         imageVector = Icons.Default.Menu,
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.open_navigation_menu)
                     )
                 }
             }
@@ -74,7 +74,7 @@ fun TimelineAppBar(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_filter_list),
-                    contentDescription = null
+                    contentDescription = stringResource(R.string.filters)
                 )
             }
 
@@ -83,7 +83,7 @@ fun TimelineAppBar(
             ) {
                 Icon(
                     painter = painterResource(id = R.drawable.ic_sync),
-                    contentDescription = null
+                    contentDescription = stringResource(R.string.synchronize)
                 )
             }
         },

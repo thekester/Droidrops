@@ -123,7 +123,10 @@ object FeedTab : Tab {
                                     else
                                         R.drawable.ic_unfold_more
                                 ),
-                                contentDescription = null
+                                contentDescription = stringResource(
+                                    if (state.areFoldersExpanded) R.string.collapse_all_folders
+                                    else R.string.expand_all_folders
+                                )
                             )
                         }
                     },

@@ -104,19 +104,36 @@ class GReaderDataSource(private val service: GReaderService) {
         return service.getItemsIds(excludeTarget, includeTarget, max)
     }
 
+    /**
+     * Every item id travels as its own form field, so a single call for thousands of items
+     * silently loses ids: PHP based servers such as FreshRSS stop parsing at max_input_vars,
+     * which defaults to 1000, and still answer OK. Sending the ids in batches keeps each
+     * request well under any such limit.
+     */
+    private suspend fun setItemsState(
+        addAction: String?,
+        removeAction: String?,
+        itemIds: List<String>,
+        token: String
+    ) {
+        itemIds.chunked(MAX_IDS_PER_REQUEST).forEach { batch ->
+            service.setItemsState(token, addAction, removeAction, batch)
+        }
+    }
+
     private suspend fun setItemsReadState(read: Boolean, itemIds: List<String>, token: String) {
         return if (read) {
-            service.setItemsState(token, GOOGLE_READ, null, itemIds)
+            setItemsState(GOOGLE_READ, null, itemIds, token)
         } else {
-            service.setItemsState(token, null, GOOGLE_READ, itemIds)
+            setItemsState(null, GOOGLE_READ, itemIds, token)
         }
     }
 
     private suspend fun setItemStarState(starred: Boolean, itemIds: List<String>, token: String) {
         return if (starred) {
-            service.setItemsState(token, GOOGLE_STARRED, null, itemIds)
+            setItemsState(GOOGLE_STARRED, null, itemIds, token)
         } else {
-            service.setItemsState(token, null, GOOGLE_STARRED, itemIds)
+            setItemsState(null, GOOGLE_STARRED, itemIds, token)
         }
     }
 
@@ -167,6 +184,9 @@ class GReaderDataSource(private val service: GReaderService) {
 
     companion object {
         private const val MAX_ITEMS = 2500
+
+        // item ids sent per edit-tag call, kept well below the PHP max_input_vars default of 1000
+        private const val MAX_IDS_PER_REQUEST = 250
         private const val MAX_STARRED_ITEMS = 1000
 
         // backlog fetched for a feed just added, so it isn't shown empty until the next sync

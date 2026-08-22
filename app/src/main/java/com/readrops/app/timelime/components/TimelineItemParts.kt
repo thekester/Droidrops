@@ -61,7 +61,6 @@ fun RegularTimelineItem(
     val displayColor = itemWithFeed.displayColor(CardDefaults.cardColors().containerColor.toArgb())
 
     TimelineItemContainer(
-        isRead = itemWithFeed.isRead,
         onClick = onClick,
         modifier = modifier
     ) {
@@ -82,7 +81,10 @@ fun RegularTimelineItem(
 
             ShortSpacer()
 
-            TimelineItemTitle(title = itemWithFeed.item.title!!)
+            TimelineItemTitle(
+                title = itemWithFeed.item.title!!,
+                isRead = itemWithFeed.isRead
+            )
 
             ShortSpacer()
 
@@ -116,7 +118,6 @@ fun CompactTimelineItem(
                 // so we draw a rect with the current screen background color behind the card but in front of the dismiss background
                 drawRect(containerColor)
             }
-            .alpha(if (itemWithFeed.isRead) readAlpha else 1f)
     ) {
         Column(
             modifier = Modifier.padding(
@@ -140,7 +141,10 @@ fun CompactTimelineItem(
 
             ShortSpacer()
 
-            TimelineItemTitle(title = itemWithFeed.item.title!!)
+            TimelineItemTitle(
+                title = itemWithFeed.item.title!!,
+                isRead = itemWithFeed.isRead
+            )
 
             ShortSpacer()
 
@@ -171,7 +175,6 @@ fun LargeTimelineItem(
         )
     } else {
         TimelineItemContainer(
-            isRead = itemWithFeed.isRead,
             onClick = onClick,
             modifier = modifier
         ) {
@@ -201,7 +204,10 @@ fun LargeTimelineItem(
 
                     ShortSpacer()
 
-                    TimelineItemTitle(title = itemWithFeed.item.title!!)
+                    TimelineItemTitle(
+                title = itemWithFeed.item.title!!,
+                isRead = itemWithFeed.isRead
+            )
 
                     if (itemWithFeed.item.cleanDescription != null) {
                         ShortSpacer()
@@ -249,6 +255,7 @@ fun LargeTimelineItem(
                         modifier = Modifier
                             .aspectRatio(16f / 9f)
                             .fillMaxWidth()
+                            .alpha(if (itemWithFeed.isRead) readAlpha else 1f)
                     )
                 }
             }
@@ -259,7 +266,6 @@ fun LargeTimelineItem(
 
 @Composable
 fun TimelineItemContainer(
-    isRead: Boolean,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
     padding: PaddingValues = PaddingValues(horizontal = MaterialTheme.spacing.shortSpacing),
@@ -280,7 +286,6 @@ fun TimelineItemContainer(
                     cornerRadius = CornerRadius(12.dp.toPx())
                 )
             }
-            .alpha(if (isRead) readAlpha else 1f)
     ) {
         content()
     }
@@ -350,7 +355,10 @@ fun TimelineItemHeader(
                                 if (isStarred) R.drawable.ic_star
                                 else R.drawable.ic_star_outline
                             ),
-                            contentDescription = null,
+                            contentDescription = stringResource(
+                                if (isStarred) R.string.remove_from_favorite
+                                else R.string.add_to_favorite
+                            ),
                         )
                     }
                 }
@@ -366,7 +374,7 @@ fun TimelineItemHeader(
                     ) {
                         Icon(
                             imageVector = Icons.Outlined.Share,
-                            contentDescription = null,
+                            contentDescription = stringResource(R.string.share_article),
                             tint = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     }
@@ -385,14 +393,16 @@ fun TimelineItemHeader(
 
 @Composable
 fun TimelineItemTitle(
-    title: String
+    title: String,
+    isRead: Boolean
 ) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleMedium,
         maxLines = 2,
         overflow = TextOverflow.Ellipsis,
-        fontWeight = FontWeight.Bold,
+        // unread items are emphasized by weight, not opacity, so read items keep full contrast
+        fontWeight = if (isRead) FontWeight.Normal else FontWeight.Bold,
     )
 }
 

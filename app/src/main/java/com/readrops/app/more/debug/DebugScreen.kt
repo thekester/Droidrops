@@ -58,7 +58,7 @@ class DebugScreen : AndroidScreen(), KoinComponent {
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.back)
                             )
                         }
                     }

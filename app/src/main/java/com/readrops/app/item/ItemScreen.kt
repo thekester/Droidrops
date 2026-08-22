@@ -133,6 +133,7 @@ class ItemScreen(
                                     context.openInCustomTab(url, state.theme, accentColor)
                                 }
                             },
+                            openVideosInYoutube = state.openVideosInYoutube,
                             onShareItem = { screenModel.shareItem(itemWithFeed, context) },
                             onSetReadState = { screenModel.setItemReadState(item) },
                             onSetStarState = { screenModel.setItemStarState(item) },

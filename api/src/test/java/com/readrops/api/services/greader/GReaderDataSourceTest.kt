@@ -449,4 +449,57 @@ class GReaderDataSourceTest : KoinTest {
             assertEquals(5, starredIds.size)
         }
     }
+
+    @Test
+    fun readIdsAreSentInBatches() = runTest {
+        var editTagCalls = 0
+        var largestBatch = 0
+        // more ids than a single request may carry: PHP stops parsing at max_input_vars (1000)
+        val ids = (1..600).map { it.toString() }
+
+        mockServer.dispatcher = object : Dispatcher() {
+
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                with(request.path!!) {
+                    println("request: ${request.path}")
+                    return when {
+                        contains("0/edit-tag") -> {
+                            editTagCalls++
+                            val batchSize = request.body.readUtf8().split("&").count { it.startsWith("i=") }
+                            largestBatch = maxOf(largestBatch, batchSize)
+                            MockResponse().setResponseCode(200)
+                        }
+
+                        contains("tag/list") -> {
+                            MockResponse.okResponseWithBody(TestUtils.loadResource("services/greader/adapters/folders.json"))
+                        }
+
+                        contains("subscription/list") -> {
+                            MockResponse.okResponseWithBody(TestUtils.loadResource("services/greader/adapters/feeds.json"))
+                        }
+
+                        contains("contents/user/-/state/com.google/reading-list") -> {
+                            MockResponse.okResponseWithBody(TestUtils.loadResource("services/greader/adapters/items.json"))
+                        }
+
+                        contains("stream/items/ids") -> {
+                            MockResponse.okResponseWithBody(TestUtils.loadResource("services/greader/adapters/items_starred_ids.json"))
+                        }
+
+                        else -> MockResponse().setResponseCode(404)
+                    }
+                }
+            }
+        }
+
+        freshRSSDataSource.synchronize(
+            syncType = SyncType.CLASSIC_SYNC,
+            syncData = GReaderSyncData(lastModified = 10L, readIds = ids),
+            writeToken = "writeToken"
+        )
+
+        // 600 ids split in batches of 250 -> 3 requests, none of them oversized
+        assertEquals(3, editTagCalls)
+        assertTrue { largestBatch <= 250 }
+    }
 }

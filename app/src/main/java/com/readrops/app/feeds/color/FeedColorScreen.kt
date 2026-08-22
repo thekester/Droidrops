@@ -85,7 +85,7 @@ class FeedColorScreen(val feed: Feed) : AndroidScreen() {
                         ) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.back)
                             )
                         }
                     }
@@ -116,7 +116,7 @@ class FeedColorScreen(val feed: Feed) : AndroidScreen() {
                         if (state.canValidate) {
                             Icon(
                                 painter = painterResource(R.drawable.ic_undo),
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.reset)
                             )
                         }
                     }

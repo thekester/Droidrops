@@ -25,6 +25,7 @@ android-agp = { module = "com.android.tools.build:gradle", version.ref = "androi
 kotlin-kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
 jacoco = "org.jacoco:org.jacoco.core:0.8.7"
 
+androidx-webkit = { module = "androidx.webkit:webkit", version = "1.12.1" }
 compose-bom = { group = "androidx.compose", name = "compose-bom", version.ref = "compose_bom" }
 compose-foundation = { module = "androidx.compose.foundation:foundation" }
 compose-runtime = { module = "androidx.compose.runtime:runtime" }

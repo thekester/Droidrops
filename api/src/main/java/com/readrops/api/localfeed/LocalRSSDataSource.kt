@@ -108,16 +108,22 @@ class LocalRSSDataSource(private val httpClient: OkHttpClient) : KoinComponent {
             konsumer = response.body!!.byteStream().konsumeXml()
 
         var rootKonsumer: Konsumer? = null
-        // if we can't guess type based on content-type header, we use the content
-        if (type == LocalRSSHelper.RSSType.UNKNOWN) {
+        // The document root wins over the content-type header, which servers get wrong often
+        // enough to matter: debian.org serves RSS 1.0 under the RSS 2.0 content type, and
+        // parsing it as RSS 2.0 fails. The header is only kept when the root tells us nothing.
+        if (type != LocalRSSHelper.RSSType.JSONFEED) {
             try {
                 rootKonsumer = konsumer?.nextElement(LocalRSSHelper.RSS_ROOT_NAMES)
 
                 if (rootKonsumer != null) {
-                    type = LocalRSSHelper.guessRSSType(rootKonsumer)
+                    val rootType = LocalRSSHelper.guessRSSType(rootKonsumer)
+
+                    if (rootType != LocalRSSHelper.RSSType.UNKNOWN) {
+                        type = rootType
+                    }
                 }
             } catch (e: Exception) {
-                throw UnknownFormatException(e.message)
+                if (type == LocalRSSHelper.RSSType.UNKNOWN) throw UnknownFormatException(e.message)
             }
 
         }
