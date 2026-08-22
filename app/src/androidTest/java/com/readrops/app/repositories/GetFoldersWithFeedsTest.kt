@@ -9,9 +9,9 @@ import com.readrops.db.entities.ItemState
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
 import com.readrops.db.filters.MainFilter
-import junit.framework.Assert.assertEquals
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
+import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
