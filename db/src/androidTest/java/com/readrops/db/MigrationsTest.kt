@@ -66,4 +66,15 @@ class MigrationsTest {
             assertEquals("LOCAL", type)
         }
     }
+
+    @Test
+    fun migrate6To7() {
+        helper.createDatabase(dbName, 6).apply {
+            close()
+        }
+
+        helper.runMigrationsAndValidate(dbName, 7, true, MigrationFrom6To7).apply {
+            close()
+        }
+    }
 }

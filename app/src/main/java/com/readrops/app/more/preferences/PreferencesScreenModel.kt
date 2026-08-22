@@ -15,6 +15,7 @@ import com.readrops.db.pojo.ItemWithFeed
 import com.readrops.db.queries.ItemSelectionQueryBuilder
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -30,7 +31,7 @@ class PreferencesScreenModel(
     init {
         screenModelScope.launch(dispatcher) {
             with(preferences) {
-                val flows = listOf(
+                val flows = listOf<Flow<Any>>(
                     theme.flow,
                     backgroundSynchronization.flow,
                     scrollRead.flow,

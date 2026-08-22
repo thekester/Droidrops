@@ -22,7 +22,7 @@ variables:
 unit_tests:
   stage: test
   script:
-    - ./gradlew test lint
+    - ./gradlew test lint -PwarningsAsErrors=true
 
 bundle_release:
   stage: build

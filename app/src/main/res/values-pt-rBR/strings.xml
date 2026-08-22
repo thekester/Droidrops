@@ -161,7 +161,7 @@
     <string name="localised_quotes">%s</string>
     <string name="fever_warning">Fever é uma API muito antiga, limitada e depreciada. Não suporta o gerenciamento de feeds e pastas. Também é mal documentado, pode não ser implementado para cada agregador da mesma forma e, portanto, pode não funcionar bem.\n\nSe você encontrar qualquer problema de sincronização, por favor, informe-os ao repositório do Droidrops no Github.</string>
     <string name="remove_author_documentation">quando aplicado a qualquer variável, este filtro irá remover dele o conteúdo da variável <tt>author</tt></string>
-    <string name="localised_dict_item">%s: %s</string>
+    <string name="localised_dict_item">%1$s: %2$s</string>
     <string name="greader_warning">Google Reader é uma API muito antiga e falta de documentação. Pode não ser implementado para cada agregador da mesma forma e, portanto, pode não funcionar bem.\n\nSe você encontrar qualquer problema de sincronização, por favor, informe-os ao repositório do Droidrops no Github.</string>
     <string name="order_field_tooltip">Feeds RSS sempre contêm artigos antigos e é improvável que você verá em sua linha do tempo se você ordená-lo por data. Ordenando pelo identificador do artigo permitirá que você mostre todos os novos artigos inseridos não importando a data que eles têm.</string>
     <string name="identifier">Identificação</string>
@@ -215,7 +215,7 @@
     <string name="example_item_title">Boas notícias, pessoal!</string>
     <string name="example_item_author">Criador de conteúdo incrível</string>
     <string name="example_item_content">Isto aconteceu na semana passada no planeta Terra.\n\nEsta é a coisa mais incrível que aconteceu esta semana.</string>
-    <string name="example_item_explanation">As variáveis que estão disponíveis no contexto são: %s. Você pode usar todos os filtros de modelo &lt;a href=https://pebbletemplates.io/wiki/&gt;documentados aqui&lt;/a&gt; além de: %s.</string>
+    <string name="example_item_explanation">As variáveis que estão disponíveis no contexto são: %1$s. Você pode usar todos os filtros de modelo &lt;a href=https://pebbletemplates.io/wiki/&gt;documentados aqui&lt;/a&gt; além de: %2$s.</string>
     <string name="fr_typo_documentation">quando aplicado a qualquer variável, colocará um espaço inquebrável antes %s</string>
     <string name="try_the_default_template">Preencha com o modelo padrão</string>
     <string name="render_template">Ver o resultado</string>

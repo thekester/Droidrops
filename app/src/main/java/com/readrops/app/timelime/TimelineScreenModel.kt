@@ -176,7 +176,7 @@ class TimelineScreenModel(
     }
 
     private fun getTimelinePreferences(): Flow<TimelinePreferences> = with(preferences) {
-        return combine(
+        return combine<Any, TimelinePreferences>(
             timelineItemSize.flow,
             scrollRead.flow,
             displayNotificationsPermission.flow,

@@ -204,12 +204,12 @@
     <string name="example_item_author">很棒的内容创建者</string>
     <string name="example_item_content">上周在地球上发生了这件事。\n\n这是本周发生的最棒的事情。</string>
     <string name="use_custom_share_intent_tpl_explenation">此选项允许您自定义与其他 Android 应用程序分享文章时文本，请&lt;a href=https://pebbletemplates.io/wiki/guide/basic-usage/#syntax-reference&gt;在此处查看可用的语法&lt;/a&gt;。</string>
-    <string name="example_item_explanation">上下文中可用的变量为 %s。除 %s 外，您还可以使用&lt;a href=https://pebbletemplates.io/wiki/&gt;此处记录&lt;/a&gt;的所有模板筛选器。</string>
+    <string name="example_item_explanation">上下文中可用的变量为 %1$s。除 %2$s 外，您还可以使用&lt;a href=https://pebbletemplates.io/wiki/&gt;此处记录&lt;/a&gt;的所有模板筛选器。</string>
     <string name="fr_typo_documentation">当应用于任意变量时，将在 %s 前插入一个不间断空格</string>
     <string name="try_the_default_template">使用默认模板填充</string>
     <string name="render_template">查看结果</string>
     <string name="edit_template">编辑模板</string>
-    <string name="localised_dict_item">%s：%s</string>
+    <string name="localised_dict_item">%1$s：%2$s</string>
     <string name="disabled">已禁用</string>
     <string name="swipe_to_left_action">向左滑动操作</string>
     <string name="freshrss_delete_folder_question">是否要删除文件夹 %1$s？所有关联的订阅将移至默认文件夹。</string>

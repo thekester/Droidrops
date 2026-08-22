@@ -39,6 +39,11 @@ subprojects {
         with(extensions.getByType<KotlinAndroidProjectExtension>()) {
             compilerOptions {
                 jvmTarget = JvmTarget.JVM_17
+                allWarningsAsErrors.set(
+                    providers.gradleProperty("warningsAsErrors")
+                        .map(String::toBoolean)
+                        .orElse(false)
+                )
             }
         }
 
@@ -71,8 +76,6 @@ fun configure(extension: BaseExtension) = with(extension) {
 
         isCoreLibraryDesugaringEnabled = true
     }
-
-    lintOptions.isAbortOnError = false
 
     /*dependencies {
         add("coreLibraryDesugaring", libs.jdk.desugar)

@@ -1,6 +1,9 @@
+@file:Suppress("DEPRECATION")
+
 package com.readrops.app
 
 import android.content.Context
+import android.content.SharedPreferences
 import androidx.core.app.NotificationManagerCompat
 import androidx.datastore.core.handlers.ReplaceFileCorruptionHandler
 import androidx.datastore.preferences.SharedPreferencesMigration
@@ -102,17 +105,7 @@ val appModule = module {
     }
 
     single {
-        val masterKey = MasterKey.Builder(androidContext())
-            .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
-            .build()
-
-        EncryptedSharedPreferences.create(
-            androidContext(),
-            "account_credentials",
-            masterKey,
-            EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
-            EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
-        )
+        createEncryptedPreferences(androidContext())
     }
 
     single {
@@ -135,4 +128,22 @@ val appModule = module {
     single { Synchronizer(get(), get(), get(), get()) }
 
     single { SyncAnalyzer(get(), get()) }
+}
+
+// security-crypto 1.1 currently has no non-deprecated replacement for this
+// encrypted SharedPreferences implementation. Keep the suppression isolated
+// so the rest of the app remains warning-clean without weakening encryption.
+@Suppress("DEPRECATION")
+private fun createEncryptedPreferences(context: Context): SharedPreferences {
+    val masterKey = MasterKey.Builder(context)
+        .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
+        .build()
+
+    return EncryptedSharedPreferences.create(
+        context,
+        "account_credentials",
+        masterKey,
+        EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
+        EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
+    )
 }

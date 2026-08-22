@@ -11,7 +11,8 @@ val dbModule = module {
                 MigrationFrom1To2,
                 MigrationFrom2To3,
                 MigrationFrom3To4,
-                MigrationFrom4To5
+                MigrationFrom4To5,
+                MigrationFrom6To7
             )
             .build()
     }

@@ -1,5 +1,6 @@
 package com.readrops.app.util
 
+import android.content.ClipData
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
@@ -27,13 +28,14 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.ClipEntry
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +46,7 @@ import com.readrops.app.util.theme.ShortSpacer
 import com.readrops.app.util.theme.VeryLargeSpacer
 import com.readrops.app.util.theme.VeryShortSpacer
 import com.readrops.app.util.theme.spacing
+import kotlinx.coroutines.launch
 import java.io.PrintWriter
 import java.io.StringWriter
 
@@ -86,8 +89,17 @@ class CrashActivity : ComponentActivity() {
 @Composable
 fun CrashScreen(stackTrace: String) {
     val uriHandler = LocalUriHandler.current
-    val clipboardManager = LocalClipboardManager.current
+    val clipboard = LocalClipboard.current
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+    val copyStackTrace = {
+        coroutineScope.launch {
+            clipboard.setClipEntry(
+                ClipEntry(ClipData.newPlainText("stack trace", stackTrace))
+            )
+            displayToast(context)
+        }
+    }
 
     Surface(
         modifier = Modifier
@@ -149,8 +161,7 @@ fun CrashScreen(stackTrace: String) {
                 Button(
                     onClick = {
                         uriHandler.openUri("https://github.com/readrops/Readrops/issues/new")
-                        clipboardManager.setText(AnnotatedString(stackTrace))
-                        displayToast(context)
+                        copyStackTrace()
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -161,8 +172,7 @@ fun CrashScreen(stackTrace: String) {
 
                 OutlinedButton(
                     onClick = {
-                        clipboardManager.setText(AnnotatedString(stackTrace))
-                        displayToast(context)
+                        copyStackTrace()
                     },
                     modifier = Modifier.fillMaxWidth()
                 ) {
