@@ -84,7 +84,8 @@ jobs:
         run: |
           APK_SIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
           test -n "$APK_SIGNER"
-          "$APK_SIGNER" verify --verbose app/build/outputs/apk/release/app-release.apk
+          VERSION="${RELEASE_TAG#v}"
+          "$APK_SIGNER" verify --verbose "Droidrops-${VERSION}-release.apk"
           # AAB files contain nested base modules; jarsigner reports their
           # JarFile/JarInputStream difference as a warning under -strict.
           jarsigner -verify app/build/outputs/bundle/release/app-release.aab
