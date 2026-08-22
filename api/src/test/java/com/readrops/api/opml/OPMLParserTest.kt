@@ -45,11 +45,26 @@ class OPMLParserTest {
         stream.close()
     }
 
-    @Test(expected = ParseException::class)
-    fun opmlVersionTest() = runTest {
-        val stream = TestUtils.loadResource("opml/wrong_version.opml")
+    /**
+     * Exports from other readers commonly declare OPML 1.0 or no version at all, while
+     * carrying the very same outline structure. Both must import.
+     */
+    @Test
+    fun readOpmlVersion1Test() = runTest {
+        val stream = TestUtils.loadResource("opml/version_1_0.opml")
+        val foldersAndFeeds = OPMLParser.read(stream)
 
-        OPMLParser.read(stream)
+        assertEquals(foldersAndFeeds[null]?.size, 2)
+        assertEquals(foldersAndFeeds[null]?.first()?.url, "http://www.theverge.com/rss/index.xml")
+        stream.close()
+    }
+
+    @Test
+    fun readOpmlWithoutVersionTest() = runTest {
+        val stream = TestUtils.loadResource("opml/no_version.opml")
+        val foldersAndFeeds = OPMLParser.read(stream)
+
+        assertEquals(foldersAndFeeds[null]?.size, 2)
         stream.close()
     }
 

@@ -71,15 +71,31 @@ class RSS2AdapterTest {
         TestCase.assertNotNull(item.pubDate)
     }
 
+    /**
+     * RSS 2.0 only requires a title or a description. Mastodon and other microblogging
+     * feeds publish posts with no title at all, so one is derived from the description.
+     */
     @Test
     fun noTitleTest() {
         val stream = TestUtils.loadResource("localfeed/rss2/rss_items_no_title.xml")
+        val item = adapter.fromXml(stream.konsumeXml()).second[0]
+
+        TestCase.assertEquals("description", item.title)
+    }
+
+    @Test
+    fun noTitleAndNoDescriptionTest() {
+        val stream =
+            TestUtils.loadResource("localfeed/rss2/rss_items_no_title_no_description.xml")
 
         val exception = assertThrows(ParseException::class.java) {
             adapter.fromXml(stream.konsumeXml())
         }
 
-        assertTrue(exception.stackTraceToString().contains("Item title is required"))
+        assertTrue(
+            exception.stackTraceToString()
+                .contains("An item requires at least a title or a description")
+        )
     }
 
     @Test

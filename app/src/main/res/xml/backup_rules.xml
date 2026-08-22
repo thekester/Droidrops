@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    account_credentials.xml is an EncryptedSharedPreferences file whose master key lives in
+    the Android Keystore, which is never backed up. Restoring the file without its key gives
+    undecryptable data, so it is excluded: it also keeps credential material out of the backup.
+    The SQLite side files are excluded as well, since restoring a stale -wal next to the
+    database can yield an inconsistent state.
+-->
+<full-backup-content>
+    <exclude domain="sharedpref" path="account_credentials.xml" />
+    <exclude domain="database" path="readrops-db-wal" />
+    <exclude domain="database" path="readrops-db-shm" />
+</full-backup-content>

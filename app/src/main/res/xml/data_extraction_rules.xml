@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- See backup_rules.xml: the Keystore master key follows neither a cloud backup nor a
+     device transfer, so the encrypted credentials file must not travel either. -->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="sharedpref" path="account_credentials.xml" />
+        <exclude domain="database" path="readrops-db-wal" />
+        <exclude domain="database" path="readrops-db-shm" />
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="sharedpref" path="account_credentials.xml" />
+        <exclude domain="database" path="readrops-db-wal" />
+        <exclude domain="database" path="readrops-db-shm" />
+    </device-transfer>
+</data-extraction-rules>

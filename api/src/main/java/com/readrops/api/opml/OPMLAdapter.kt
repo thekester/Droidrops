@@ -14,11 +14,10 @@ class OPMLAdapter : XmlAdapter<Map<Folder?, List<Feed>>> {
         var opml: Map<Folder?, List<Feed>>? = null
 
         konsumer.child("opml") {
-            val version = attributes.getValueOrNull("version")
-
-            if (version != "2.0")
-                throw ParseException("Only 2.0 OPML is supported")
-
+            // The version attribute is not checked on purpose. For a subscription list,
+            // OPML 1.0, 1.1 and 2.0 carry the same outline structure, and exports from
+            // other readers often declare 1.0 or omit the attribute entirely. Refusing
+            // them blocked imports that this parser handles perfectly well.
             allChildrenAutoIgnore(Names.of("body")) {
                 opml = parseOutline(this)
             }

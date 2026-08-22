@@ -141,7 +141,7 @@
     <string name="add_to_favorite">お気に入りに追加</string>
     <string name="copy_error_clipboard">クリップボードにエラーをコピー</string>
     <string name="copied">コピーしました！</string>
-    <string name="report_error_github">Github でエラーを報告</string>
+    <string name="report_error_github">GitHub でエラーを報告</string>
     <string name="no_article">記事がありません</string>
     <string name="show_notifications_background_sync">バックグラウンド同期後に通知を表示する</string>
     <string name="background_sync_new_articles">バックグラウンド同期後に新着記事を通知します</string>

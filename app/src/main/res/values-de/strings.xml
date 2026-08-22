@@ -129,8 +129,8 @@
     <string name="battery_optimization_already_disabled">Akku-Optimierung für diese App bereits deaktiviert</string>
     <string name="no_article">Kein Artikel</string>
     <string name="no_rss_feed_found">Kein RSS-Feed gefunden</string>
-    <string name="crash_message">Wenn dieser Fehler angezeigt wird bedeutet das, dass die App auf einen unerwarteten Fehler gestoßen ist. Sofern möglich bitte den Fehler auf Github melden.</string>
-    <string name="report_error_github">Den Fehler auf Github melden</string>
+    <string name="crash_message">Wenn dieser Fehler angezeigt wird bedeutet das, dass die App auf einen unerwarteten Fehler gestoßen ist. Sofern möglich bitte den Fehler auf GitHub melden.</string>
+    <string name="report_error_github">Den Fehler auf GitHub melden</string>
     <string name="copy_error_clipboard">Fehler in die Zwischenablage kopieren</string>
     <string name="downloaded_file">Datei heruntergeladen!</string>
     <string name="delete_folder_question">Möchten Sie den Ordner %1$s löschen? Alle verknüpften Feeds werden ebenfalls gelöscht.</string>

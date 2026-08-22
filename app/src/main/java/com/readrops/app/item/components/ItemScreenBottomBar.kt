@@ -17,7 +17,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.res.painterResource
 import com.readrops.app.R
 import com.readrops.app.util.DefaultPreview
-import com.readrops.app.util.extensions.canDisplayOnBackground
+import com.readrops.app.util.extensions.bestForegroundOn
 import com.readrops.app.util.theme.ReadropsTheme
 import com.readrops.app.util.theme.spacing
 import androidx.compose.ui.res.stringResource
@@ -38,9 +38,7 @@ fun ItemScreenBottomBar(
     onChangeStarState: (Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val onAccentColor =
-        if (Color.White.toArgb().canDisplayOnBackground(accentColor.toArgb(), threshold = 2.5f))
-            Color.White else Color.Black
+    val onAccentColor = bestForegroundOn(accentColor.toArgb())
 
     Surface(
         color = accentColor,

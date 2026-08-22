@@ -64,7 +64,7 @@
     <string name="open_items_in">Open items in</string>
     <string name="external_navigator">External web browser</string>
     <string name="share_url">Share URL</string>
-    <string name="opml_import_export">OPML Import/Export</string>
+    <string name="opml_import_export">OPML import/export</string>
     <string name="opml_import">OPML import</string>
     <string name="opml_export">OPML export</string>
     <string name="image_options">Image Options</string>
@@ -168,8 +168,8 @@
     <string name="mark_all_articles_read">Mark all articles as read</string>
     <string name="mark_all_articles_read_question">Do you really want to mark all items as read?</string>
     <string name="readrops_crashed">Droidrops crashed.</string>
-    <string name="crash_message">I you see this, it means the app ran into an unexpected error. Please if you can, report the error on Github.</string>
-    <string name="report_error_github">Report the error on Github</string>
+    <string name="crash_message">If you see this, the app ran into an unexpected error. Please report it on GitHub if you can.</string>
+    <string name="report_error_github">Report the error on GitHub</string>
     <string name="copy_error_clipboard">Copy error to clipboard</string>
     <string name="copied">Copied!</string>
     <string name="downloaded_file">Downloaded file!</string>

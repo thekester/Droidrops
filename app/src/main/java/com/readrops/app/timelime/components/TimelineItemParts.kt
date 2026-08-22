@@ -41,7 +41,7 @@ import coil3.request.ImageRequest
 import com.readrops.app.R
 import com.readrops.app.item.components.TagSurface
 import com.readrops.app.util.components.FeedIcon
-import com.readrops.app.util.extensions.canDisplayOnBackground
+import com.readrops.app.util.extensions.bestForegroundOn
 import com.readrops.app.util.extensions.displayColor
 import com.readrops.app.util.theme.ShortSpacer
 import com.readrops.app.util.theme.spacing
@@ -412,9 +412,7 @@ fun TimelineItemBadge(
     duration: Double,
     color: Color,
 ) {
-    val onAccentColor =
-        if (Color.White.toArgb().canDisplayOnBackground(color.toArgb(), threshold = 2.5f))
-            Color.White else Color.Black
+    val onAccentColor = bestForegroundOn(color.toArgb())
 
     Surface(
         color = color,

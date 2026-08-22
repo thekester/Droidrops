@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.readrops.app.util.Utils
-import com.readrops.app.util.extensions.canDisplayOnBackground
+import com.readrops.app.util.extensions.bestForegroundOn
 import com.readrops.app.util.theme.spacing
 
 @Composable
@@ -24,13 +24,7 @@ fun TagSurface(
     Surface(
         shape = RoundedCornerShape(48.dp),
         color = backgroundColor,
-        contentColor = if (Color.White.toArgb()
-                .canDisplayOnBackground(backgroundColor.toArgb(), threshold = 2.5f)
-        ) {
-            Color.White
-        } else {
-            Color.Black
-        }
+        contentColor = bestForegroundOn(backgroundColor.toArgb())
     ) {
         Text(
             text = if (truncateName) {
