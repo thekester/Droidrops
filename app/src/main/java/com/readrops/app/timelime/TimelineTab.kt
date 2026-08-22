@@ -283,29 +283,32 @@ object TimelineTab : Tab {
                         .fillMaxSize()
                         .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
                 ) {
-                    when {
-                        state.displayRefreshScreen -> RefreshScreen(
-                            currentFeed = state.currentFeed,
-                            feedCount = state.feedCount,
-                            feedMax = state.feedMax
-                        )
-
-                        items.isLoading() -> {
-                            LoadingScreen(isRefreshing = state.isRefreshing)
-                        }
-
-                        items.isError() -> {
-                            Placeholder(
-                                text = stringResource(R.string.error_occured),
-                                painter = painterResource(id = R.drawable.ic_error)
+                    // PullToRefreshBox must stay in composition whatever the state: leaving it
+                    // while its indicator animation runs detaches the node, and animateToThreshold
+                    // then crashes reading a CompositionLocal.
+                    PullToRefreshBox(
+                        isRefreshing = state.isRefreshing,
+                        onRefresh = { screenModel.refreshTimeline() },
+                    ) {
+                        when {
+                            state.displayRefreshScreen -> RefreshScreen(
+                                currentFeed = state.currentFeed,
+                                feedCount = state.feedCount,
+                                feedMax = state.feedMax
                             )
-                        }
 
-                        else -> {
-                            PullToRefreshBox(
-                                isRefreshing = state.isRefreshing,
-                                onRefresh = { screenModel.refreshTimeline() },
-                            ) {
+                            items.isLoading() -> {
+                                LoadingScreen(isRefreshing = state.isRefreshing)
+                            }
+
+                            items.isError() -> {
+                                Placeholder(
+                                    text = stringResource(R.string.error_occured),
+                                    painter = painterResource(id = R.drawable.ic_error)
+                                )
+                            }
+
+                            else -> {
                                 if (items.isNotEmpty()) {
                                     MarkItemsRead(
                                         lazyListState = lazyListState,

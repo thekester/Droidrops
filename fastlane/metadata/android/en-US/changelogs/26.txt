@@ -1,0 +1,2 @@
+- Fix a pull-to-refresh crash when the timeline changes state.
+- Refresh the store screenshots.
