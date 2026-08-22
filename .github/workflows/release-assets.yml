@@ -57,8 +57,28 @@ jobs:
             printf 'release.keyPassword=%s\n' "$KEY_PASSWORD"
           } > local.properties
 
-      - name: Build signed APK and AAB
-        run: ./gradlew clean :app:assembleRelease :app:bundleRelease --no-daemon -PwarningsAsErrors=true
+      - name: Build unsigned APK for F-Droid
+        run: ./gradlew clean :app:assembleRelease --no-daemon -PfdroidUnsigned=true -PwarningsAsErrors=true
+
+      - name: Build signed AAB for Google Play
+        run: ./gradlew :app:bundleRelease --no-daemon -PwarningsAsErrors=true
+
+      - name: Sign APK with preserved alignment
+        env:
+          STORE_PASSWORD: ${{ secrets.RELEASE_STORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.RELEASE_KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
+        run: |
+          APK_SIGNER=$(find "$ANDROID_HOME/build-tools" -type f -name apksigner | sort -V | tail -n 1)
+          VERSION="${RELEASE_TAG#v}"
+          "$APK_SIGNER" sign \
+            --ks "$RUNNER_TEMP/release-keystore.jks" \
+            --ks-pass "pass:$STORE_PASSWORD" \
+            --ks-key-alias "$KEY_ALIAS" \
+            --key-pass "pass:$KEY_PASSWORD" \
+            --alignment-preserved \
+            --out "Droidrops-${VERSION}-release.apk" \
+            app/build/outputs/apk/release/app-release-unsigned.apk
 
       - name: Verify signatures
         run: |
@@ -72,7 +92,6 @@ jobs:
       - name: Prepare release assets
         run: |
           VERSION="${RELEASE_TAG#v}"
-          cp app/build/outputs/apk/release/app-release.apk "Droidrops-${VERSION}-release.apk"
           cp app/build/outputs/bundle/release/app-release.aab "Droidrops-${VERSION}-release.aab"
           sha256sum "Droidrops-${VERSION}-release.apk" "Droidrops-${VERSION}-release.aab"
 
