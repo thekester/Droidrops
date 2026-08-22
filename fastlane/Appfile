@@ -1,0 +1,5 @@
+package_name("com.droidrops.app")
+
+if ENV["PLAY_SERVICE_ACCOUNT_JSON"] && !ENV["PLAY_SERVICE_ACCOUNT_JSON"].empty?
+  json_key_file(ENV["PLAY_SERVICE_ACCOUNT_JSON"])
+end

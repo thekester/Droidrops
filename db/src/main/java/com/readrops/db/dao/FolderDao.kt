@@ -22,6 +22,9 @@ interface FolderDao : BaseDao<Folder> {
     @Query("Select * From Folder Where account_id = :accountId")
     fun selectFolders(accountId: Int): Flow<List<Folder>>
 
+    @Query("Select * From Folder Where account_id = :accountId")
+    suspend fun selectAllFolders(accountId: Int): List<Folder>
+
     @Query("Select * from Folder Where id = :folderId")
     fun select(folderId: Int): Folder
 
@@ -33,6 +36,9 @@ interface FolderDao : BaseDao<Folder> {
 
     @Query("Update Folder set name = :name Where remoteId = :remoteId And account_id = :accountId")
     suspend fun updateFolderName(name: String, remoteId: String, accountId: Int)
+
+    @Query("Update Folder set remoteId = :remoteId, name = :name Where id = :folderId")
+    suspend fun updateFolderRemoteIdAndName(folderId: Int, remoteId: String, name: String)
 
     @Query("Delete From Folder Where remoteId in (:ids) And account_id = :accountId")
     suspend fun deleteByIds(ids: List<String>, accountId: Int)

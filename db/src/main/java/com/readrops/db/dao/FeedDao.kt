@@ -44,7 +44,7 @@ interface FeedDao : BaseDao<Feed> {
     suspend fun selectFeedRemoteIds(accountId: Int): List<String>
 
     @Query("Select id From Folder Where remoteId = :remoteId And account_id = :accountId")
-    suspend fun selectRemoteFolderLocalId(remoteId: String, accountId: Int): Int
+    suspend fun selectRemoteFolderLocalId(remoteId: String, accountId: Int): Int?
 
     @Query("Select id From Feed Where remote_id = :remoteId And account_id = :accountId")
     suspend fun selectRemoteFeedLocalId(remoteId: String, accountId: Int): Int
@@ -97,10 +97,10 @@ interface FeedDao : BaseDao<Feed> {
         val feedsToDelete = localFeedIds.filter { localFeedId -> feeds.none { feed -> localFeedId == feed.remoteId } }
 
         feeds.forEach { feed ->
-            feed.folderId = if (feed.remoteFolderId == null) {
-                null
-            } else {
-                selectRemoteFolderLocalId(feed.remoteFolderId!!, account.id)
+            // an unknown remote folder gives no local id at all, the feed is then attached to the
+            // root instead of to the folder 0, which doesn't exist and breaks the foreign key
+            feed.folderId = feed.remoteFolderId?.let { remoteFolderId ->
+                selectRemoteFolderLocalId(remoteFolderId, account.id)
             }
 
             // works only for already existing feeds

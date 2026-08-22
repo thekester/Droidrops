@@ -126,14 +126,11 @@ Temporary Items
 
 \.idea/
 
-fastlane/Appfile
-
-fastlane/Fastfile
-
-Gemfile
-
 mapping/
 
 **/*.exec
 
 .kotlin/
+
+# Local F-Droid tooling environment
+.venv-fdroidserver/

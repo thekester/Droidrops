@@ -5,11 +5,59 @@
 - Use `Droidrops` as the app name.
 - Use `com.droidrops.app` as the application id.
 - Upload a signed Android App Bundle generated from the `release` variant.
+- Include native debug symbols in the release bundle for Play Console crash analysis.
 - Configure Play App Signing in Play Console.
 - Link the privacy policy URL:
   - `https://raw.githubusercontent.com/thekester/Droidrops/develop/PRIVACY_POLICY.md`
 - Fill in the Data Safety section accurately.
 - Make sure the store listing states that this is a fork of Readrops.
+
+### GitLab CI
+
+The repository can publish to Google Play through GitLab CI:
+
+- `unit_tests` runs Gradle unit tests and lint.
+- `bundle_release` builds the signed release AAB.
+- `upload_internal` pushes the AAB to the `internal` track automatically on `develop`.
+- `upload_production` is reserved for tagged releases and uploads to `production`.
+
+Required GitLab CI variables:
+
+- `RELEASE_KEYSTORE_FILE` as a file variable pointing to the upload keystore.
+- `RELEASE_STORE_PASSWORD`
+- `RELEASE_KEY_ALIAS`
+- `RELEASE_KEY_PASSWORD`
+- `PLAY_SERVICE_ACCOUNT_JSON` as a file variable pointing to the Google Play service account JSON.
+
+Optional GitLab CI variables:
+
+- `PLAY_TRACK` to override the default track.
+- `PLAY_RELEASE_STATUS` to override the default release status.
+
+Notes:
+
+- The `bundle_release` job creates `local.properties` from the CI variables so Gradle can sign the bundle.
+- The Fastlane lane reads the bundle from `app/build/outputs/bundle/release/app-release.aab`.
+- On first use, make sure Play App Signing is enabled and the service account has access to the app in Play Console.
+- The release build requests `ndk.debugSymbolLevel = FULL`, so any available native debug symbols are packaged in the AAB and do not need a separate upload. Some third-party `.so` files are already stripped upstream, so Play Console may still show a non-blocking warning for those libraries.
+
+### First Google Play release
+
+The repository already has a local upload keystore configured for development:
+
+- File: `release-keystore.jks` (ignored by Git)
+- Alias: `droidrops-release`
+
+Do not commit this keystore or its passwords. Upload the same keystore as the
+GitLab file variable `RELEASE_KEYSTORE_FILE`, then add the matching passwords
+and alias as CI/CD variables. The first signed AAB must be uploaded to the
+internal testing track from Play Console. During that first release, choose
+Play App Signing if Play Console asks. Google then keeps the app-signing key,
+while GitLab continues to use the upload keystore for future uploads.
+
+Once the first release is accepted, pushes to `develop` run the automated
+tests, build a signed AAB, and upload it to internal testing. The testers must
+be added in Play Console under `Testing > Internal testing`.
 
 ## F-Droid
 

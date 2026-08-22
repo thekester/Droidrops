@@ -1,0 +1,80 @@
+stages:
+  - test
+  - build
+  - deploy
+
+default:
+  image: ghcr.io/cirruslabs/android-sdk:35
+  cache:
+    key: gradle
+    paths:
+      - .gradle/caches
+      - .gradle/wrapper
+  before_script:
+    - export GRADLE_USER_HOME="$CI_PROJECT_DIR/.gradle"
+    - chmod +x ./gradlew
+
+variables:
+  PLAY_PACKAGE_NAME: "com.droidrops.app"
+  PLAY_TRACK: "internal"
+  GRADLE_OPTS: "-Dorg.gradle.jvmargs=-Xmx2048M"
+
+unit_tests:
+  stage: test
+  script:
+    - ./gradlew test lint
+
+bundle_release:
+  stage: build
+  script:
+    - test -f "$RELEASE_KEYSTORE_FILE"
+    - test -n "$RELEASE_STORE_PASSWORD"
+    - test -n "$RELEASE_KEY_ALIAS"
+    - test -n "$RELEASE_KEY_PASSWORD"
+    - |
+      cat > local.properties <<EOF
+      release.storeFile=$RELEASE_KEYSTORE_FILE
+      release.storePassword=$RELEASE_STORE_PASSWORD
+      release.keyAlias=$RELEASE_KEY_ALIAS
+      release.keyPassword=$RELEASE_KEY_PASSWORD
+      EOF
+    - ./gradlew :app:bundleRelease
+  artifacts:
+    paths:
+      - app/build/outputs/bundle/release/app-release.aab
+    expire_in: 1 week
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+    - if: '$CI_COMMIT_TAG'
+
+upload_internal:
+  stage: deploy
+  image: ruby:3.3
+  needs:
+    - job: bundle_release
+      artifacts: true
+  before_script:
+    - gem install bundler --no-document
+    - bundle install
+  script:
+    - test -f "$PLAY_SERVICE_ACCOUNT_JSON"
+    - bundle exec fastlane android upload track:internal aab_path:app/build/outputs/bundle/release/app-release.aab release_status:completed
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "develop"'
+
+upload_production:
+  stage: deploy
+  image: ruby:3.3
+  needs:
+    - job: bundle_release
+      artifacts: true
+  before_script:
+    - gem install bundler --no-document
+    - bundle install
+  script:
+    - test -f "$PLAY_SERVICE_ACCOUNT_JSON"
+    - bundle exec fastlane android upload track:production aab_path:app/build/outputs/bundle/release/app-release.aab release_status:completed
+  rules:
+    - if: '$CI_COMMIT_TAG'
+      when: manual
+      allow_failure: false

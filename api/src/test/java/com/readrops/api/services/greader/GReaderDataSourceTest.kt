@@ -156,6 +156,37 @@ class GReaderDataSourceTest : KoinTest {
     }
 
     @Test
+    fun feedItemsTest() = runTest {
+        val stream = TestUtils.loadResource("services/greader/adapters/items.json")
+        mockServer.enqueueOKStream(stream)
+
+        val items = freshRSSDataSource.getFeedItems("feed/2", max = 100)
+        assertTrue { items.size == 2 }
+
+        val request = mockServer.takeRequest()
+
+        with(request.requestUrl!!) {
+            assertEquals("/reader/api/0/stream/contents/feed/2", encodedPath)
+            assertEquals("100", queryParameter("n"))
+        }
+    }
+
+    @Test
+    fun feedItemsWithUrlAsRemoteIdTest() = runTest {
+        val stream = TestUtils.loadResource("services/greader/adapters/items.json")
+        mockServer.enqueueOKStream(stream)
+
+        freshRSSDataSource.getFeedItems("feed/https://example.com/rss", max = 100)
+
+        val request = mockServer.takeRequest()
+
+        assertEquals(
+            "/reader/api/0/stream/contents/feed/https://example.com/rss",
+            request.requestUrl!!.encodedPath
+        )
+    }
+
+    @Test
     fun getItemsIdsTest() = runTest {
         val stream = TestUtils.loadResource("services/greader/adapters/items_starred_ids.json")
         mockServer.enqueueOKStream(stream)

@@ -92,6 +92,14 @@ class GReaderDataSource(private val service: GReaderService) {
 
     suspend fun getStarredItems(max: Int) = service.getStarredItems(max)
 
+    /**
+     * Fetch the items of a single feed, whatever their publication date.
+     *
+     * @param feedRemoteId the feed remote id, ie feed/<id or url>
+     */
+    suspend fun getFeedItems(feedRemoteId: String, max: Int = MAX_NEW_FEED_ITEMS): List<Item> =
+        service.getStreamItems(feedRemoteId, max)
+
     suspend fun getItemsIds(excludeTarget: String?, includeTarget: String, max: Int): List<String> {
         return service.getItemsIds(excludeTarget, includeTarget, max)
     }
@@ -160,6 +168,9 @@ class GReaderDataSource(private val service: GReaderService) {
     companion object {
         private const val MAX_ITEMS = 2500
         private const val MAX_STARRED_ITEMS = 1000
+
+        // backlog fetched for a feed just added, so it isn't shown empty until the next sync
+        const val MAX_NEW_FEED_ITEMS = 100
 
         const val GOOGLE_READ = "user/-/state/com.google/read"
         const val GOOGLE_UNREAD = "user/-/state/com.google/unread"

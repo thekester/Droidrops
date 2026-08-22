@@ -222,9 +222,10 @@ class SynchronizerTest : KoinTest {
         val feeds = database.feedDao().selectFeeds(remoteAccount.id)
         assertEquals(1, feeds.size)
 
-        // contains both unstarred and starred items
+        // the fixture holds the same item twice and is served to both the reading-list and the
+        // starred call, so the four returned items must end up as a single row
         val items = database.itemDao().selectItems(feeds.first().id)
-        assertEquals(4, items.size)
+        assertEquals(1, items.size)
     }
 
 

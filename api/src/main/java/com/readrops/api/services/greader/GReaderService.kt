@@ -11,6 +11,7 @@ import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface GReaderService {
@@ -39,6 +40,16 @@ interface GReaderService {
 
     @GET("reader/api/0/stream/contents/user/-/state/com.google/starred")
     suspend fun getStarredItems(@Query("n") max: Int): List<Item>
+
+    /**
+     * @param streamId a feed remote id, ie feed/<id or url>, kept unencoded as it is already
+     * a path made of several segments
+     */
+    @GET("reader/api/0/stream/contents/{streamId}")
+    suspend fun getStreamItems(
+        @Path(value = "streamId", encoded = true) streamId: String,
+        @Query("n") max: Int
+    ): List<Item>
 
     @GET("reader/api/0/stream/items/ids")
     suspend fun getItemsIds(

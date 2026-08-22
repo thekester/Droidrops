@@ -1,6 +1,9 @@
 package com.readrops.app
 
 import android.app.Application
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import coil3.ColorImage
@@ -13,6 +16,7 @@ import coil3.disk.directory
 import coil3.test.FakeImageLoaderEngine
 import coil3.util.DebugLogger
 import coil3.util.Logger
+import androidx.core.app.NotificationManagerCompat
 
 class TestApplication : Application(), SingletonImageLoader.Factory {
 
@@ -33,6 +37,22 @@ class TestApplication : Application(), SingletonImageLoader.Factory {
                 apiModule, appModule
             )
         }*/
+
+        // without its channel a notification is silently dropped, which makes any test
+        // asserting on activeNotifications fail
+        createSyncNotificationChannel()
+    }
+
+    private fun createSyncNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationManagerCompat.from(this).createNotificationChannel(
+                NotificationChannel(
+                    ReadropsApp.SYNC_CHANNEL_ID,
+                    getString(R.string.auto_synchro),
+                    NotificationManager.IMPORTANCE_LOW
+                )
+            )
+        }
     }
 
     @OptIn(ExperimentalCoilApi::class)

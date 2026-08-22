@@ -56,6 +56,11 @@ android {
             isMinifyEnabled = true
             isShrinkResources = true
 
+            // Keep native function names and source locations for Play Console crash reports.
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
+
             if (hasReleaseSigningConfig) {
                 signingConfig = signingConfigs.getByName("release")
             }

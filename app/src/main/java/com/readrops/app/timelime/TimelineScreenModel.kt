@@ -139,6 +139,40 @@ class TimelineScreenModel(
                 }
             }
         }
+
+        screenModelScope.launch(dispatcher) {
+            accountEvent.flatMapLatest { database.folderDao().selectFolders(it.id) }
+                .collect { folders -> reconcileFolderFilter(folders) }
+        }
+    }
+
+    /**
+     * The selected folder can be renamed or deleted on the server side. Its name is then kept up to
+     * date, and the timeline falls back on the default filter when the folder doesn't exist
+     * anymore, instead of staying stuck on an empty list.
+     */
+    private fun reconcileFolderFilter(folders: List<Folder>) {
+        val state = _timelineState.value
+        if (state.filters.subFilter != SubFilter.FOLDER) {
+            return
+        }
+
+        val folder = folders.find { it.id == state.filters.folderId }
+
+        when {
+            folder == null -> _timelineState.update {
+                it.copy(
+                    filters = updateFilters {
+                        it.filters.copy(subFilter = SubFilter.ALL, folderId = 0)
+                    },
+                    filterFolderName = ""
+                )
+            }
+
+            folder.name != state.filterFolderName -> _timelineState.update {
+                it.copy(filterFolderName = folder.name.orEmpty())
+            }
+        }
     }
 
     private fun getTimelinePreferences(): Flow<TimelinePreferences> = with(preferences) {

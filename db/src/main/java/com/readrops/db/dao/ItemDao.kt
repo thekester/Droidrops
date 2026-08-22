@@ -81,4 +81,19 @@ interface ItemDao : BaseDao<Item> {
     @Query("""Select case When Exists(Select 1 From Item Inner Join Feed on Item.feed_id = Feed.id
         Where Item.remote_id = :remoteId And account_id = :accountId) Then 1 else 0 end""")
     suspend fun itemExists(remoteId: String, accountId: Int): Boolean
+
+    @Query("""Select Item.remote_id From Item Inner Join Feed On Item.feed_id = Feed.id
+        Where account_id = :accountId And Item.remote_id In (:remoteIds)""")
+    suspend fun selectExistingRemoteIdsChunk(remoteIds: List<String>, accountId: Int): List<String>
+
+    /**
+     * @return among [remoteIds], the ones already inserted for [accountId]
+     */
+    suspend fun selectExistingRemoteIds(remoteIds: List<String>, accountId: Int): Set<String> =
+        remoteIds.chunked(SQLITE_MAX_VARIABLES)
+            .flatMap { chunk -> selectExistingRemoteIdsChunk(chunk, accountId) }
+            .toSet()
 }
+
+// SQLite refuses more than 999 variables per statement before version 3.32
+private const val SQLITE_MAX_VARIABLES = 900
