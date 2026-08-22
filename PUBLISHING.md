@@ -59,6 +59,25 @@ Once the first release is accepted, pushes to `develop` run the automated
 tests, build a signed AAB, and upload it to internal testing. The testers must
 be added in Play Console under `Testing > Internal testing`.
 
+### GitHub release assets
+
+The `Publish Android release assets` workflow runs when a GitHub release is
+published. It checks out the release tag, builds the signed APK and signed AAB
+from the same source, verifies both signatures, and uploads both files to the
+GitHub release. The AAB can then be uploaded to Google Play Console, while the
+APK remains available for the F-Droid `Binaries` entry.
+
+Configure these GitHub Actions secrets before publishing a release:
+
+- `RELEASE_KEYSTORE_BASE64`: base64 encoding of `release-keystore.jks`.
+- `RELEASE_STORE_PASSWORD`
+- `RELEASE_KEY_ALIAS`
+- `RELEASE_KEY_PASSWORD`
+
+The workflow can also be started manually with an existing release tag from
+the Actions tab. Never commit the keystore, its passwords, or the generated
+`local.properties` file.
+
 ## F-Droid
 
 - F-Droid needs a public source repo, a FOSS license, FOSS dependencies, and a release tag for the version you want to publish.
