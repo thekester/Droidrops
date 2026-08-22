@@ -134,8 +134,10 @@ fun RadioButtonItem(
             LargeSpacer()
 
             Text(
+                // bodyLarge is the Material size for a selectable list row in a dialog.
+                // bodyMedium made these options smaller than the settings entries that open them.
                 text = text,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyLarge,
             )
         }
     }
