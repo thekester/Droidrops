@@ -29,9 +29,9 @@
 
 # Screenshots
 
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_1.jpg" width=250> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_2.jpg" width=250> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_3.jpg" width=250> 
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_1.jpg" width=250 alt="Droidrops screenshot 1"> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_2.jpg" width=250 alt="Droidrops screenshot 2"> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_3.jpg" width=250 alt="Droidrops screenshot 3">
 
-<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_4.jpg" width=250> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_5.jpg" width=250> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_6.jpg" width=250>
+<img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_4.jpg" width=250 alt="Droidrops screenshot 4"> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_5.jpg" width=250 alt="Droidrops screenshot 5"> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_6.jpg" width=250 alt="Droidrops screenshot 6">
 
 # Licence
 
