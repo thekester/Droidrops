@@ -1,10 +1,12 @@
 package com.readrops.app.sync
 
 import android.app.Notification
+import android.Manifest
 import android.content.Context
 import android.util.Log
 import androidx.core.app.NotificationManagerCompat
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.rule.GrantPermissionRule
 import androidx.work.Configuration
 import androidx.work.ListenableWorker
 import androidx.work.OneTimeWorkRequestBuilder
@@ -67,6 +69,11 @@ class SyncWorkerTest : KoinTest {
 
     @get:Rule
     val rule = ReadropsTestRule()
+
+    // Android 13+ otherwise drops the notification before the assertion can inspect it.
+    @get:Rule
+    val notificationPermissionRule: GrantPermissionRule =
+        GrantPermissionRule.grant(Manifest.permission.POST_NOTIFICATIONS)
 
     private val localAccount = Account(
         name = "Local account",
