@@ -1,7 +1,6 @@
 package com.readrops.app.feeds
 
 import android.content.Context
-import android.util.Patterns
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.readrops.app.R
 import com.readrops.app.home.TabScreenModel
@@ -26,6 +25,7 @@ import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
 import androidx.work.workDataOf
 import com.readrops.app.sync.SyncWorker
+import com.readrops.app.util.extensions.isValidFeedUrl
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FeedScreenModel(
@@ -301,7 +301,7 @@ class FeedScreenModel(
                 return
             }
 
-            !Patterns.WEB_URL.matcher(feedUrl).matches() -> {
+            !feedUrl.isValidFeedUrl() -> {
                 _updateFeedDialogState.update {
                     it.copy(feedUrlError = TextFieldError.BadUrl)
                 }

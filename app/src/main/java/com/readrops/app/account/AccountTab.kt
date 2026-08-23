@@ -149,6 +149,9 @@ object AccountTab : Tab {
                     Intent().apply {
                         this.action = Intent.ACTION_VIEW
                         setDataAndType(state.opmlExportUri, "text/xml")
+                        // the uri comes from the document picker and belongs to its provider:
+                        // without propagating the read grant, the receiving app cannot open it
+                        addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
                     }.also {
                         context.startActivity(Intent.createChooser(it, null))
                     }

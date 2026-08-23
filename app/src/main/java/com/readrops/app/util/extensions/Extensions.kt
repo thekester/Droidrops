@@ -9,6 +9,7 @@ import androidx.work.Data
 import java.io.Serializable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import java.net.URI
 
 fun TextStyle.toDp(): Dp = fontSize.value.dp
 
@@ -53,3 +54,33 @@ fun bestForegroundOn(@ColorInt background: Int): Color =
     } else {
         Color.Black
     }
+
+/**
+ * Android's Patterns.WEB_URL turns away perfectly usable addresses: a host with no dot such
+ * as http://nas/feed, localhost, an address with a port, and some recent TLDs. Self hosted
+ * setups run into it constantly. Only the syntax is checked here; whether the address
+ * answers is the server's business, and the network layer already reports that clearly.
+ */
+fun String.isValidFeedUrl(): Boolean {
+    val candidate = trim()
+    val hasUnsupportedScheme = Regex("^[A-Za-z][A-Za-z0-9+.-]*://").containsMatchIn(candidate) &&
+        !candidate.startsWith("http://", ignoreCase = true) &&
+        !candidate.startsWith("https://", ignoreCase = true)
+
+    if (hasUnsupportedScheme) return false
+
+    val withScheme = if (
+        candidate.startsWith("http://", ignoreCase = true) ||
+        candidate.startsWith("https://", ignoreCase = true)
+    ) {
+        candidate
+    } else {
+        "https://$candidate"
+    }
+
+    return runCatching { URI(withScheme) }.getOrNull()?.let { uri ->
+        (uri.scheme.equals("http", ignoreCase = true) ||
+            uri.scheme.equals("https", ignoreCase = true)) &&
+            !uri.host.isNullOrEmpty()
+    } == true
+}

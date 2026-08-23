@@ -1,6 +1,5 @@
 package com.readrops.app.feeds
 
-import android.util.Patterns
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -56,6 +55,7 @@ import com.readrops.db.entities.Feed
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
+import com.readrops.app.util.extensions.isValidFeedUrl
 
 object FeedTab : Tab {
 
@@ -98,7 +98,7 @@ object FeedTab : Tab {
         LaunchedEffect(Unit) {
             addFeedDialogChannel.receiveAsFlow()
                 .collect { url ->
-                    if (Patterns.WEB_URL.matcher(url).matches()) {
+                    if (url.isValidFeedUrl()) {
                         navigator.push(NewFeedScreen(url))
                     }
                 }
