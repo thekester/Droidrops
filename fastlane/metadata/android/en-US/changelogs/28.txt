@@ -1,0 +1,3 @@
+- Fix upgrade crashes and speed up synchronization on large databases.
+- Import OPML files from other readers and support title-less feeds.
+- Improve pull-to-refresh, favourites undo, accessibility, and feed readability.

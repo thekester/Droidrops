@@ -1,3 +1,28 @@
+# v2.2.7
+
+This release fixes upgrade reliability, improves synchronization performance, and makes more feeds readable.
+
+## Fixes
+
+- Add the missing database migration required when upgrading older installations.
+- Index article remote ids to speed up synchronization on large databases.
+- Import OPML files from other readers regardless of their declared version.
+- Support feeds whose entries have no title, including Mastodon feeds.
+- Explain certificate errors instead of exposing a raw network failure.
+- Remove empty timeline space for descriptions containing only markup.
+- Normalize titles in Atom, RSS 1.0, and JSON feeds.
+- Keep credentials out of device backups.
+
+## Changes
+
+- Add pull-to-refresh from the Feeds screen.
+- Add undo support when removing an article from favourites.
+- Expose image hover text on touch devices.
+- Add a fade transition between app tabs.
+- Improve contrast for custom feed colours.
+- Increase the font size of multi-choice setting options.
+- Improve crash notice wording and login debugging information.
+
 # v2.2.6
 
 This release improves feed synchronization, article rendering, accessibility, and date handling.
