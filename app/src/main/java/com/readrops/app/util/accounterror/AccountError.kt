@@ -11,6 +11,7 @@ import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
 import java.io.IOException
 import java.net.UnknownHostException
+import javax.net.ssl.SSLException
 
 abstract class AccountError(protected val context: Context) {
 
@@ -29,6 +30,11 @@ abstract class AccountError(protected val context: Context) {
     fun genericMessage(exception: Exception) = when (exception) {
         is HttpException -> httpMessage(exception)
         is UnknownHostException -> context.resources.getString(R.string.unreachable_url)
+
+        // must stay above IOException, which SSLException inherits from. Self hosted setups
+        // very often use a self signed certificate, and the raw handshake message says
+        // nothing useful. The app already trusts user added authorities, so the advice works.
+        is SSLException -> context.resources.getString(R.string.tls_error)
         is NoSuchFileException -> context.resources.getString(R.string.unable_open_file)
         is IOException -> context.resources.getString(
             R.string.network_failure,

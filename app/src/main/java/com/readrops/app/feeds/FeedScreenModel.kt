@@ -24,6 +24,8 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
+import androidx.work.workDataOf
+import com.readrops.app.sync.SyncWorker
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FeedScreenModel(
@@ -35,6 +37,33 @@ class FeedScreenModel(
 
     private val _feedState = MutableStateFlow(FeedState())
     val feedsState = _feedState.asStateFlow()
+
+    /**
+     * The feeds screen shows unread counts, which only a synchronization updates. Pulling on a
+     * list is the expected gesture there as much as on the timeline, so the same worker is
+     * started. It is enqueued as unique work, so pulling while a sync runs does not stack.
+     */
+    fun refreshFeeds() {
+        if (!context.isConnected()) {
+            _feedState.update { it.copy(error = context.getString(R.string.no_network)) }
+            return
+        }
+
+        val account = currentAccount ?: return
+
+        screenModelScope.launch(dispatcher) {
+            _feedState.update { it.copy(isRefreshing = true) }
+
+            SyncWorker.startNow(
+                context,
+                workDataOf(SyncWorker.ACCOUNT_ID_KEY to account.id)
+            ) { workInfo ->
+                if (workInfo.state.isFinished) {
+                    _feedState.update { it.copy(isRefreshing = false) }
+                }
+            }
+        }
+    }
 
     private val _updateFeedDialogState = MutableStateFlow(UpdateFeedDialogState())
     val updateFeedDialogState = _updateFeedDialogState.asStateFlow()

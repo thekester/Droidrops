@@ -11,7 +11,8 @@ data class FeedState(
     val areFoldersExpanded: Boolean = false,
     val error: String? = null,
     val config: AccountConfig? = null,
-    val isAccountNotificationsEnabled: Boolean = false
+    val isAccountNotificationsEnabled: Boolean = false,
+    val isRefreshing: Boolean = false
 ) {
 
     val displayThreeDotsMenu

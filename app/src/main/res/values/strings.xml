@@ -259,4 +259,7 @@
     <string name="open_original_article">Open the original article</string>
     <string name="open_videos_in_youtube">Open videos in YouTube</string>
     <string name="watch_on_youtube">Watch on YouTube</string>
+    <string name="tls_error">The server certificate could not be verified. If your server uses a self-signed certificate, install its authority in Android settings under Security, then try again.</string>
+    <string name="undo">Undo</string>
+    <string name="removed_from_favorites">Removed from favorites</string>
 </resources>

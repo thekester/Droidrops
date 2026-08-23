@@ -71,6 +71,9 @@ import com.readrops.db.pojo.ItemWithFeed
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.receiveAsFlow
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import com.readrops.app.util.extensions.isTabletUi
 
 
 object TimelineTab : Tab {
@@ -98,6 +101,7 @@ object TimelineTab : Tab {
 
         val lazyListState = rememberLazyListState()
         val snackbarHostState = remember { SnackbarHostState() }
+        val coroutineScope = rememberCoroutineScope()
         val topAppBarState = rememberTopAppBarState()
         val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topAppBarState)
 
@@ -188,8 +192,14 @@ object TimelineTab : Tab {
             }
         )
 
+        val isTablet = isTabletUi()
+
+        LaunchedEffect(isTablet) {
+            if (isTablet) screenModel.openDrawer()
+        }
+
         BackHandler(
-            enabled = state.isDrawerOpen,
+            enabled = state.isDrawerOpen && !isTablet,
             onBack = { screenModel.closeDrawer() }
         )
 
@@ -348,7 +358,34 @@ object TimelineTab : Tab {
                                                         }
                                                     },
                                                     onFavorite = {
+                                                        val wasStarred =
+                                                            itemWithFeed.item.isStarred
+
                                                         screenModel.updateStarState(itemWithFeed.item)
+
+                                                        // only the removal is offered an undo:
+                                                        // adding a favourite is visible and
+                                                        // trivially reversible, losing one is not
+                                                        if (wasStarred) {
+                                                            coroutineScope.launch {
+                                                                val action =
+                                                                    snackbarHostState.showSnackbar(
+                                                                        message = context.getString(
+                                                                            R.string.removed_from_favorites
+                                                                        ),
+                                                                        actionLabel = context.getString(
+                                                                            R.string.undo
+                                                                        ),
+                                                                        duration = SnackbarDuration.Short
+                                                                    )
+
+                                                                if (action == SnackbarResult.ActionPerformed) {
+                                                                    screenModel.updateStarState(
+                                                                        itemWithFeed.item
+                                                                    )
+                                                                }
+                                                            }
+                                                        }
                                                     },
                                                     onShare = {
                                                         screenModel.shareItem(itemWithFeed, context)

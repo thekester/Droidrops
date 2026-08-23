@@ -102,6 +102,28 @@ class ItemWebView(
      * is appended. The hint is only ever added, never replacing what the feed did provide.
      */
     /**
+     * The title attribute of an image is hover text, which webcomics use to carry a second
+     * punchline. A touch screen has no hover, so it was simply unreachable. It is surfaced
+     * as a caption under the image, styled apart from the body text.
+     */
+    private fun revealImageHoverText(body: Element) {
+        body.select("img[title]").forEach { image ->
+            val hoverText = image.attr("title").trim()
+
+            // alt is deliberately not compared: a browser only shows it when the image
+            // fails to load, so there is nothing to duplicate. xkcd, the very case this
+            // targets, ships the same string in both attributes.
+            if (hoverText.isEmpty()) return@forEach
+
+            // webcomics wrap the image in a link, and inserting inside the anchor would
+            // make the caption part of the clickable area: place it after the outermost link
+            val anchor = image.parents().firstOrNull { it.tagName() == "a" } ?: image
+
+            anchor.after("<p class=\"hover-text\"><em>$hoverText</em></p>")
+        }
+    }
+
+    /**
      * Swaps the embedded player for a thumbnail linking to YouTube. Readers with the app
      * installed, or a Premium account, get their own player instead of the web one.
      */
@@ -124,6 +146,9 @@ class ItemWebView(
     }
 
     private fun hasNoProse(body: Element): Boolean {
+        // an image or a player is content of its own: a webcomic entry is not an empty entry
+        if (body.selectFirst("img, video, iframe, audio") != null) return false
+
         val wholeText = body.text().trim()
         if (wholeText.isEmpty()) return true
 
@@ -154,6 +179,7 @@ class ItemWebView(
         // If body has no tags or all tags are unknown (and therefore likely not HTML tags at all),
         // treat the whole thing as plain text and convert it to HTML turning newlines into <br>/<p> tags
         val body = document.body()
+        revealImageHoverText(body)
         if (openVideosInYoutube) replaceVideoEmbeds(body)
         val isPlainText = body.stream().skip(1).allMatch { !it.tag().isKnownTag }
         val html = if (isPlainText) {

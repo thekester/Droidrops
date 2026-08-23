@@ -55,6 +55,7 @@ import com.readrops.app.util.theme.spacing
 import com.readrops.db.entities.Feed
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 
 object FeedTab : Tab {
 
@@ -166,7 +167,9 @@ object FeedTab : Tab {
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { paddingValues ->
-            Box(
+            PullToRefreshBox(
+                isRefreshing = state.isRefreshing,
+                onRefresh = { screenModel.refreshFeeds() },
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)

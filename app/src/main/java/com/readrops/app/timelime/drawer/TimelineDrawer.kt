@@ -17,7 +17,7 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
-import androidx.compose.material3.PermanentNavigationDrawer
+import androidx.compose.material3.DismissibleNavigationDrawer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -46,7 +46,11 @@ fun TimelineDrawer(
     content: @Composable () -> Unit,
 ) {
     if (isTabletUi()) {
-        PermanentNavigationDrawer(
+        // Dismissible rather than permanent: the pane sits inline like a permanent drawer but
+        // can be closed, which gives back the reading width on a tablet. It is opened by
+        // default so the layout still looks like the permanent one at first glance.
+        DismissibleNavigationDrawer(
+            drawerState = drawerState,
             drawerContent = {
                 TimelineDrawerContent(
                     state = state,

@@ -25,6 +25,12 @@
 
         a:link, a:active, a:hover { color: %1$s }
 
+        .hover-text {
+            font-size: 0.9em;
+            opacity: 0.75;
+            margin-top: 0.2em;
+        }
+
         * {
             word-wrap: break-word !important;
             line-height: 1.4;

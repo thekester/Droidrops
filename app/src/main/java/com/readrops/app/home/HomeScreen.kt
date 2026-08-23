@@ -36,6 +36,11 @@ import com.readrops.app.timelime.TimelineTab
 import com.readrops.app.util.components.AndroidScreen
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
+import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.togetherWith
+import androidx.compose.animation.core.tween
 
 object HomeScreen : AndroidScreen() {
 
@@ -123,7 +128,21 @@ object HomeScreen : AndroidScreen() {
                             }
                         }
                     ) {
-                        CurrentTab()
+                        // Fade through is the Material motion for switching bottom navigation
+                        // destinations. The target tab is rendered through saveableState, with
+                        // the key CurrentTab uses internally, so each tab keeps its own state.
+                        AnimatedContent(
+                            targetState = tabNavigator.current,
+                            transitionSpec = {
+                                fadeIn(tween(durationMillis = 220, delayMillis = 90))
+                                    .togetherWith(fadeOut(tween(durationMillis = 90)))
+                            },
+                            label = "tab"
+                        ) { tab ->
+                            tabNavigator.saveableState(key = "currentTab", tab = tab) {
+                                tab.Content()
+                            }
+                        }
                     }
                 }
             }
