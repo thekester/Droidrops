@@ -57,15 +57,15 @@ fun TimelineAppBar(
             }
         },
         navigationIcon = {
-            // shown on every form factor now: the tablet drawer can be closed, so it needs
-            // a way back
-            IconButton(
-                onClick = onOpenDrawer
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Menu,
-                    contentDescription = stringResource(R.string.open_navigation_menu)
-                )
+            if (!isTabletUi()) {
+                IconButton(
+                    onClick = onOpenDrawer
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Menu,
+                        contentDescription = stringResource(R.string.open_navigation_menu)
+                    )
+                }
             }
         },
         actions = {

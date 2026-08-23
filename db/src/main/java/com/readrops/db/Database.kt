@@ -34,7 +34,7 @@ import com.readrops.db.util.Converters
         ItemStateChange::class,
         ItemState::class
     ],
-    version = 7
+    version = 8
 )
 @TypeConverters(Converters::class)
 abstract class Database : RoomDatabase() {
@@ -145,6 +145,49 @@ object MigrationFrom4To5 : Migration(4, 5) {
 
         // add open_in_ask field
         db.execSQL("""ALTER TABLE `Feed` ADD `open_in_ask` INTEGER NOT NULL DEFAULT 1""")
+    }
+}
+
+/**
+ * Item.remote_id is the lookup key of every per item query run during a synchronization,
+ * itemExists and updateReadAndStarState among them, yet it carried no index: each call
+ * scanned the whole table, so syncing grew slower as the article table grew. ItemState
+ * already had the equivalent index.
+ */
+object MigrationFrom7To8 : Migration(7, 8) {
+
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("CREATE INDEX IF NOT EXISTS `index_Item_remote_id` ON `Item` (`remote_id`)")
+    }
+}
+
+/**
+ * This migration was missing entirely: version 6 introduced the Tag and TagJoin tables, and
+ * without a path from 5 Room refuses to open the database and the application crashes at
+ * startup for anyone upgrading from an older install. The statements are those of the
+ * exported schema 6, so the result validates against it.
+ */
+object MigrationFrom5To6 : Migration(5, 6) {
+
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `Tag` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `name` TEXT NOT NULL, `remote_id` TEXT, `account_id` INTEGER NOT NULL, FOREIGN KEY(`account_id`) REFERENCES `Account`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+        )
+        db.execSQL(
+            "CREATE UNIQUE INDEX IF NOT EXISTS `index_Tag_name_account_id` ON `Tag` (`name`, `account_id`)"
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_Tag_account_id` ON `Tag` (`account_id`)"
+        )
+        db.execSQL(
+            "CREATE TABLE IF NOT EXISTS `TagJoin` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `tag_id` INTEGER NOT NULL, `item_id` INTEGER NOT NULL, FOREIGN KEY(`item_id`) REFERENCES `Item`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE , FOREIGN KEY(`tag_id`) REFERENCES `Tag`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE )"
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_TagJoin_tag_id` ON `TagJoin` (`tag_id`)"
+        )
+        db.execSQL(
+            "CREATE INDEX IF NOT EXISTS `index_TagJoin_item_id` ON `TagJoin` (`item_id`)"
+        )
     }
 }
 

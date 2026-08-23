@@ -73,7 +73,6 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.receiveAsFlow
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
-import com.readrops.app.util.extensions.isTabletUi
 
 
 object TimelineTab : Tab {
@@ -192,14 +191,8 @@ object TimelineTab : Tab {
             }
         )
 
-        val isTablet = isTabletUi()
-
-        LaunchedEffect(isTablet) {
-            if (isTablet) screenModel.openDrawer()
-        }
-
         BackHandler(
-            enabled = state.isDrawerOpen && !isTablet,
+            enabled = state.isDrawerOpen,
             onBack = { screenModel.closeDrawer() }
         )
 

@@ -77,4 +77,65 @@ class MigrationsTest {
             close()
         }
     }
+
+    /**
+     * The index on Item.remote_id is what keeps synchronization from scanning the whole
+     * article table once per incoming item, so its presence after the upgrade is asserted
+     * rather than merely relying on schema validation.
+     */
+    @Test
+    fun migrate7To8() {
+        helper.createDatabase(dbName, 7).apply {
+            close()
+        }
+
+        helper.runMigrationsAndValidate(dbName, 8, true, MigrationFrom7To8).apply {
+            val index = compileStatement(
+                "Select name From sqlite_master Where type = 'index' And name = 'index_Item_remote_id'"
+            ).simpleQueryForString()
+
+            assertEquals("index_Item_remote_id", index)
+            close()
+        }
+    }
+
+    /**
+     * This path did not exist at all, so a database left at version 5 could not be opened and
+     * the application crashed on upgrade. runMigrationsAndValidate compares the result against
+     * the exported schema, which is what makes this test meaningful rather than decorative.
+     */
+    @Test
+    fun migrate5To6() {
+        helper.createDatabase(dbName, 5).apply {
+            close()
+        }
+
+        helper.runMigrationsAndValidate(dbName, 6, true, MigrationFrom5To6).apply {
+            val tables = compileStatement(
+                "Select count(*) From sqlite_master Where type = 'table' And name In ('Tag', 'TagJoin')"
+            ).simpleQueryForLong()
+
+            assertEquals(2L, tables)
+            close()
+        }
+    }
+
+    /**
+     * The whole chain matters more than any single step: a user upgrading from an old install
+     * goes through every migration in a row.
+     */
+    @Test
+    fun migrate1To8() {
+        helper.createDatabase(dbName, 1).apply {
+            close()
+        }
+
+        helper.runMigrationsAndValidate(
+            dbName, 8, true,
+            MigrationFrom1To2, MigrationFrom2To3, MigrationFrom3To4, MigrationFrom4To5,
+            MigrationFrom5To6, MigrationFrom6To7, MigrationFrom7To8
+        ).apply {
+            close()
+        }
+    }
 }

@@ -31,7 +31,7 @@ data class Item(
     @ColumnInfo(name = "read_time") var readTime: Double = 0.0,
     @ColumnInfo(name = "read") var isRead: Boolean = false,
     @ColumnInfo(name = "starred") var isStarred: Boolean = false,
-    @ColumnInfo(name = "remote_id") var remoteId: String? = null,
+    @ColumnInfo(name = "remote_id", index = true) var remoteId: String? = null,
     @Ignore var feedRemoteId: String? = null,
     @Ignore var tags: List<Tag> = listOf()
 ) : Comparable<Item> {
