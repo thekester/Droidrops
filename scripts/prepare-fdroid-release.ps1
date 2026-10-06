@@ -267,7 +267,7 @@ $metadataLines = @(
     '  - News'
     'License: GPL-3.0-only'
     'AuthorName: Theophile Avenel'
-    'AuthorEmail: theophile.avenel@gmail.com'
+    'AuthorEmail: droidrops@proton.me'
     'AuthorWebSite: https://tavenel.fr/html/homepage.html'
     "WebSite: $repoBaseUrl"
     "SourceCode: $repoBaseUrl"
