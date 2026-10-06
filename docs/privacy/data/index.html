@@ -45,15 +45,18 @@
 
       <h2>Data sent to RSS services and websites you choose</h2>
       <ul>
-        <li>When fetching a feed, the app sends a request to that feed's website. The request includes the feed address and ordinary connection information such as your IP address.</li>
-        <li>When you connect a remote RSS account, the app sends the account identifier and password or access credential to the server address you configured. If you use an email address as the account identifier, that email address is sent to that service.</li>
-        <li>Remote account synchronization may send feed subscriptions and reading state, such as whether an article is read, to that RSS service.</li>
+        <li><strong>Account identifier and credentials:</strong> sent to the remote RSS server you configured so it can authenticate your account and provide synchronization. If you use an email address as the identifier, that address is sent too.</li>
+        <li><strong>Feed addresses and subscriptions:</strong> sent to the relevant feed website to retrieve articles, and to your remote RSS service when needed to keep your subscriptions synchronized.</li>
+        <li><strong>Reading state:</strong> whether an article is read may be sent to your remote RSS service so that it can synchronize this state with your account.</li>
+        <li>These account and synchronization features are optional: you can use a local account without connecting a remote RSS account.</li>
+        <li>Requests to feed websites include ordinary connection information such as your IP address.</li>
         <li>Opening article links or images connects to the publisher or host specified by the content. These services receive ordinary connection information. Droidrops does not record your web browsing history.</li>
       </ul>
       <p>Droidrops accepts both HTTP and HTTPS addresses. HTTP traffic is not encrypted in transit. Use HTTPS when the service supports it. These services are selected by you and operate under their own privacy and retention practices; the Droidrops developer does not receive this data.</p>
 
       <h2>Reports you choose to send</h2>
-      <p>Diagnostic and crash logs are not uploaded automatically. If you choose the report action, Droidrops prepares a report that may include the diagnostic details listed above and opens a GitHub issue form. The report is sent to GitHub only if you submit it there; GitHub issues may be public. You can also share a diagnostic report through Android's sharing menu, in which case the app you select receives it. Review the content and destination before sending.</p>
+      <p><strong>Purpose:</strong> to help diagnose and fix a crash, synchronization error, or other problem you choose to report. This is the only reason diagnostic or crash information is sent; Droidrops does not use it for usage analytics, advertising, or marketing.</p>
+      <p>Diagnostic and crash logs are not uploaded automatically. If you choose the report action, Droidrops prepares a report that may include timestamps, app and Android versions, device manufacturer and model, network type and status, error details or stack traces, and a server address or request path. It opens a GitHub issue form; the report is sent to GitHub only if you submit it there, and issues may be public. You can also share a diagnostic report through Android's sharing menu, in which case the app you select receives it. Review the content and destination before sending.</p>
 
       <h2>Data the app does not access</h2>
       <p>Droidrops does not request access to your physical location, contacts, calendar, personal photos or videos, audio recordings, installed-app list, or device advertising ID. It does not collect payment, health, or fitness information. General app usage and in-app searches are not sent to analytics services.</p>
@@ -77,15 +80,18 @@
 
       <h2>Données envoyées aux services RSS et sites que vous choisissez</h2>
       <ul>
-        <li>Pour récupérer un flux, l’application envoie une requête au site correspondant. Cette requête contient l’adresse du flux et des informations ordinaires de connexion, comme votre adresse IP.</li>
-        <li>Lorsque vous connectez un compte RSS distant, l’application transmet l’identifiant du compte et son mot de passe ou jeton d’accès à l’adresse du serveur que vous avez configurée. Si vous utilisez une adresse e-mail comme identifiant, elle est transmise à ce service.</li>
-        <li>La synchronisation d’un compte distant peut transmettre à ce service les abonnements aux flux et l’état de lecture, par exemple si un article est marqué comme lu.</li>
+        <li><strong>Identifiant et données d’accès au compte :</strong> transmis au serveur RSS distant que vous avez configuré pour authentifier votre compte et assurer sa synchronisation. Si vous utilisez une adresse e-mail comme identifiant, elle est également transmise.</li>
+        <li><strong>Adresses et abonnements aux flux :</strong> transmis au site du flux pour récupérer les articles, et à votre service RSS distant si nécessaire pour synchroniser vos abonnements.</li>
+        <li><strong>État de lecture :</strong> l’information indiquant si un article est lu peut être transmise à votre service RSS distant afin de synchroniser cet état avec votre compte.</li>
+        <li>Ces fonctions de compte et de synchronisation sont facultatives : vous pouvez utiliser un compte local sans connecter de compte RSS distant.</li>
+        <li>Les requêtes vers les sites des flux contiennent des informations ordinaires de connexion, comme votre adresse IP.</li>
         <li>L’ouverture des liens d’articles ou d’images connecte l’application ou le navigateur à l’éditeur ou à l’hébergeur indiqué par le contenu. Ces services reçoivent les informations ordinaires de connexion. Droidrops ne conserve pas d’historique de navigation Web.</li>
       </ul>
       <p>Droidrops accepte les adresses HTTP et HTTPS. Le trafic HTTP n’est pas chiffré pendant le transfert. Utilisez HTTPS lorsque le service le permet. Vous choisissez ces services ; leurs propres règles de confidentialité et de conservation s’appliquent. Le développeur de Droidrops ne reçoit pas ces données.</p>
 
       <h2>Rapports que vous choisissez d’envoyer</h2>
-      <p>Les journaux de diagnostic et de plantage ne sont jamais téléversés automatiquement. Si vous choisissez l’action de signalement, Droidrops prépare un rapport pouvant contenir les détails décrits ci-dessus et ouvre un formulaire de ticket GitHub. Le rapport n’est envoyé à GitHub que si vous le soumettez ; les tickets GitHub peuvent être publics. Vous pouvez aussi partager un rapport via le menu de partage Android ; l’application choisie le recevra. Vérifiez le contenu et le destinataire avant l’envoi.</p>
+      <p><strong>Finalité :</strong> aider à diagnostiquer et corriger un plantage, une erreur de synchronisation ou un autre problème que vous choisissez de signaler. C’est le seul motif d’envoi des diagnostics ou informations de plantage ; Droidrops ne les utilise pas pour analyser l’usage de l’application, faire de la publicité ou du marketing.</p>
+      <p>Les journaux de diagnostic et de plantage ne sont jamais téléversés automatiquement. Si vous choisissez l’action de signalement, Droidrops prépare un rapport pouvant contenir des dates et heures, les versions de l’application et d’Android, le fabricant et le modèle de l’appareil, le type et l’état du réseau, des détails d’erreur ou des traces de plantage, ainsi qu’une adresse de serveur ou un chemin de requête. Un formulaire de ticket GitHub s’ouvre ; le rapport n’est envoyé à GitHub que si vous le soumettez, et les tickets peuvent être publics. Vous pouvez aussi partager un rapport via le menu de partage Android ; l’application choisie le recevra. Vérifiez le contenu et le destinataire avant l’envoi.</p>
 
       <h2>Données auxquelles l’application n’accède pas</h2>
       <p>Droidrops ne demande pas l’accès à votre position physique, à vos contacts, à votre agenda, à vos photos ou vidéos personnelles, à vos enregistrements audio, à la liste des applications installées ni à l’identifiant publicitaire de l’appareil. L’application ne collecte pas de données de paiement, de santé ou de remise en forme. L’utilisation générale de l’application et les recherches internes ne sont pas envoyées à des outils d’analyse.</p>
