@@ -34,6 +34,8 @@ import com.readrops.app.util.theme.spacing
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Folder
 import com.readrops.db.filters.MainFilter
+import com.readrops.db.entities.Tag
+import com.readrops.db.filters.SubFilter
 
 
 @Composable
@@ -43,6 +45,7 @@ fun TimelineDrawer(
     onClickDefaultItem: (MainFilter) -> Unit,
     onFolderClick: (Folder) -> Unit,
     onFeedClick: (Feed) -> Unit,
+    onTagClick: (Tag) -> Unit,
     content: @Composable () -> Unit,
 ) {
     if (isTabletUi()) {
@@ -52,7 +55,8 @@ fun TimelineDrawer(
                     state = state,
                     onClickDefaultItem = onClickDefaultItem,
                     onFolderClick = onFolderClick,
-                    onFeedClick = onFeedClick
+                    onFeedClick = onFeedClick,
+                    onTagClick = onTagClick
                 )
             },
             content = content
@@ -65,7 +69,8 @@ fun TimelineDrawer(
                     state = state,
                     onClickDefaultItem = onClickDefaultItem,
                     onFolderClick = onFolderClick,
-                    onFeedClick = onFeedClick
+                    onFeedClick = onFeedClick,
+                    onTagClick = onTagClick
                 )
             },
             content = content
@@ -79,6 +84,7 @@ fun TimelineDrawerContent(
     onClickDefaultItem: (MainFilter) -> Unit,
     onFolderClick: (Folder) -> Unit,
     onFeedClick: (Feed) -> Unit,
+    onTagClick: (Tag) -> Unit,
 ) {
     val scrollState = rememberScrollState()
 
@@ -156,6 +162,41 @@ fun TimelineDrawerContent(
                             modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
                         )
                     }
+                }
+            }
+
+            if (state.tags.isNotEmpty()) {
+                HorizontalDivider(
+                    modifier = Modifier.padding(
+                        horizontal = MaterialTheme.spacing.mediumSpacing,
+                        vertical = MaterialTheme.spacing.shortSpacing
+                    )
+                )
+
+                Text(
+                    text = stringResource(R.string.tags),
+                    style = MaterialTheme.typography.labelMedium,
+                    modifier = Modifier.padding(
+                        horizontal = MaterialTheme.spacing.mediumSpacing,
+                        vertical = MaterialTheme.spacing.veryShortSpacing
+                    )
+                )
+
+                for (tag in state.tags) {
+                    DrawerFeedItem(
+                        label = { Text(text = tag.name) },
+                        icon = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_filter_list),
+                                contentDescription = null
+                            )
+                        },
+                        badge = {},
+                        selected = state.filters.subFilter == SubFilter.TAG &&
+                                tag.id == state.filters.tagId,
+                        onClick = { onTagClick(tag) },
+                        modifier = Modifier.padding(NavigationDrawerItemDefaults.ItemPadding)
+                    )
                 }
             }
 

@@ -19,12 +19,14 @@ import androidx.work.workDataOf
 import com.readrops.api.utils.ApiUtils
 import com.readrops.app.testutil.ReadropsTestRule
 import com.readrops.app.testutil.TestUtils
+import com.readrops.app.util.diagnostics.DiagnosticLevel
+import com.readrops.app.util.diagnostics.DiagnosticLog
+import com.readrops.app.util.diagnostics.NETWORK_TAG
 import com.readrops.app.util.extensions.getSerializable
 import com.readrops.db.Database
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
-import junit.framework.TestCase.assertNotNull
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
@@ -39,10 +41,12 @@ import org.junit.Rule
 import org.junit.Test
 import org.koin.test.KoinTest
 import org.koin.test.inject
+import java.io.IOException
 import java.net.HttpURLConnection
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 /**
@@ -63,6 +67,7 @@ import kotlin.test.assertTrue
 class SyncWorkerTest : KoinTest {
 
     private val database: Database by inject()
+    private val diagnosticLog: DiagnosticLog by inject()
     private val notificationManager: NotificationManagerCompat by inject()
     private val mockServer = MockWebServer()
     private val context = ApplicationProvider.getApplicationContext<Context>()
@@ -226,7 +231,7 @@ class SyncWorkerTest : KoinTest {
         assertTrue { workInfos.any { it?.state == WorkInfo.State.FAILED } }
         val failedWorkInfo = workInfos.find { it?.state == WorkInfo.State.FAILED }!!
         assertEquals(true, failedWorkInfo.outputData.getBoolean(SyncWorker.SYNC_FAILURE_KEY, false))
-        assertNotNull { failedWorkInfo.outputData.getSerializable(SyncWorker.SYNC_FAILURE_EXCEPTION_KEY) }
+        assertNotNull(failedWorkInfo.outputData.getSerializable(SyncWorker.SYNC_FAILURE_EXCEPTION_KEY))
     }
 
     @Test
@@ -260,7 +265,7 @@ class SyncWorkerTest : KoinTest {
 
         assertTrue { result is ListenableWorker.Result.Failure }
         assertTrue { result.outputData.getBoolean(SyncWorker.SYNC_FAILURE_KEY, false) }
-        assertNotNull { result.outputData.getSerializable(SyncWorker.SYNC_FAILURE_EXCEPTION_KEY) }
+        assertNotNull(result.outputData.getSerializable(SyncWorker.SYNC_FAILURE_EXCEPTION_KEY))
 
         val autoWorker =
             TestListenableWorkerBuilder.from<SyncWorker>(context, SyncWorker::class.java)
@@ -276,6 +281,61 @@ class SyncWorkerTest : KoinTest {
 
         assertTrue { autoResult is ListenableWorker.Result.Failure }
         assertFalse { autoResult.outputData.getBoolean(SyncWorker.SYNC_FAILURE_KEY, false) }
+    }
+
+    /**
+     * A network that blocks the server port, as hospital or hotel Wi-Fi often does, fails the
+     * connection with an exception that has no cause. The worker used to forward
+     * `Exception(e.cause)`, so the real error was dropped and the timeline read "Exception: null".
+     */
+    @Test
+    fun remoteSyncFailureKeepsOriginalException() = runTest {
+        val result = syncUnreachableFreshRSSAccount()
+        val exception = result.outputData.getSerializable(SyncWorker.SYNC_FAILURE_EXCEPTION_KEY)
+
+        assertTrue(exception is IOException, "expected the network exception, got $exception")
+        assertFalse(exception.message.isNullOrBlank(), "the failure message was lost")
+    }
+
+    @Test
+    fun remoteSyncFailureIsRecordedWithTheNetworkItHappenedOn() = runTest {
+        diagnosticLog.clear()
+
+        syncUnreachableFreshRSSAccount()
+        val entries = diagnosticLog.entries.value
+
+        val syncEntry = entries.first { it.tag == SyncWorker.TAG }
+        assertEquals(DiagnosticLevel.ERROR, syncEntry.level)
+        assertTrue(syncEntry.summary!!.startsWith("java.net.ConnectException"), syncEntry.summary)
+
+        val networkEntry = entries.first { it.tag == NETWORK_TAG }
+        assertTrue(networkEntry.message.contains("/api/greader.php/"), networkEntry.message)
+        assertTrue(networkEntry.message.contains(" on "), networkEntry.message)
+    }
+
+    /**
+     * Once the server is down nothing listens on its port, so the connection is refused, as on
+     * a network that blocks the port. Tokens are set: login happened on a network that let the
+     * port through.
+     */
+    private suspend fun syncUnreachableFreshRSSAccount(): ListenableWorker.Result {
+        val unreachableUrl = mockServer.url("/").toString()
+        mockServer.shutdown()
+
+        val freshRSSAccount = Account(
+            name = "FreshRSS account",
+            type = AccountType.FRESHRSS,
+            url = unreachableUrl,
+            token = "token",
+            writeToken = "writeToken",
+        )
+        freshRSSAccount.id = database.accountDao().insert(freshRSSAccount).toInt()
+
+        return TestListenableWorkerBuilder.from<SyncWorker>(context, SyncWorker::class.java)
+            .setTags(listOf(SyncWorker.WORK_MANUAL))
+            .setInputData(workDataOf(SyncWorker.ACCOUNT_ID_KEY to freshRSSAccount.id))
+            .build()
+            .doWork()
     }
 
     @Test
@@ -301,6 +361,6 @@ class SyncWorkerTest : KoinTest {
         val result = worker.doWork()
 
         assertTrue { result is ListenableWorker.Result.Success }
-        assertNotNull { result.outputData.getSerializable(SyncWorker.LOCAL_SYNC_ERRORS_KEY) }
+        assertNotNull(result.outputData.getSerializable(SyncWorker.LOCAL_SYNC_ERRORS_KEY))
     }
 }

@@ -8,6 +8,7 @@ import com.readrops.app.R
 import com.readrops.app.repositories.BaseRepository
 import com.readrops.app.util.Utils
 import com.readrops.app.util.components.TextFieldError
+import com.readrops.app.util.diagnostics.DiagnosticLog
 import com.readrops.db.Database
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
@@ -78,6 +79,12 @@ class AccountCredentialsScreenModel(
                         get<BaseRepository> { parametersOf(newAccount) }
                             .login(newAccount)
                     } catch (e: Exception) {
+                        get<DiagnosticLog>().warning(
+                            tag = "Login",
+                            message = "Login to ${newAccount.type} account at $normalizedUrl failed",
+                            throwable = e
+                        )
+
                         mutableState.update {
                             it.copy(
                                 loginException = e,

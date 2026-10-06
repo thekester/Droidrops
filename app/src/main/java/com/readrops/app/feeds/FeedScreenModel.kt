@@ -1,6 +1,7 @@
 package com.readrops.app.feeds
 
 import android.content.Context
+import android.content.SharedPreferences
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.readrops.app.R
 import com.readrops.app.home.TabScreenModel
@@ -23,6 +24,7 @@ import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 import androidx.work.workDataOf
 import com.readrops.app.sync.SyncWorker
 import com.readrops.app.util.extensions.isValidFeedUrl
@@ -84,6 +86,7 @@ class FeedScreenModel(
                 _updateFeedDialogState.update {
                     it.copy(
                         isFeedUrlReadOnly = account.config.isFeedUrlReadOnly,
+                        isAuthAvailable = account.isLocal,
                     )
                 }
 
@@ -131,6 +134,7 @@ class FeedScreenModel(
                 _updateFeedDialogState.update {
                     it.copy(
                         isFeedUrlReadOnly = account.config.isFeedUrlReadOnly,
+                        isAuthAvailable = account.isLocal,
                     )
                 }
 
@@ -203,9 +207,20 @@ class FeedScreenModel(
                         feedUrl = state.feed.url!!,
                         selectedFolder = state.folder
                             ?: it.folders.find { folder -> folder.id == 0 },
-                        feedRemoteId = state.feed.remoteId
+                        feedRemoteId = state.feed.remoteId,
+                        isAuthExpanded = false,
+                        isPasswordVisible = false,
+                        login = "",
+                        loginError = null,
+                        // the stored password is never read back into the form: the user
+                        // confirms a new one or leaves the field blank to keep the old one
+                        password = "",
+                        passwordError = null,
+                        hasStoredCredentials = false
                     )
                 }
+
+                loadFeedCredentials(state.feed)
             }
 
             is DialogState.UpdateFolder -> {
@@ -230,6 +245,13 @@ class FeedScreenModel(
         screenModelScope.launch(dispatcher) {
             try {
                 repository?.deleteFeed(feed)
+
+                // the credentials live in the encrypted preferences, which the database
+                // deletion does not reach: without this they would outlive the feed
+                get<SharedPreferences>().edit()
+                    .remove(feed.loginKey)
+                    .remove(feed.passwordKey)
+                    .apply()
             } catch (e: Exception) {
                 _feedState.update { it.copy(error = accountError?.deleteFeedMessage(e)) }
             }
@@ -282,9 +304,82 @@ class FeedScreenModel(
         }
     }
 
+    fun setUpdateFeedDialogLogin(login: String) {
+        _updateFeedDialogState.update {
+            it.copy(login = login, loginError = null, error = null)
+        }
+    }
+
+    fun setUpdateFeedDialogPassword(password: String) {
+        _updateFeedDialogState.update {
+            it.copy(password = password, passwordError = null, error = null)
+        }
+    }
+
+    fun setUpdateFeedDialogPasswordVisibility(isVisible: Boolean) {
+        _updateFeedDialogState.update { it.copy(isPasswordVisible = isVisible) }
+    }
+
+    fun toggleUpdateFeedDialogAuth() {
+        _updateFeedDialogState.update { it.copy(isAuthExpanded = !it.isAuthExpanded) }
+    }
+
+    /**
+     * Only empties the fields. Nothing is written until the user validates, which keeps the
+     * whole dialog consistent: no change applies before the validate button.
+     */
+    fun clearUpdateFeedDialogCredentials() {
+        _updateFeedDialogState.update {
+            it.copy(login = "", password = "", loginError = null, passwordError = null)
+        }
+    }
+
+    private fun loadFeedCredentials(feed: Feed) {
+        screenModelScope.launch(dispatcher) {
+            val preferences = get<SharedPreferences>()
+            val login = preferences.getString(feed.loginKey, null).orEmpty()
+            val hasPassword = !preferences.getString(feed.passwordKey, null).isNullOrEmpty()
+
+            _updateFeedDialogState.update {
+                it.copy(
+                    login = login,
+                    hasStoredCredentials = login.isNotEmpty() && hasPassword
+                )
+            }
+        }
+    }
+
+    /**
+     * A blank password on a feed that already has one means "keep the current password", so the
+     * user never has to retype a secret just to rename the feed. Clearing the login removes the
+     * credentials entirely.
+     */
+    private fun persistFeedCredentials(feedId: Int, login: String, password: String) {
+        val feed = Feed(id = feedId)
+        val preferences = get<SharedPreferences>()
+
+        val editor = preferences.edit()
+
+        if (login.isEmpty()) {
+            editor.remove(feed.loginKey)
+            editor.remove(feed.passwordKey)
+        } else {
+            editor.putString(feed.loginKey, login)
+            if (password.isNotEmpty()) {
+                editor.putString(feed.passwordKey, password)
+            }
+        }
+
+        editor.apply()
+    }
+
     fun updateFeedDialogValidate() {
         val feedName = _updateFeedDialogState.value.feedName
         val feedUrl = _updateFeedDialogState.value.feedUrl
+        val isAuthAvailable = _updateFeedDialogState.value.isAuthAvailable
+        val login = _updateFeedDialogState.value.login
+        val password = _updateFeedDialogState.value.password
+        val hasStoredCredentials = _updateFeedDialogState.value.hasStoredCredentials
 
         when {
             feedName.isEmpty() -> {
@@ -304,6 +399,24 @@ class FeedScreenModel(
             !feedUrl.isValidFeedUrl() -> {
                 _updateFeedDialogState.update {
                     it.copy(feedUrlError = TextFieldError.BadUrl)
+                }
+                return
+            }
+
+            // HTTP basic authentication needs both halves, so a lone password is rejected
+            isAuthAvailable && login.isEmpty() && password.isNotEmpty() -> {
+                _updateFeedDialogState.update {
+                    it.copy(loginError = TextFieldError.EmptyField, isAuthExpanded = true)
+                }
+                return
+            }
+
+            // a blank password is only allowed when one is already stored, in which case it
+            // means "keep it"
+            isAuthAvailable && login.isNotEmpty() && password.isEmpty()
+                    && !hasStoredCredentials -> {
+                _updateFeedDialogState.update {
+                    it.copy(passwordError = TextFieldError.EmptyField, isAuthExpanded = true)
                 }
                 return
             }
@@ -339,6 +452,10 @@ class FeedScreenModel(
                                 )
                             }
                             return@launch
+                        }
+
+                        if (isAuthAvailable) {
+                            persistFeedCredentials(feedId, login, password)
                         }
                     }
 

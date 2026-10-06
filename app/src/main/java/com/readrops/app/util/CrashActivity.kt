@@ -4,7 +4,6 @@ import android.content.ClipData
 import android.content.Context
 import android.graphics.Color
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -33,13 +32,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.readrops.app.R
+import com.readrops.app.util.diagnostics.DiagnosticEntry
+import com.readrops.app.util.diagnostics.DiagnosticLevel
+import com.readrops.app.util.diagnostics.DiagnosticLog
+import com.readrops.app.util.diagnostics.DiagnosticRedaction
+import com.readrops.app.util.diagnostics.DiagnosticReport
+import com.readrops.app.util.diagnostics.diagnosticEnvironment
+import com.readrops.app.util.diagnostics.reportOnGitHub
 import com.readrops.app.util.theme.MediumSpacer
 import com.readrops.app.util.theme.ReadropsTheme
 import com.readrops.app.util.theme.ShortSpacer
@@ -47,48 +52,64 @@ import com.readrops.app.util.theme.VeryLargeSpacer
 import com.readrops.app.util.theme.VeryShortSpacer
 import com.readrops.app.util.theme.spacing
 import kotlinx.coroutines.launch
-import java.io.PrintWriter
-import java.io.StringWriter
+import org.koin.android.ext.android.get
 
 class CrashActivity : ComponentActivity() {
 
-    @Suppress("DEPRECATION")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.auto(Color.TRANSPARENT, Color.TRANSPARENT))
 
-        val throwable = intent.getSerializableExtra(THROWABLE_KEY) as Throwable?
-
-        val sw = StringWriter()
-        val pw = PrintWriter(sw)
-        try {
-            if (throwable?.cause != null) {
-                throwable.cause?.printStackTrace(pw)
-            } else {
-                throwable?.printStackTrace(pw)
-            }
-        } catch (e: Exception) {
-            Log.e("CrashActivity", "couldn't get full exception stacktrace")
-        }
-
-        pw.flush()
+        val stackTrace = intent.getStringExtra(STACK_TRACE_KEY).orEmpty()
 
         setContent {
             ReadropsTheme {
-                CrashScreen(sw.toString())
+                CrashScreen(
+                    stackTrace = stackTrace,
+                    onReport = { reportOnGitHub(crashReport(stackTrace)) }
+                )
             }
         }
     }
 
+    /**
+     * The recent diagnostic log, whose newest entry is this crash, so the report also shows what
+     * led to it. Servers are hidden: nothing on this screen lets the user choose otherwise.
+     */
+    private fun crashReport(stackTrace: String): DiagnosticReport {
+        val entries = runCatching { get<DiagnosticLog>().entries.value }
+            .getOrDefault(emptyList())
+            .ifEmpty {
+                listOf(
+                    DiagnosticEntry(
+                        id = 1,
+                        timestamp = System.currentTimeMillis(),
+                        level = DiagnosticLevel.ERROR,
+                        tag = "Crash",
+                        message = "Droidrops crashed",
+                        details = DiagnosticRedaction.redactSecrets(stackTrace)
+                    )
+                )
+            }
+
+        return DiagnosticReport(
+            entries = entries.take(MAX_REPORTED_ENTRIES),
+            environment = diagnosticEnvironment(this),
+            hideServers = true
+        )
+    }
+
     companion object {
-        const val THROWABLE_KEY = "THROWABLE"
+        const val STACK_TRACE_KEY = "STACK_TRACE"
+        const val MAX_STACK_TRACE_LENGTH = 100_000
+
+        private const val MAX_REPORTED_ENTRIES = 30
     }
 }
 
 @Composable
-fun CrashScreen(stackTrace: String) {
-    val uriHandler = LocalUriHandler.current
+fun CrashScreen(stackTrace: String, onReport: () -> Unit) {
     val clipboard = LocalClipboard.current
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -159,10 +180,7 @@ fun CrashScreen(stackTrace: String) {
 
             Column {
                 Button(
-                    onClick = {
-                        uriHandler.openUri("https://github.com/readrops/Readrops/issues/new")
-                        copyStackTrace()
-                    },
+                    onClick = onReport,
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(text = stringResource(R.string.report_error_github))
@@ -191,6 +209,6 @@ fun displayToast(context: Context) {
 @Composable
 private fun CrashScreenPreview() {
     ReadropsTheme {
-        CrashScreen("")
+        CrashScreen(stackTrace = "", onReport = {})
     }
 }

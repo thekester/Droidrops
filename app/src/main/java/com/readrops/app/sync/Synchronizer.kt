@@ -17,6 +17,7 @@ import com.readrops.app.repositories.ErrorResult
 import com.readrops.app.repositories.SyncResult
 import com.readrops.app.sync.SyncWorker.Companion.SYNC_NOTIFICATION_ID
 import com.readrops.app.util.FeedColors
+import com.readrops.app.util.diagnostics.DiagnosticLog
 import com.readrops.db.Database
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.account.Account
@@ -29,6 +30,7 @@ import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
+import java.io.IOException
 
 data class SyncInputData(
     val accountId: Int,
@@ -145,6 +147,15 @@ class Synchronizer(
 
         if (result.second.isNotEmpty()) {
             Log.e(TAG, "refreshing local account ${account.name}: ${result.second.size} errors")
+
+            // network failures are recorded by the HTTP layer along with the network they
+            // happened on; what remains, such as a feed that cannot be parsed, is recorded here
+            val diagnosticLog = get<DiagnosticLog>()
+            result.second
+                .filterValues { it !is IOException }
+                .forEach { (feed, exception) ->
+                    diagnosticLog.warning(TAG, "Refreshing ${feed.url} failed", exception)
+                }
         }
 
         return result

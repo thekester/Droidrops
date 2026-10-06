@@ -13,6 +13,7 @@ import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
 import com.readrops.api.services.Credentials
+import com.readrops.api.utils.NetworkFailureListener
 import com.readrops.app.account.AccountScreenModel
 import com.readrops.app.account.credentials.AccountCredentialsScreenMode
 import com.readrops.app.account.credentials.AccountCredentialsScreenModel
@@ -21,6 +22,7 @@ import com.readrops.app.feeds.FeedScreenModel
 import com.readrops.app.feeds.color.FeedColorScreenModel
 import com.readrops.app.feeds.newfeed.NewFeedScreenModel
 import com.readrops.app.item.ItemScreenModel
+import com.readrops.app.more.diagnostics.DiagnosticLogScreenModel
 import com.readrops.app.more.preferences.PreferencesScreenModel
 import com.readrops.app.notifications.NotificationsScreenModel
 import com.readrops.app.repositories.BaseRepository
@@ -34,6 +36,8 @@ import com.readrops.app.sync.Synchronizer
 import com.readrops.app.timelime.TimelineScreenModel
 import com.readrops.app.util.DataStorePreferences
 import com.readrops.app.util.Preferences
+import com.readrops.app.util.diagnostics.DiagnosticLog
+import com.readrops.app.util.diagnostics.diagnosticNetworkListener
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
@@ -44,6 +48,7 @@ import kotlinx.coroutines.SupervisorJob
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.parameter.parametersOf
 import org.koin.dsl.module
+import java.io.File
 
 val appModule = module {
 
@@ -128,6 +133,12 @@ val appModule = module {
     single { Synchronizer(get(), get(), get(), get()) }
 
     single { SyncAnalyzer(get(), get()) }
+
+    single { DiagnosticLog(File(androidContext().filesDir, DiagnosticLog.FILE_NAME)) }
+
+    single<NetworkFailureListener> { diagnosticNetworkListener(get(), androidContext()) }
+
+    factory { DiagnosticLogScreenModel(get(), get(), androidContext()) }
 }
 
 // security-crypto 1.1 currently has no non-deprecated replacement for this

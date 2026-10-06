@@ -10,6 +10,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import com.readrops.app.R
+import com.readrops.app.util.diagnostics.readableDescription
 import com.readrops.app.util.theme.ShortSpacer
 import com.readrops.app.util.theme.VeryShortSpacer
 import com.readrops.app.util.theme.spacing
@@ -37,11 +38,9 @@ fun ErrorMessage(
         VeryShortSpacer()
 
         if (exception != null) {
-            val name = exception.javaClass.simpleName
-            val message = exception.message
-
             Text(
-                text = "$name: $message",
+                // never "NullPointerException: null": many exceptions carry no message
+                text = exception.readableDescription(),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.error,
                 textAlign = TextAlign.Center,

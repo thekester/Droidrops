@@ -47,6 +47,7 @@ fun TimelineAppBar(
                         text = when (state.filters.subFilter) {
                             SubFilter.FEED -> state.filterFeedName
                             SubFilter.FOLDER -> state.filterFolderName
+                            SubFilter.TAG -> state.filterTagName
                             else -> ""
                         },
                         style = MaterialTheme.typography.labelLarge,

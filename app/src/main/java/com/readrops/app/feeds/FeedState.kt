@@ -51,6 +51,16 @@ data class UpdateFeedDialogState(
     val folders: List<Folder> = listOf(),
     val isFolderDropDownExpanded: Boolean = false,
     val isFeedUrlReadOnly: Boolean = true,
+    // per feed HTTP credentials only exist for local feeds: with a server account it is the
+    // server that fetches the feed, so the app never presents these credentials itself
+    val isAuthAvailable: Boolean = false,
+    val isAuthExpanded: Boolean = false,
+    val hasStoredCredentials: Boolean = false,
+    val login: String = "",
+    val loginError: TextFieldError? = null,
+    val password: String = "",
+    val passwordError: TextFieldError? = null,
+    val isPasswordVisible: Boolean = false,
     val error: String? = null,
     val isLoading: Boolean = false
 ) {
@@ -59,6 +69,12 @@ data class UpdateFeedDialogState(
 
     val isFeedUrlError
         get() = feedUrlError != null
+
+    val isLoginError
+        get() = loginError != null
+
+    val isPasswordError
+        get() = passwordError != null
 
     val hasFolders = folders.isNotEmpty()
 }

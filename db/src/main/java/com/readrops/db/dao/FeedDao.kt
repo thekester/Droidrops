@@ -25,6 +25,9 @@ interface FeedDao : BaseDao<Feed> {
     @Query("Select * from Feed Where account_id = :accountId order by name ASC")
     suspend fun selectFeeds(accountId: Int): List<Feed>
 
+    @Query("Select * From Feed Where url = :url And account_id = :accountId Limit 1")
+    suspend fun selectFeedByUrl(url: String, accountId: Int): Feed?
+
     @Query("Update Feed set etag = :etag, last_modified = :lastModified Where id = :feedId")
     suspend fun updateHeaders(etag: String, lastModified: String, feedId: Int)
 

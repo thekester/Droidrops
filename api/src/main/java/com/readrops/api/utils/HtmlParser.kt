@@ -10,6 +10,7 @@ import okhttp3.Request
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import org.jsoup.nodes.Element
+import okhttp3.Headers
 
 data class ParsingResult(
     val url: String,
@@ -19,8 +20,12 @@ data class ParsingResult(
 object HtmlParser {
 
     @Throws(FormatException::class)
-    suspend fun getFeedLink(url: String, client: OkHttpClient): List<ParsingResult> {
-        val document = getHTMLHeadFromUrl(url, client)
+    suspend fun getFeedLink(
+        url: String,
+        client: OkHttpClient,
+        headers: Headers? = null
+    ): List<ParsingResult> {
+        val document = getHTMLHeadFromUrl(url, client, headers)
 
         return document.select("link")
             .filter { element ->
@@ -76,11 +81,16 @@ object HtmlParser {
             ?.attr("content")
     }
 
-    suspend fun getHTMLHeadFromUrl(url: String, client: OkHttpClient): Document =
+    suspend fun getHTMLHeadFromUrl(
+        url: String,
+        client: OkHttpClient,
+        headers: Headers? = null
+    ): Document =
         withContext(Dispatchers.IO) {
             client.newCall(
                 Request.Builder()
                     .url(url)
+                    .apply { headers?.let { headers(it) } }
                     .build()
             ).execute()
                 .use { response ->

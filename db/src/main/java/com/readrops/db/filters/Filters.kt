@@ -11,6 +11,7 @@ enum class MainFilter {
 enum class SubFilter {
     FEED,
     FOLDER,
+    TAG,
     ALL
 }
 
@@ -28,6 +29,7 @@ data class QueryFilters(
     val showReadItems: Boolean = true,
     val feedId: Int = 0,
     val folderId: Int = 0,
+    val tagId: Int = 0,
     val accountId: Int = 0,
     val mainFilter: MainFilter = MainFilter.ALL,
     val subFilter: SubFilter = SubFilter.ALL,

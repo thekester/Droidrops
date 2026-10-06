@@ -52,4 +52,15 @@ data class Feed(
     @ColumnInfo(name = "open_in_ask", defaultValue = "1") var openInAsk: Boolean = true,
     @Ignore var unreadCount: Int = 0,
     @Ignore var remoteFolderId: String? = null,
-) : Serializable
+) : Serializable {
+
+    /**
+     * Credentials for feeds behind HTTP authentication are never stored in the database,
+     * only in the encrypted preferences, keyed like the account ones.
+     */
+    val loginKey
+        get() = "feed_login_$id"
+
+    val passwordKey
+        get() = "feed_password_$id"
+}

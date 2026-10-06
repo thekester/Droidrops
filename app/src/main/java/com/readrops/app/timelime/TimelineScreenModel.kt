@@ -54,6 +54,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import com.readrops.db.entities.Tag
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TimelineScreenModel(
@@ -126,6 +127,16 @@ class TimelineScreenModel(
                                 foldersAndFeeds = foldersAndFeeds
                             )
                         }
+                    }
+            }
+        }
+
+        screenModelScope.launch(dispatcher) {
+            accountEvent.collectLatest { account ->
+                // tags are listed in the drawer so the timeline can be filtered on one
+                database.tagDao().selectAllFlow(account.id)
+                    .collect { tags ->
+                        _timelineState.update { it.copy(tags = tags) }
                     }
             }
         }
@@ -314,7 +325,10 @@ class TimelineScreenModel(
 
                         _timelineState.update {
                             it.copy(
-                                syncError = accountError?.genericMessage(error!!),
+                                // the exception sits in a process wide map that the first delivery
+                                // clears, so a repeated failed state finds nothing: keep the message
+                                syncError = error?.let { e -> accountError?.genericMessage(e) }
+                                    ?: it.syncError,
                                 isRefreshing = false,
                                 hideReadAllFAB = false
                             )
@@ -355,7 +369,8 @@ class TimelineScreenModel(
                         mainFilter = selection,
                         subFilter = SubFilter.ALL,
                         feedId = 0,
-                        folderId = 0
+                        folderId = 0,
+                        tagId = 0
                     )
                 },
                 isDrawerOpen = false
@@ -370,10 +385,28 @@ class TimelineScreenModel(
                     it.filters.copy(
                         subFilter = SubFilter.FOLDER,
                         folderId = folder.id,
-                        feedId = 0
+                        feedId = 0,
+                        tagId = 0
                     )
                 },
                 filterFolderName = folder.name!!,
+                isDrawerOpen = false
+            )
+        }
+    }
+
+    fun updateDrawerTagSelection(tag: Tag) {
+        _timelineState.update {
+            it.copy(
+                filters = updateFilters {
+                    it.filters.copy(
+                        subFilter = SubFilter.TAG,
+                        tagId = tag.id,
+                        feedId = 0,
+                        folderId = 0
+                    )
+                },
+                filterTagName = tag.name,
                 isDrawerOpen = false
             )
         }
@@ -386,7 +419,8 @@ class TimelineScreenModel(
                     it.filters.copy(
                         subFilter = SubFilter.FEED,
                         feedId = feed.id,
-                        folderId = 0
+                        folderId = 0,
+                        tagId = 0
                     )
                 },
                 filterFeedName = feed.name!!,
@@ -544,8 +578,10 @@ data class TimelineState(
     val syncError: String? = null,
     val filters: QueryFilters = QueryFilters(),
     val filterFeedName: String = "",
+    val filterTagName: String = "",
     val filterFolderName: String = "",
     val foldersAndFeeds: Map<Folder?, List<Feed>> = emptyMap(),
+    val tags: List<Tag> = emptyList(),
     val itemState: Flow<PagingData<ItemWithFeed>> = emptyFlow(),
     val dialog: DialogState? = null,
     val isAccountLocal: Boolean = false,

@@ -50,6 +50,7 @@ import cafe.adriel.voyager.navigator.currentOrThrow
 import com.readrops.app.R
 import com.readrops.app.account.selection.adaptiveIconPainterResource
 import com.readrops.app.home.HomeScreen
+import com.readrops.app.util.Utils
 import com.readrops.app.util.accounterror.AccountError
 import com.readrops.app.util.components.AndroidScreen
 import com.readrops.app.util.theme.LargeSpacer
@@ -303,7 +304,11 @@ class AccountCredentialsScreen(
                         ShortSpacer()
 
                         Text(
-                            text = accountError.genericMessage(state.loginException!!),
+                            // the address being typed, not the saved one, names the port to check
+                            text = accountError.genericMessage(
+                                state.loginException!!,
+                                Utils.normalizeUrl(state.url)
+                            ),
                             style = MaterialTheme.typography.labelMedium,
                             color = MaterialTheme.colorScheme.error,
                             textAlign = TextAlign.Center

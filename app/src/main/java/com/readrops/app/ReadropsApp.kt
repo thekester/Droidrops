@@ -15,9 +15,11 @@ import coil3.disk.directory
 import coil3.network.okhttp.OkHttpNetworkFetcherFactory
 import coil3.request.crossfade
 import com.readrops.api.apiModule
+import com.readrops.api.utils.NetworkFailureInterceptor
 import com.readrops.app.util.CrashActivity
 import com.readrops.app.util.FeverFaviconFetcher
 import com.readrops.app.util.Migrations
+import com.readrops.app.util.diagnostics.DiagnosticLog
 import com.readrops.db.dbModule
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
@@ -34,10 +36,20 @@ open class ReadropsApp : Application(), KoinComponent, SingletonImageLoader.Fact
     override fun onCreate() {
         super.onCreate()
 
-        if (!BuildConfig.DEBUG) {
-            Thread.setDefaultUncaughtExceptionHandler { _, throwable ->
+        val systemHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            recordCrash(throwable)
+
+            if (BuildConfig.DEBUG) {
+                systemHandler?.uncaughtException(thread, throwable)
+            } else {
                 val intent = Intent(this, CrashActivity::class.java).apply {
-                    putExtra(CrashActivity.THROWABLE_KEY, throwable)
+                    // a string always fits in an intent, where an exception holding an OkHttp
+                    // response is not serializable and made this very handler fail
+                    putExtra(
+                        CrashActivity.STACK_TRACE_KEY,
+                        throwable.stackTraceToString().take(CrashActivity.MAX_STACK_TRACE_LENGTH)
+                    )
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_NEW_TASK)
                     addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 }
@@ -66,6 +78,16 @@ open class ReadropsApp : Application(), KoinComponent, SingletonImageLoader.Fact
         }
     }
 
+    /** The process is about to die: write synchronously, and never throw from here. */
+    private fun recordCrash(throwable: Throwable) {
+        runCatching {
+            get<DiagnosticLog>().apply {
+                error(CRASH_TAG, "Droidrops crashed", throwable)
+                flush()
+            }
+        }
+    }
+
     override fun newImageLoader(context: PlatformContext): ImageLoader {
         return ImageLoader.Builder(this)
             .components {
@@ -74,6 +96,9 @@ open class ReadropsApp : Application(), KoinComponent, SingletonImageLoader.Fact
                     // custom shared Okhttp instance to avoid mixing
                     // authentication headers with basic image calls
                     client.newBuilder()
+                        // an unreachable image is not worth a diagnostic entry, and a page of
+                        // them on a blocking network would bury the failures that matter
+                        .apply { interceptors().removeAll { it is NetworkFailureInterceptor } }
                         .build()
                 }))
 
@@ -105,5 +130,6 @@ open class ReadropsApp : Application(), KoinComponent, SingletonImageLoader.Fact
 
     companion object {
         const val SYNC_CHANNEL_ID = "syncChannel"
+        private const val CRASH_TAG = "Crash"
     }
 }

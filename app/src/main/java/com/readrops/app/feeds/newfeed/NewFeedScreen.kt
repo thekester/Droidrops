@@ -47,6 +47,8 @@ import com.readrops.app.util.theme.MediumSpacer
 import com.readrops.app.util.theme.ShortSpacer
 import com.readrops.app.util.theme.spacing
 import org.koin.core.parameter.parametersOf
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 
 class NewFeedScreen(val url: String? = null) : AndroidScreen() {
 
@@ -122,6 +124,55 @@ class NewFeedScreen(val url: String? = null) : AndroidScreen() {
                             text = state.urlError?.errorText()
                                 ?: stringResource(R.string.enter_url_helper)
                         )
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                ShortSpacer()
+
+                // some feeds sit behind HTTP authentication: the credentials are used for the
+                // lookup below and kept for later synchronizations
+                TextHorizontalDivider(text = stringResource(R.string.feed_authentication))
+
+                ShortSpacer()
+
+                OutlinedTextField(
+                    value = state.login,
+                    onValueChange = { screenModel.updateLogin(it) },
+                    label = { Text(text = stringResource(R.string.feed_login)) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                ShortSpacer()
+
+                OutlinedTextField(
+                    value = state.password,
+                    onValueChange = { screenModel.updatePassword(it) },
+                    label = { Text(text = stringResource(R.string.feed_password)) },
+                    singleLine = true,
+                    visualTransformation = if (state.isPasswordVisible) {
+                        VisualTransformation.None
+                    } else PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                    trailingIcon = {
+                        IconButton(
+                            onClick = {
+                                screenModel.setPasswordVisibility(!state.isPasswordVisible)
+                            }
+                        ) {
+                            Icon(
+                                painter = painterResource(
+                                    id = if (state.isPasswordVisible) {
+                                        R.drawable.ic_visible_off
+                                    } else R.drawable.ic_visible
+                                ),
+                                contentDescription = stringResource(
+                                    if (state.isPasswordVisible) R.string.hide_password
+                                    else R.string.show_password
+                                )
+                            )
+                        }
                     },
                     modifier = Modifier.fillMaxWidth()
                 )

@@ -62,6 +62,8 @@ object ItemsQueryBuilder {
                 throw IllegalArgumentException("FeedId must be greater than 0 if subFilter is FEED")
             } else if (subFilter == SubFilter.FOLDER && folderId == 0) {
                 throw IllegalArgumentException("FolderId must be greater than 0 if subFilter is FOLDER")
+            } else if (subFilter == SubFilter.TAG && tagId == 0) {
+                throw IllegalArgumentException("TagId must be greater than 0 if subFilter is TAG")
             }
 
             val columns = if (separateState) {
@@ -114,6 +116,11 @@ object ItemsQueryBuilder {
             when (queryFilters.subFilter) {
                 SubFilter.FEED -> append("And feed_id = ${queryFilters.feedId} ")
                 SubFilter.FOLDER -> append("And folder_id = ${queryFilters.folderId} ")
+                // a subquery rather than a join: joining TagJoin would duplicate an item
+                // carrying several tags, and the column list must stay untouched
+                SubFilter.TAG -> append(
+                    "And Item.id In (Select item_id From TagJoin Where tag_id = ${queryFilters.tagId}) "
+                )
                 else -> {}
             }
 

@@ -25,6 +25,7 @@ import com.readrops.app.MainActivity
 import com.readrops.app.R
 import com.readrops.app.ReadropsApp
 import com.readrops.app.repositories.SyncResult
+import com.readrops.app.util.diagnostics.DiagnosticLog
 import com.readrops.app.util.extensions.putSerializable
 import com.readrops.db.entities.account.Account
 import kotlinx.coroutines.flow.first
@@ -101,13 +102,20 @@ class SyncWorker(
                 }
             })
         } catch (e: Exception) {
-            Log.e(TAG, "${e.printStackTrace()}")
+            Log.e(TAG, "synchronization failed", e)
+            get<DiagnosticLog>().error(
+                tag = TAG,
+                message = if (isManual) "Synchronization failed" else "Background synchronization failed",
+                throwable = e
+            )
 
             notificationManager.cancel(SYNC_NOTIFICATION_ID)
             if (isManual) {
                 Result.failure(
                     workDataOf(SYNC_FAILURE_KEY to true)
-                        .putSerializable(SYNC_FAILURE_EXCEPTION_KEY, Exception(e.cause))
+                        // forward the exception itself: a refused or timed out connection has no
+                        // cause, so wrapping e.cause left the timeline reading "Exception: null"
+                        .putSerializable(SYNC_FAILURE_EXCEPTION_KEY, e)
                 )
             } else {
                 Result.failure()

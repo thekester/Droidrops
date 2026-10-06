@@ -147,7 +147,7 @@ object FeedTab : Tab {
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_new_folder),
-                                contentDescription = null,
+                                contentDescription = stringResource(R.string.add_folder),
                                 modifier = Modifier.size(16.dp)
                             )
                         }
@@ -159,7 +159,7 @@ object FeedTab : Tab {
                         ) {
                             Icon(
                                 imageVector = Icons.Default.Add,
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.add_feed)
                             )
                         }
                     }

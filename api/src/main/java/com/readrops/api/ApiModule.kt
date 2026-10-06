@@ -25,6 +25,8 @@ import com.readrops.api.services.nextcloudnews.adapters.NextcloudNewsFoldersAdap
 import com.readrops.api.services.nextcloudnews.adapters.NextcloudNewsItemsAdapter
 import com.readrops.api.utils.AuthInterceptor
 import com.readrops.api.utils.ErrorInterceptor
+import com.readrops.api.utils.NetworkFailureInterceptor
+import com.readrops.api.utils.NetworkFailureListener
 import com.readrops.api.utils.UserAgentInterceptor
 import com.readrops.db.entities.Item
 import com.squareup.moshi.Moshi
@@ -42,11 +44,15 @@ val apiModule = module {
         OkHttpClient.Builder()
             .callTimeout(1, TimeUnit.MINUTES)
             .readTimeout(1, TimeUnit.MINUTES)
+            .addInterceptor(get<NetworkFailureInterceptor>())
             .addInterceptor(get<UserAgentInterceptor>())
             .addInterceptor(get<AuthInterceptor>())
             .addInterceptor(get<ErrorInterceptor>())
             .build()
     }
+
+    // the listener is provided by the app, which keeps the diagnostic log
+    single { NetworkFailureInterceptor(getOrNull<NetworkFailureListener>()) }
 
     single { UserAgentInterceptor() }
 

@@ -55,8 +55,8 @@ class LocalRSSDataSource(private val httpClient: OkHttpClient) : KoinComponent {
      * @return true if [url] is a RSS resource, false otherwise
      */
     @WorkerThread
-    fun isUrlRSSResource(url: String): Boolean {
-        val response = queryUrl(url, null)
+    fun isUrlRSSResource(url: String, headers: Headers? = null): Boolean {
+        val response = queryUrl(url, headers)
 
         return if (response.isSuccessful) {
             val header = response.header(ApiUtils.CONTENT_TYPE_HEADER)

@@ -4,7 +4,7 @@ import android.content.Context
 import com.readrops.api.utils.exceptions.HttpException
 import com.readrops.app.R
 
-class GReaderError(context: Context) : AccountError(context) {
+class GReaderError(context: Context, serverUrl: String? = null) : AccountError(context, serverUrl) {
 
     override fun newFeedMessage(exception: Exception): String = when (exception) {
         is HttpException -> {

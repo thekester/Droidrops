@@ -13,6 +13,7 @@ import com.readrops.app.R
 import com.readrops.app.repositories.BaseRepository
 import com.readrops.app.util.accounterror.AccountError
 import com.readrops.app.util.components.TextFieldError
+import com.readrops.app.util.diagnostics.DiagnosticLog
 import com.readrops.app.util.extensions.isConnected
 import com.readrops.db.Database
 import com.readrops.db.entities.Feed
@@ -29,6 +30,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
 import com.readrops.app.util.extensions.isValidFeedUrl
+import okhttp3.Headers
 
 class NewFeedScreenModel(
     private val database: Database,
@@ -148,13 +150,41 @@ class NewFeedScreenModel(
     private fun String.withScheme(): String =
         if (startsWith("http://") || startsWith("https://")) this else "https://$this"
 
+    /**
+     * Some feeds sit behind HTTP authentication. The credentials typed on this screen are used
+     * for the discovery request itself, otherwise such a feed could never be added, and are
+     * stored once the feed exists.
+     */
+    private fun authHeaders(): Headers? {
+        val login = state.value.login
+        val password = state.value.password
+
+        return if (login.isNotEmpty() && password.isNotEmpty()) {
+            Headers.Builder()
+                .add("Authorization", okhttp3.Credentials.basic(login, password))
+                .build()
+        } else {
+            null
+        }
+    }
+
+    fun updateLogin(value: String) = mutableState.update { it.copy(login = value) }
+
+    fun setPasswordVisibility(isVisible: Boolean) {
+        mutableState.update { it.copy(isPasswordVisible = isVisible) }
+    }
+
+    fun updatePassword(value: String) = mutableState.update { it.copy(password = value) }
+
     private fun loadFeeds() {
         screenModelScope.launch(dispatcher) {
             mutableState.update { it.copy(error = null, isLoading = true) }
             val url = state.value.actualUrl.withScheme()
 
             try {
-                if (dataSource.isUrlRSSResource(url)) {
+                val headers = authHeaders()
+
+                if (dataSource.isUrlRSSResource(url, headers)) {
                     insertFeeds(
                         listOf(
                             Feed(
@@ -165,7 +195,7 @@ class NewFeedScreenModel(
                         )
                     )
                 } else {
-                    val rssUrls = HtmlParser.getFeedLink(url, get())
+                    val rssUrls = HtmlParser.getFeedLink(url, get(), headers)
 
                     when {
                         rssUrls.isEmpty() -> mutableState.update {
@@ -203,6 +233,8 @@ class NewFeedScreenModel(
                     }
                 }
             } catch (e: Exception) {
+                get<DiagnosticLog>().warning("Feed", "Adding a feed failed", e)
+
                 mutableState.update {
                     it.copy(
                         error = accountError.newFeedMessage(e),
@@ -235,6 +267,7 @@ class NewFeedScreenModel(
         )
 
         if (errors.isEmpty()) {
+            storeFeedCredentials(feeds, selectedAccount)
             mutableState.update { it.copy(popScreen = true) }
         } else {
             if (state.value.selectedResultsCount > 0) {
@@ -334,10 +367,35 @@ class NewFeedScreenModel(
 
         mutableState.update { it.copy(parsingResults = newList) }
     }
+
+    /**
+     * The feed id only exists once the repository has inserted it, so the freshly created rows
+     * are looked up by url. Credentials go to the encrypted preferences, never to the database,
+     * so they stay out of backups and out of an OPML export.
+     */
+    private suspend fun storeFeedCredentials(feeds: List<Feed>, account: Account?) {
+        val login = state.value.login
+        val password = state.value.password
+
+        if (login.isEmpty() || password.isEmpty() || account == null) return
+
+        val preferences = get<SharedPreferences>()
+
+        feeds.forEach { feed ->
+            val inserted = feed.url?.let { database.feedDao().selectFeedByUrl(it, account.id) }
+                ?: return@forEach
+
+            preferences.edit()
+                .putString(inserted.loginKey, login)
+                .putString(inserted.passwordKey, password)
+                .apply()
+        }
+    }
 }
 
 data class State(
     private val url: String = "",
+    val isPasswordVisible: Boolean = false,
     val selectedAccount: Account? = null,
     val selectedFolder: Folder? = null,
     val accounts: List<Account> = listOf(),
@@ -348,6 +406,8 @@ data class State(
     val error: String? = null,
     val isLoading: Boolean = false,
     val popScreen: Boolean = false,
+    val login: String = "",
+    val password: String = "",
     val parsingResults: List<ParsingResultState> = listOf()
 ) {
     val isURLError: Boolean get() = urlError != null

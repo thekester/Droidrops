@@ -7,6 +7,7 @@ import androidx.room.Query
 import androidx.room.Transaction
 import com.readrops.db.entities.Tag
 import com.readrops.db.entities.account.Account
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TagDao : BaseDao<Tag> {
@@ -16,6 +17,9 @@ interface TagDao : BaseDao<Tag> {
 
     @Query("Select * From Tag Where account_id = :accountId")
     suspend fun selectAll(accountId: Int): List<Tag>
+
+    @Query("Select * From Tag Where account_id = :accountId Order By name ASC")
+    fun selectAllFlow(accountId: Int): Flow<List<Tag>>
 
     @Query("Select Tag.* From Tag Inner Join TagJoin on Tag.id = TagJoin.tag_id Where item_id = :itemId")
     suspend fun selectAllByItem(itemId: Int): List<Tag>

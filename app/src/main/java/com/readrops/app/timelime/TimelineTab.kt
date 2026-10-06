@@ -51,6 +51,7 @@ import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.readrops.app.MainActivity
 import com.readrops.app.R
 import com.readrops.app.item.ItemScreen
+import com.readrops.app.more.diagnostics.DiagnosticLogScreen
 import com.readrops.app.timelime.components.TimelineAppBar
 import com.readrops.app.timelime.components.TimelineItem
 import com.readrops.app.timelime.components.TimelineItemSize
@@ -73,6 +74,7 @@ import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.receiveAsFlow
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
+import com.readrops.db.filters.SubFilter
 
 
 object TimelineTab : Tab {
@@ -226,8 +228,16 @@ object TimelineTab : Tab {
 
         LaunchedEffect(state.syncError) {
             if (state.syncError != null) {
-                snackbarHostState.showSnackbar(state.syncError!!)
+                val action = snackbarHostState.showSnackbar(
+                    message = state.syncError!!,
+                    actionLabel = context.getString(R.string.view_log),
+                    duration = SnackbarDuration.Long
+                )
                 screenModel.resetSyncError()
+
+                if (action == SnackbarResult.ActionPerformed) {
+                    navigator.push(DiagnosticLogScreen())
+                }
             }
         }
 
@@ -248,7 +258,8 @@ object TimelineTab : Tab {
             drawerState = drawerState,
             onClickDefaultItem = { screenModel.updateDrawerDefaultItem(it) },
             onFolderClick = { screenModel.updateDrawerFolderSelection(it) },
-            onFeedClick = { screenModel.updateDrawerFeedSelection(it) }
+            onFeedClick = { screenModel.updateDrawerFeedSelection(it) },
+            onTagClick = { screenModel.updateDrawerTagSelection(it) }
         ) {
             Scaffold(
                 topBar = {
@@ -262,7 +273,10 @@ object TimelineTab : Tab {
                 },
                 snackbarHost = { SnackbarHost(snackbarHostState) },
                 floatingActionButton = {
-                    if (!state.hideReadAllFAB) {
+                    // marking everything read is scoped to the active filter, and no per tag
+                    // variant exists yet. Rather than silently emptying the whole account, the
+                    // action is withdrawn while a tag filter is on.
+                    if (!state.hideReadAllFAB && state.filters.subFilter != SubFilter.TAG) {
                         FloatingActionButton(
                             onClick = {
                                 if (state.filters.mainFilter == MainFilter.ALL) {
@@ -274,7 +288,7 @@ object TimelineTab : Tab {
                         ) {
                             Icon(
                                 painter = painterResource(id = R.drawable.ic_done_all),
-                                contentDescription = null
+                                contentDescription = stringResource(R.string.mark_all_articles_read)
                             )
                         }
                     }

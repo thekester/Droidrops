@@ -180,7 +180,7 @@ object AccountTab : Tab {
                 ) {
                     Icon(
                         painter = painterResource(id = R.drawable.ic_add_account),
-                        contentDescription = null
+                        contentDescription = stringResource(R.string.add_account)
                     )
                 }
             },

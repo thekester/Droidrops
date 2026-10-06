@@ -33,6 +33,7 @@ import com.readrops.app.BuildConfig
 import com.readrops.app.R
 import com.readrops.app.account.selection.adaptiveIconPainterResource
 import com.readrops.app.more.debug.DebugScreen
+import com.readrops.app.more.diagnostics.DiagnosticLogScreen
 import com.readrops.app.more.preferences.PreferencesScreen
 import com.readrops.app.util.components.IconText
 import com.readrops.app.util.components.SelectableIconText
@@ -158,6 +159,16 @@ object MoreTab : Tab, KoinComponent {
                     padding = MaterialTheme.spacing.mediumSpacing,
                     tint = MaterialTheme.colorScheme.primary,
                     onClick = { navigator.push(AboutLibrariesScreen()) }
+                )
+
+                SelectableIconText(
+                    icon = painterResource(id = R.drawable.ic_bug_report),
+                    text = stringResource(id = R.string.diagnostic_log),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+                    spacing = MaterialTheme.spacing.largeSpacing,
+                    padding = MaterialTheme.spacing.mediumSpacing,
+                    tint = MaterialTheme.colorScheme.primary,
+                    onClick = { navigator.push(DiagnosticLogScreen()) }
                 )
 
                 SelectableIconText(

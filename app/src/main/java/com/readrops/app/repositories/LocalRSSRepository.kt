@@ -22,6 +22,7 @@ import okhttp3.Headers
 import org.jsoup.Jsoup
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import android.content.SharedPreferences
 
 class FeedExistException : Exception()
 
@@ -53,6 +54,9 @@ class LocalRSSRepository(
                         ensureActive()
 
                         val headers = Headers.Builder()
+                        feed.authorizationHeader()?.let {
+                            headers[AUTHORIZATION_HEADER] = it
+                        }
                         if (feed.etag != null) {
                             headers[ApiUtils.IF_NONE_MATCH_HEADER] = feed.etag!!
                         }
@@ -206,5 +210,24 @@ class LocalRSSRepository(
 
     companion object {
         const val MAX_PARALLEL_REQUESTS = 30
+
+        private const val AUTHORIZATION_HEADER = "Authorization"
     }
+
+    /**
+     * Feeds behind HTTP authentication carry their credentials in the encrypted preferences
+     * rather than in the database, so nothing sensitive lands in a backup or an OPML export.
+     */
+    private fun Feed.authorizationHeader(): String? {
+        val preferences = get<SharedPreferences>()
+        val login = preferences.getString(loginKey, null)
+        val password = preferences.getString(passwordKey, null)
+
+        return if (!login.isNullOrEmpty() && !password.isNullOrEmpty()) {
+            okhttp3.Credentials.basic(login, password)
+        } else {
+            null
+        }
+    }
+
 }
