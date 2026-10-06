@@ -9,9 +9,9 @@
     <string name="wrong_url">URL tidak valid</string>
     <string name="add_feed_connexion_error">Galat koneksi</string>
     <string name="add_feed_unknownhost_error">Hos tidak diketahui</string>
-    <string name="read_time">%1$s mnt</string>
-    <string name="read_time_lower_than_1">Kurang dari 1 menit</string>
-    <string name="read_time_one_minute">1 mnt</string>
+    <string name="read_time">waktu baca %1$s menit</string>
+    <string name="read_time_lower_than_1">waktu baca kurang dari 1 menit</string>
+    <string name="read_time_one_minute">waktu baca 1 menit</string>
     <string name="share_article">Bagikan Artikel</string>
     <string name="open_url">Buka url</string>
     <string name="add_folder">Tambah folder</string>

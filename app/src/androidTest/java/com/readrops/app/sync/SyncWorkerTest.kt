@@ -4,6 +4,7 @@ import android.app.Notification
 import android.Manifest
 import android.content.Context
 import android.util.Log
+import android.service.notification.StatusBarNotification
 import androidx.core.app.NotificationManagerCompat
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.rule.GrantPermissionRule
@@ -29,6 +30,7 @@ import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.runTest
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
@@ -101,6 +103,9 @@ class SyncWorkerTest : KoinTest {
     fun before() = runTest {
         //mockServer.start()
 
+        // Notifications are shared by all tests in the process, so start each worker test clean.
+        notificationManager.cancelAll()
+
         val config = Configuration.Builder()
             .setMinimumLoggingLevel(Log.DEBUG)
             .setExecutor(SynchronousExecutor())
@@ -151,7 +156,12 @@ class SyncWorkerTest : KoinTest {
         assertTrue { result is ListenableWorker.Result.Success }
         assertTrue { result.outputData.getBoolean(SyncWorker.END_SYNC_KEY, false) }
 
-        assertEquals(0, notificationManager.activeNotifications.size)
+        assertFalse(
+            notificationManager.activeNotifications.any {
+                it.id == SyncWorker.SYNC_RESULT_NOTIFICATION_ID
+            },
+            "A manual sync must not post a result notification"
+        )
     }
 
     @Test
@@ -171,7 +181,7 @@ class SyncWorkerTest : KoinTest {
         assertTrue { result is ListenableWorker.Result.Success }
         assertTrue { result.outputData.getBoolean(SyncWorker.END_SYNC_KEY, false) }
 
-        with(notificationManager.activeNotifications.first()) {
+        with(awaitSyncResultNotification()) {
             assertEquals(SyncWorker.SYNC_RESULT_NOTIFICATION_ID, id)
             assertEquals(
                 "Hacker news",
@@ -180,13 +190,28 @@ class SyncWorkerTest : KoinTest {
 
             notification.actions.forEach { it.actionIntent.send() }
 
-            // wait for global scope to execute in SyncBroadcastReceiver
-            delay(1000L)
+            // SyncBroadcastReceiver updates the item asynchronously.
+            withTimeout(5_000L) {
+                while (true) {
+                    val item = database.itemDao().selectItems(localFeed.id).firstOrNull()
+                    if (item?.isRead == true && item.isStarred) break
+                    delay(50L)
+                }
+            }
+        }
+    }
 
-            val items = database.itemDao().selectItems(localFeed.id)
+    private suspend fun awaitSyncResultNotification(): StatusBarNotification {
+        withTimeout(5_000L) {
+            while (notificationManager.activeNotifications.none {
+                    it.id == SyncWorker.SYNC_RESULT_NOTIFICATION_ID
+                }) {
+                delay(50L)
+            }
+        }
 
-            assertTrue { items.first().isRead }
-            assertTrue { items.first().isStarred }
+        return notificationManager.activeNotifications.first {
+            it.id == SyncWorker.SYNC_RESULT_NOTIFICATION_ID
         }
     }
 

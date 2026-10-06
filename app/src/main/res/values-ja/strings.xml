@@ -7,9 +7,9 @@
     <string name="feed_name">フィード名</string>
     <string name="edit_feed">フィードを編集</string>
     <string name="delete_feed">フィードを削除しますか？</string>
-    <string name="read_time">%1$s 分</string>
-    <string name="read_time_lower_than_1">1 分未満</string>
-    <string name="read_time_one_minute">1 分</string>
+    <string name="read_time">%1$s 分の読書時間</string>
+    <string name="read_time_lower_than_1">1 分未満の読書時間</string>
+    <string name="read_time_one_minute">1 分の読書時間</string>
     <string name="share_article">記事を共有</string>
     <string name="open_url">URL を開く</string>
     <string name="add_folder">フォルダーを追加</string>

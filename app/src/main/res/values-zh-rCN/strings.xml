@@ -7,9 +7,9 @@
     <string name="wrong_url">输入的不是有效的 URL</string>
     <string name="validate">确认</string>
     <string name="add_feed_unknownhost_error">未知主机</string>
-    <string name="read_time">%1$s 分钟</string>
-    <string name="read_time_lower_than_1">少于 1 分钟</string>
-    <string name="read_time_one_minute">1 分钟</string>
+    <string name="read_time">阅读 %1$s 分钟</string>
+    <string name="read_time_lower_than_1">阅读少于 1 分钟</string>
+    <string name="read_time_one_minute">阅读 1 分钟</string>
     <string name="share_article">分享文章</string>
     <string name="open_url">打开 URL</string>
     <string name="add_folder">添加文件夹</string>

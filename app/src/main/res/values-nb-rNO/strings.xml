@@ -43,9 +43,9 @@
     <string name="share_url">Del nettadresse</string>
     <string name="credentials">Identitetsdetaljer</string>
     <string name="share_article">Del artikkel</string>
-    <string name="read_time_one_minute">Ett minutt</string>
-    <string name="read_time_lower_than_1">Mindre enn ett minutt</string>
-    <string name="read_time">%1$s min</string>
+    <string name="read_time_one_minute">1 min lesetid</string>
+    <string name="read_time_lower_than_1">Under 1 min lesetid</string>
+    <string name="read_time">%1$s min lesetid</string>
     <string name="add_feed_unknownhost_error">Ukjent vert</string>
     <string name="add_feed_connexion_error">Tilkoblingsfeil</string>
     <string name="wrong_url">Dette er ikke en gyldig nettadresse</string>

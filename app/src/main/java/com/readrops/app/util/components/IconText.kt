@@ -17,6 +17,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextOverflow
@@ -158,7 +159,8 @@ fun SelectableImageText(
     color: Color = LocalContentColor.current,
     spacing: Dp = MaterialTheme.spacing.veryShortSpacing,
     padding: Dp = MaterialTheme.spacing.shortSpacing,
-    imageSize: Dp = style.toDp()
+    imageSize: Dp = style.toDp(),
+    imageTint: Color? = null
 ) {
     Box(
         modifier = modifier
@@ -176,6 +178,7 @@ fun SelectableImageText(
                 painter = image,
                 contentDescription = null,
                 modifier = Modifier.size(imageSize),
+                colorFilter = imageTint?.let { ColorFilter.tint(it) }
             )
         }
     }

@@ -78,9 +78,9 @@
     <string name="add_folder">Ordner hinzufügen</string>
     <string name="open_url">URL öffnen</string>
     <string name="share_article">Artikel teilen</string>
-    <string name="read_time">%1$s Min.</string>
-    <string name="read_time_one_minute">1 Min.</string>
-    <string name="read_time_lower_than_1">&lt;1 Minute</string>
+    <string name="read_time">%1$s Min. Lesezeit</string>
+    <string name="read_time_one_minute">1 Min. Lesezeit</string>
+    <string name="read_time_lower_than_1">unter 1 Min. Lesezeit</string>
     <string name="add_feed_unknownhost_error">Unbekannter Host</string>
     <string name="add_feed_connexion_error">Verbindungsfehler</string>
     <string name="wrong_url">Eingabe ist keine gültige URL</string>

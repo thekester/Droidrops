@@ -110,9 +110,9 @@
     <string name="empty_field">புலம் காலியாக இருக்க முடியாது</string>
     <string name="edit_feed">ஊட்டத்தைத் திருத்து</string>
     <string name="add_feed_unknownhost_error">தெரியாத புரவலன்</string>
-    <string name="read_time">%1$s மணித்துளி</string>
-    <string name="read_time_lower_than_1">&lt;1 மணித்துளி</string>
-    <string name="read_time_one_minute">1 மணித்துளி</string>
+    <string name="read_time">வாசிப்பு நேரம்: %1$s நிமிடங்கள்</string>
+    <string name="read_time_lower_than_1">வாசிப்பு நேரம்: 1 நிமிடத்திற்கும் குறைவு</string>
+    <string name="read_time_one_minute">வாசிப்பு நேரம்: 1 நிமிடம்</string>
     <string name="share_article">கட்டுரை பகிர்ந்து கொள்ளுங்கள்</string>
     <string name="add_folder">கோப்புறையைச் சேர்</string>
     <string name="feed_name">உணவுப் பெயர்</string>

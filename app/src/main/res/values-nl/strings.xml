@@ -5,8 +5,8 @@
     <string name="empty_field">Het veld mag niet blanco zijn</string>
     <string name="wrong_url">De url is ongeldig</string>
     <string name="add_feed_connexion_error">Er is een verbindingsfout opgetreden</string>
-    <string name="read_time">%1$s min.</string>
-    <string name="read_time_lower_than_1">&lt;1 min.</string>
+    <string name="read_time">%1$s min. leestijd</string>
+    <string name="read_time_lower_than_1">&lt;1 min. leestijd</string>
     <string name="open_url">Url openen</string>
     <string name="feed_name">Feednaam</string>
     <string name="edit_feed">Feed bewerken</string>
@@ -15,7 +15,7 @@
     <string name="settings">Instellingen</string>
     <string name="feed_url">Feed-url</string>
     <string name="add_feed_unknownhost_error">Onbekende host</string>
-    <string name="read_time_one_minute">1 min.</string>
+    <string name="read_time_one_minute">1 min. leestijd</string>
     <string name="add_folder">Map toevoegen</string>
     <string name="cancel">Annuleren</string>
     <string name="share_article">Artikel delen</string>

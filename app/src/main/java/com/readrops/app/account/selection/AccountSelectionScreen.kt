@@ -179,12 +179,13 @@ class AccountSelectionScreen : AndroidScreen() {
                             )
 
                             SelectableImageText(
-                                image = adaptiveIconPainterResource(id = R.mipmap.ic_launcher),
+                                image = painterResource(id = R.drawable.ic_local_account),
                                 text = stringResource(id = AccountType.LOCAL.nameRes),
                                 style = MaterialTheme.typography.bodyLarge,
                                 spacing = MaterialTheme.spacing.mediumSpacing,
                                 padding = MaterialTheme.spacing.mediumSpacing,
                                 imageSize = 24.dp,
+                                imageTint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 onClick = { screenModel.createAccount(AccountType.LOCAL) }
                             )
 

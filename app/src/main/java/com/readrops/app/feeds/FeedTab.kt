@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -56,6 +57,8 @@ import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import com.readrops.app.util.extensions.isValidFeedUrl
+import com.readrops.app.util.extensions.MouseWheelRefreshDetector
+import com.readrops.app.util.extensions.mouseWheelPullToRefresh
 
 object FeedTab : Tab {
 
@@ -80,6 +83,8 @@ object FeedTab : Tab {
         val state by screenModel.feedsState.collectAsStateWithLifecycle()
 
         val snackbarHostState = remember { SnackbarHostState() }
+        val feedListState = rememberLazyListState()
+        val mouseWheelRefreshDetector = remember { MouseWheelRefreshDetector() }
         val topAppBarScrollBehavior =
             TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
@@ -174,6 +179,12 @@ object FeedTab : Tab {
                     .fillMaxSize()
                     .padding(paddingValues)
                     .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
+                    .mouseWheelPullToRefresh(
+                        canScrollBackward = feedListState.canScrollBackward,
+                        isRefreshing = state.isRefreshing,
+                        detector = mouseWheelRefreshDetector,
+                        onRefresh = { screenModel.refreshFeeds() }
+                    )
             ) {
                 when (state.foldersAndFeeds) {
                     is FolderAndFeedsState.LoadedState -> {
@@ -181,7 +192,7 @@ object FeedTab : Tab {
                             (state.foldersAndFeeds as FolderAndFeedsState.LoadedState).values
 
                         if (foldersAndFeeds.isNotEmpty()) {
-                            LazyColumn {
+                            LazyColumn(state = feedListState) {
                                 items(
                                     items = foldersAndFeeds.toList()
                                 ) { folderWithFeeds ->

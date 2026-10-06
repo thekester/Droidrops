@@ -5,8 +5,8 @@
     <string name="empty_field">El campo no puede estar vacío</string>
     <string name="wrong_url">La entrada no es una URL válida</string>
     <string name="add_feed_connexion_error">Error de conexión</string>
-    <string name="read_time_one_minute">1 min</string>
-    <string name="read_time">%1$s min</string>
+    <string name="read_time_one_minute">1 min de lectura</string>
+    <string name="read_time">%1$s min de lectura</string>
     <string name="add_feed">Añadir feed</string>
     <string name="add_feed_title">Añadir feed</string>
     <string name="open_url">Abrir URL</string>
@@ -53,7 +53,7 @@
     <string name="open">Abrir</string>
     <string name="back">Atrás</string>
     <string name="synchronize">Sincronizar</string>
-    <string name="read_time_lower_than_1">&lt;1 min</string>
+    <string name="read_time_lower_than_1">&lt;1 min de lectura</string>
     <string name="favorites">Favoritos</string>
     <string name="validate">Validar</string>
     <string name="unread">%1$d sin leer</string>

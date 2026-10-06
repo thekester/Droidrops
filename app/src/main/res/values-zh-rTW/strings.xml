@@ -80,9 +80,9 @@
     <string name="feed_url">Feed URL</string>
     <string name="validate">確認</string>
     <string name="add_feed_unknownhost_error">未知主機</string>
-    <string name="read_time_one_minute">1 分鐘</string>
-    <string name="read_time_lower_than_1">短於 1 分鐘</string>
-    <string name="read_time">%1$s 分鐘</string>
+    <string name="read_time_one_minute">閱讀 1 分鐘</string>
+    <string name="read_time_lower_than_1">閱讀少於 1 分鐘</string>
+    <string name="read_time">閱讀 %1$s 分鐘</string>
     <string name="add_feed_connexion_error">連線錯誤</string>
     <string name="empty_field">欄位不能是空的</string>
     <string name="wrong_url">輸入的 URL 不可用</string>

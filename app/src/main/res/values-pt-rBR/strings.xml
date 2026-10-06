@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="read_time">%1$s min</string>
-    <string name="read_time_lower_than_1">&lt;1 min</string>
-    <string name="read_time_one_minute">1 min</string>
+    <string name="read_time">%1$s min de leitura</string>
+    <string name="read_time_lower_than_1">&lt;1 min de leitura</string>
+    <string name="read_time_one_minute">1 min de leitura</string>
     <string name="feed_insertion_successfull">O Feed %1$s adicionado com sucesso</string>
     <string name="feed_insertion_network_failed">Falha de rede ao acessar o Feed %1$s</string>
     <string name="feed_insertion_parse_failed">Falha ao processar o Feed %1$s</string>

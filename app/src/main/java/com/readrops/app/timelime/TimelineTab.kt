@@ -63,6 +63,8 @@ import com.readrops.app.util.components.RefreshScreen
 import com.readrops.app.util.extensions.isError
 import com.readrops.app.util.extensions.isLoading
 import com.readrops.app.util.extensions.isNotEmpty
+import com.readrops.app.util.extensions.MouseWheelRefreshDetector
+import com.readrops.app.util.extensions.mouseWheelPullToRefresh
 import com.readrops.app.util.extensions.openInCustomTab
 import com.readrops.app.util.extensions.openUrl
 import com.readrops.app.util.theme.spacing
@@ -98,6 +100,7 @@ object TimelineTab : Tab {
         val screenModel = koinScreenModel<TimelineScreenModel>()
         val state by screenModel.timelineState.collectAsStateWithLifecycle()
         val preferences = state.preferences
+        val mouseWheelRefreshDetector = remember { MouseWheelRefreshDetector() }
         val items = state.itemState.collectAsLazyPagingItems()
 
         val lazyListState = rememberLazyListState()
@@ -306,6 +309,12 @@ object TimelineTab : Tab {
                     PullToRefreshBox(
                         isRefreshing = state.isRefreshing,
                         onRefresh = { screenModel.refreshTimeline() },
+                        modifier = Modifier.mouseWheelPullToRefresh(
+                            canScrollBackward = lazyListState.canScrollBackward,
+                            isRefreshing = state.isRefreshing,
+                            detector = mouseWheelRefreshDetector,
+                            onRefresh = { screenModel.refreshTimeline() }
+                        )
                     ) {
                         when {
                             state.displayRefreshScreen -> RefreshScreen(
