@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Droidrops privacy policy: how the Android RSS reader stores and shares data.">
+  <meta name="color-scheme" content="light dark">
+  <title>Privacy Policy · Droidrops</title>
+  <style>
+    :root { color-scheme: light dark; --bg: #f4f7fb; --card: #fff; --ink: #142b35; --muted: #526872; --accent: #08699c; --line: #d9e3e9; }
+    @media (prefers-color-scheme: dark) { :root { --bg: #10191e; --card: #19252b; --ink: #e6f0f4; --muted: #b3c2c9; --accent: #78c9f1; --line: #35464e; } }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--bg); color: var(--ink); font: 17px/1.65 system-ui, -apple-system, "Segoe UI", sans-serif; }
+    header { padding: 3.5rem 1.25rem 2.25rem; background: #082f43; color: #fff; }
+    header > div, main, footer { width: min(100% - 2rem, 850px); margin-inline: auto; }
+    .eyebrow { margin: 0 0 .5rem; color: #9fdaf5; font-size: .9rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+    h1 { margin: 0; font-size: clamp(2.1rem, 7vw, 3.5rem); line-height: 1.1; }
+    header p:last-child { margin-bottom: 0; color: #d6e8f0; }
+    main { padding-block: 1.5rem 3rem; }
+    nav, article { margin: 1rem 0; padding: 1.5rem clamp(1rem, 4vw, 2rem); border: 1px solid var(--line); border-radius: 1.1rem; background: var(--card); }
+    nav { display: flex; flex-wrap: wrap; gap: .7rem 1.25rem; }
+    nav a, a { color: var(--accent); }
+    nav a { font-weight: 700; }
+    h2 { margin: 0 0 .8rem; font-size: 1.55rem; }
+    h3 { margin: 1.4rem 0 .35rem; font-size: 1.1rem; }
+    p, ul { margin-block: .55rem; }
+    li + li { margin-top: .35rem; }
+    .updated { color: var(--muted); font-size: .95rem; }
+    footer { padding: 0 0 2rem; color: var(--muted); font-size: .95rem; }
+    :focus-visible { outline: 3px solid #ffbf47; outline-offset: 3px; }
+  </style>
+</head>
+<body>
+  <header>
+    <div>
+      <p class="eyebrow">Droidrops · Android RSS reader</p>
+      <h1>Privacy Policy</h1>
+      <p>How Droidrops handles information when you use the app.</p>
+    </div>
+  </header>
+  <main>
+    <nav aria-label="Language">
+      <a href="#english">English</a>
+      <a href="#francais" lang="fr">Français</a>
+      <a href="https://github.com/thekester/Droidrops">Source code</a>
+    </nav>
+    <article id="english" lang="en">
+      <p class="updated">Last updated: October 6, 2026</p>
+      <p>This policy applies to the Droidrops Android application. Droidrops is an RSS reader maintained by its developer, who does not operate a service backend for the app.</p>
+
+      <h2>Information stored on your device</h2>
+      <p>Droidrops stores your app preferences, feed and account configuration, article information, and reading or favorite status on your device. Account passwords and access credentials are stored in Android encrypted preferences backed by the Android Keystore. Credentials are excluded from Android cloud backup and device transfer.</p>
+      <p>Other app data may be included in Android system backup or device transfer if you have enabled those Android features. Those backups are handled by your device and backup provider under their own settings and privacy terms.</p>
+
+      <h2>Information sent to services you choose</h2>
+      <p>To fetch feeds and synchronize your accounts, Droidrops sends the feed addresses and, when needed, account identifiers and credentials to the RSS servers or websites that you configure. Opening an article, image, or other link may connect your browser or the app to the address specified by that content. These services receive ordinary connection data such as your IP address and request details. Their own privacy policies apply.</p>
+      <p>Droidrops accepts both HTTP and HTTPS addresses. The connection security depends on the address and the server you choose; HTTP connections are not encrypted in transit. Use HTTPS when the service supports it.</p>
+
+      <h2>Diagnostic logs and reports</h2>
+      <p>Droidrops can keep diagnostic entries locally to help explain synchronization, feed, login, or app errors. A report can include timestamps, app version, Android version, device manufacturer and model, network type and status, error details, and the server address or request path involved. Common passwords, tokens, authorization headers, and email addresses are automatically redacted, but you should review a report before sharing it.</p>
+      <p>Diagnostic reports are not sent automatically. If you choose Share, Droidrops passes the report to the Android sharing sheet and the destination app you select. If you choose to report an issue on GitHub, the report may be posted publicly. You can choose to hide server addresses, clear the local log, or cancel sharing.</p>
+
+      <h2>What the developer receives</h2>
+      <p>Droidrops does not include advertising, analytics, or crash-reporting SDKs, and the developer does not receive app data unless you choose to send or publish it, for example by sharing a diagnostic report. The app does not sell personal information.</p>
+
+      <h2>Retention and deletion</h2>
+      <p>Your app data remains on your device until you delete feeds or accounts, clear diagnostic logs, or uninstall Droidrops. Credentials are removed when their account is deleted. Data already sent to an RSS provider, website, backup provider, or a recipient you selected is governed by that recipient's retention and deletion practices.</p>
+
+      <h2>Children</h2>
+      <p>Droidrops is a general-purpose RSS reader and is not designed specifically for children.</p>
+
+      <h2>Changes and contact</h2>
+      <p>This policy may be updated when app behavior changes. The current version is published on this page. For privacy questions, contact the developer through the <a href="https://github.com/thekester/Droidrops/issues">Droidrops GitHub issue tracker</a>. GitHub issues are public; do not include passwords, tokens, or other information you want to keep private.</p>
+    </article>
+
+    <article id="francais" lang="fr">
+      <p class="updated">Dernière mise à jour : 6 octobre 2026</p>
+      <p>Cette politique concerne l’application Android Droidrops. Droidrops est un lecteur RSS. Son développeur n’exploite pas de serveur pour l’application.</p>
+
+      <h2>Informations stockées sur votre appareil</h2>
+      <p>Droidrops conserve sur votre appareil vos préférences, la configuration des flux et des comptes, les informations des articles ainsi que leur état de lecture ou de favori. Les mots de passe et identifiants d’accès sont stockés dans les préférences chiffrées d’Android, protégées par Android Keystore. Ils sont exclus de la sauvegarde Android dans le cloud et du transfert entre appareils.</p>
+      <p>Les autres données de l’application peuvent être incluses dans une sauvegarde ou un transfert Android si vous avez activé ces fonctions. Ces sauvegardes sont gérées par votre appareil et votre fournisseur de sauvegarde selon leurs propres paramètres et règles de confidentialité.</p>
+
+      <h2>Informations envoyées aux services que vous choisissez</h2>
+      <p>Pour récupérer les flux et synchroniser vos comptes, Droidrops envoie les adresses des flux et, si nécessaire, les identifiants de compte et mots de passe aux serveurs RSS ou sites que vous configurez. L’ouverture d’un article, d’une image ou d’un autre lien peut connecter le navigateur ou l’application à l’adresse indiquée par ce contenu. Ces services reçoivent les données habituelles de connexion, comme votre adresse IP et les détails de la requête. Leurs propres politiques de confidentialité s’appliquent.</p>
+      <p>Droidrops accepte les adresses HTTP et HTTPS. La sécurité de la connexion dépend de l’adresse et du serveur que vous choisissez ; les connexions HTTP ne sont pas chiffrées pendant le transfert. Utilisez HTTPS lorsque le service le permet.</p>
+
+      <h2>Journaux et rapports de diagnostic</h2>
+      <p>Droidrops peut conserver localement des entrées de diagnostic pour expliquer les erreurs de synchronisation, de flux, de connexion ou de l’application. Un rapport peut contenir des dates et heures, la version de l’application, la version d’Android, le fabricant et le modèle de l’appareil, le type et l’état du réseau, des détails d’erreur ainsi que l’adresse du serveur ou le chemin de requête concerné. Les mots de passe, jetons, en-têtes d’autorisation et adresses e-mail courants sont automatiquement masqués, mais vérifiez le rapport avant de le partager.</p>
+      <p>Les rapports ne sont pas envoyés automatiquement. Si vous choisissez « Partager », Droidrops transmet le rapport au menu de partage Android et à l’application destinataire que vous choisissez. Si vous choisissez de signaler un problème sur GitHub, le rapport peut être publié publiquement. Vous pouvez demander à masquer les adresses des serveurs, effacer le journal local ou annuler le partage.</p>
+
+      <h2>Informations reçues par le développeur</h2>
+      <p>Droidrops n’intègre ni publicité, ni outil d’analyse, ni SDK de rapport de plantage. Le développeur ne reçoit pas les données de l’application, sauf si vous choisissez de les lui transmettre ou de les publier, par exemple en partageant un rapport de diagnostic. L’application ne vend pas de données personnelles.</p>
+
+      <h2>Conservation et suppression</h2>
+      <p>Vos données restent sur votre appareil jusqu’à ce que vous supprimiez des flux ou des comptes, effaciez les journaux de diagnostic ou désinstalliez Droidrops. Les identifiants sont supprimés avec le compte correspondant. Les données déjà envoyées à un fournisseur RSS, un site Web, un service de sauvegarde ou un destinataire que vous avez choisi dépendent des règles de conservation et de suppression de ce service.</p>
+
+      <h2>Enfants</h2>
+      <p>Droidrops est un lecteur RSS généraliste qui n’est pas spécialement conçu pour les enfants.</p>
+
+      <h2>Modifications et contact</h2>
+      <p>Cette politique pourra évoluer si le fonctionnement de l’application change. Sa version actuelle est publiée sur cette page. Pour toute question liée à la confidentialité, contactez le développeur via le <a href="https://github.com/thekester/Droidrops/issues">suivi des problèmes Droidrops sur GitHub</a>. Les tickets GitHub sont publics : n’y incluez pas de mot de passe, de jeton ou d’information que vous souhaitez garder privée.</p>
+    </article>
+  </main>
+  <footer>© Droidrops · <a href="https://github.com/thekester/Droidrops">Open-source project on GitHub</a></footer>
+</body>
+</html>
