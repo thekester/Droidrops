@@ -36,4 +36,4 @@ Droidrops is a general-purpose RSS reader and is not designed specifically for c
 
 ## Changes and contact
 
-This policy may be updated when app behavior changes. The current version is published at <https://thekester.github.io/Droidrops/>. For privacy questions, contact the developer through the [Droidrops GitHub issue tracker](https://github.com/thekester/Droidrops/issues). GitHub issues are public; do not include passwords, tokens, or other information you want to keep private.
+This policy may be updated when app behavior changes. The current version is published at <https://thekester.github.io/Droidrops/privacy/>. For privacy questions, contact the developer through the [Droidrops GitHub issue tracker](https://github.com/thekester/Droidrops/issues). GitHub issues are public; do not include passwords, tokens, or other information you want to keep private.

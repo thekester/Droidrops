@@ -129,7 +129,7 @@
     <string name="open_source_libraries">Open source libraries</string>
     <string name="app_changelog_url" translatable="false">https://github.com/thekester/Droidrops/blob/develop/CHANGELOG.md</string>
     <string name="app_issues_url" translatable="false">https://github.com/thekester/Droidrops/issues</string>
-    <string name="privacy_policy_url" translatable="false">https://thekester.github.io/Droidrops/</string>
+    <string name="privacy_policy_url" translatable="false">https://thekester.github.io/Droidrops/privacy/</string>
     <string name="privacy_policy">Privacy policy</string>
     <string name="other_accounts">Other accounts</string>
     <string name="update">Update</string>

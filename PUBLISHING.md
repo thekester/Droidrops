@@ -8,7 +8,7 @@
 - Include native debug symbols in the release bundle for Play Console crash analysis.
 - Configure Play App Signing in Play Console.
 - Link the privacy policy URL:
-  - `https://thekester.github.io/Droidrops/`
+  - `https://thekester.github.io/Droidrops/privacy/`
 - Fill in the Data Safety section accurately.
 - Make sure the store listing states that this is a fork of Readrops.
 

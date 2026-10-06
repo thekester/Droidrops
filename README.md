@@ -56,6 +56,6 @@ debug.nextcloud_news.url=https\://rss.example.com
 
 Droidrops is maintained as an independent fork of Readrops. The upstream project remains available at https://github.com/readrops/Readrops.
 
-Privacy policy: <https://thekester.github.io/Droidrops/> ([source](PRIVACY_POLICY.md))
+Privacy policy: <https://thekester.github.io/Droidrops/privacy/> ([source](PRIVACY_POLICY.md))
 
 Publishing notes: [PUBLISHING.md](PUBLISHING.md)
