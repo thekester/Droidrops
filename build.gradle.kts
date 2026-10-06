@@ -65,7 +65,7 @@ fun configure(extension: BaseExtension) = with(extension) {
     compileSdkVersion(35)
 
     defaultConfig {
-        minSdk = 21
+        minSdk = 24
         targetSdk = 35
         buildToolsVersion = "35.0.1"
     }
