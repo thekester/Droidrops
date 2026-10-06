@@ -1,3 +1,7 @@
+# v2.2.9
+
+- Target Android 16 (API 36) to meet Google Play requirements.
+
 # v2.2.7
 
 This release fixes upgrade reliability, improves synchronization performance, and makes more feeds readable.

@@ -1,0 +1,1 @@
+Target Android 16 (API 36) to meet Google Play requirements.

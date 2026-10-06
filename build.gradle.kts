@@ -62,11 +62,11 @@ subprojects {
 }
 
 fun configure(extension: BaseExtension) = with(extension) {
-    compileSdkVersion(35)
+    compileSdkVersion(36)
 
     defaultConfig {
         minSdk = 24
-        targetSdk = 35
+        targetSdk = 36
         buildToolsVersion = "35.0.1"
     }
 
