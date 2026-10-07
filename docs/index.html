@@ -38,6 +38,7 @@
     .hero-links { display:flex; flex-wrap:wrap; align-items:center; gap:13px; }
     .store-badge { display:block; height:54px; width:auto; transition:transform .18s ease; }
     .store-badge:hover { transform:translateY(-2px); }
+    .coming-soon { min-height:48px; display:inline-flex; align-items:center; padding:0 15px; border:1px solid #ffffff56; border-radius:13px; color:#d8e9ee; font-size:.9rem; font-weight:700; }
     .source-link { min-height:48px; display:inline-flex; align-items:center; justify-content:center; padding:0 17px; border:1px solid #ffffff56; border-radius:13px; color:white; font-weight:720; text-decoration:none; }
     .hero-meta { margin:17px 0 0; color:#a9c6ce; font-size:.86rem; }
     .hero-shot { position:relative; z-index:1; justify-self:center; height:min(76svh,700px); width:auto; max-width:min(100%,365px); border:1px solid #ffffff3d; border-radius:25px; object-fit:contain; box-shadow:0 30px 78px #00141d85; }
@@ -111,7 +112,7 @@
           <h1>Your feeds.<br>Your pace.</h1>
           <p class="hero-copy">Bring RSS and Atom feeds together with the reading services you already use. Catch up in one timeline, save the good reads, and keep your library in your hands.</p>
           <div class="hero-links">
-            <a href="https://play.google.com/store/apps/details?id=com.droidrops.app"><img class="store-badge" src="assets/google-play-badge.png" alt="Get it on Google Play"></a>
+            <span class="coming-soon">Coming soon on Google Play</span>
             <a href="https://f-droid.org/packages/com.droidrops.app/"><img class="store-badge" src="assets/fdroid-badge.png" alt="Get it on F-Droid"></a>
             <a class="source-link" href="https://github.com/thekester/Droidrops/releases/latest">GitHub releases</a>
           </div>
@@ -127,6 +128,7 @@
         <span class="service"><span class="service-mark">F</span>FreshRSS</span>
         <span class="service"><span class="service-mark">N</span>Nextcloud News</span>
         <span class="service"><span class="service-mark">Fe</span>Fever API</span>
+        <span class="service"><span class="service-mark">GR</span>Google Reader API</span>
       </div>
     </section>
     <section class="content" id="features">
@@ -142,7 +144,7 @@
             <div class="feature-copy"><p class="eyebrow">01 · Timeline</p><h3>One place to catch up.</h3><p>Scan recent articles from all your feeds. Reading times make it easy to choose what fits the moment, including stories under a minute.</p><ul><li>Recent articles</li><li>Reading time</li><li>Save favourites</li></ul></div>
           </article>
           <article class="feature-row">
-            <div class="feature-shot-wrap"><img class="feature-shot" src="assets/screenshots/03-article-light.png" alt="Droidrops article reader with a cover image, title, source, and reading time" loading="lazy"></div>
+            <div class="feature-shot-wrap"><img class="feature-shot theme-paired-shot" src="assets/screenshots/03-article-light.png" data-light="assets/screenshots/03-article-light.png" data-dark="assets/screenshots/04-article-dark.png" alt="Droidrops article reader with a cover image, title, source, and reading time" loading="lazy"></div>
             <div class="feature-copy"><p class="eyebrow">02 · Reader</p><h3>Settle into the story.</h3><p>Open an article in a focused reading view with its source, headline, image, and estimated time together.</p><ul><li>Article view</li><li>Favourites</li><li>Share or open original</li></ul></div>
           </article>
           <article class="feature-row">
@@ -155,7 +157,7 @@
           </article>
           <article class="feature-row">
             <div class="feature-shot-wrap"><img class="feature-shot" src="assets/screenshots/05-account-services.png" alt="Droidrops account picker for Local, Nextcloud News, FreshRSS, Fever, and Google Reader API" loading="lazy"></div>
-            <div class="feature-copy"><p class="eyebrow">05 · Accounts and sync</p><h3>Bring the reader you already run.</h3><p>Use local feeds on your device or connect FreshRSS, Nextcloud News, or the Fever API. Droidrops syncs subscriptions and reading status through services that support them.</p><ul><li>Local account</li><li>FreshRSS</li><li>Nextcloud News</li><li>Fever API</li></ul></div>
+            <div class="feature-copy"><p class="eyebrow">05 · Accounts and sync</p><h3>Bring the reader you already run.</h3><p>Use local feeds on your device or connect FreshRSS, Nextcloud News, the Fever API, or a Google Reader API compatible server. Droidrops syncs subscriptions and reading status through services that support them.</p><ul><li>Local account</li><li>FreshRSS</li><li>Nextcloud News</li><li>Fever API</li><li>Google Reader API</li></ul></div>
           </article>
           <article class="feature-row">
             <div class="feature-shot-wrap"><img class="feature-shot" src="assets/screenshots/10-notifications.png" alt="Per-feed notification settings in Droidrops" loading="lazy"></div>
@@ -188,7 +190,7 @@
       <div class="wrap download-box">
         <div><h2>Ready for your next read?</h2><p>Get Droidrops from your preferred app store or download a release from GitHub.</p></div>
         <div class="download-links">
-          <a href="https://play.google.com/store/apps/details?id=com.droidrops.app"><img class="store-badge" src="assets/google-play-badge.png" alt="Get it on Google Play" loading="lazy"></a>
+          <span class="coming-soon">Coming soon on Google Play</span>
           <a href="https://f-droid.org/packages/com.droidrops.app/"><img class="store-badge" src="assets/fdroid-badge.png" alt="Get it on F-Droid" loading="lazy"></a>
         </div>
       </div>
@@ -211,10 +213,17 @@
         const dark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
         button.setAttribute('aria-label', dark ? 'Switch to light theme' : 'Switch to dark theme');
         button.setAttribute('aria-pressed', String(Boolean(root.dataset.theme)));
+        document.querySelectorAll('.theme-paired-shot').forEach(image => {
+          const source = dark ? image.dataset.dark : image.dataset.light;
+          if (image.getAttribute('src') !== source) image.setAttribute('src', source);
+        });
         icon.innerHTML = dark
           ? '<circle cx="12" cy="12" r="4"/><path d="M12 2v2m0 16v2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M2 12h2m16 0h2M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42"/>'
           : '<path d="M20.9 13A8.5 8.5 0 0 1 11 3.1 8.7 8.7 0 1 0 20.9 13Z"/>';
       };
+      matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+        if (!root.dataset.theme) update();
+      });
       button.addEventListener('click', () => {
         const currentDark = root.dataset.theme ? root.dataset.theme === 'dark' : matchMedia('(prefers-color-scheme: dark)').matches;
         root.dataset.theme = currentDark ? 'light' : 'dark';
