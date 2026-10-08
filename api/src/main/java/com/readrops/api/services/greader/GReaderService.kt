@@ -4,9 +4,7 @@ import com.readrops.api.services.greader.adapters.FreshRSSUserInfo
 import com.readrops.api.services.greader.adapters.GReaderFoldersTags
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Item
-import okhttp3.RequestBody
 import okhttp3.ResponseBody
-import retrofit2.http.Body
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
@@ -16,8 +14,16 @@ import retrofit2.http.Query
 
 interface GReaderService {
 
+    @FormUrlEncoded
     @POST("accounts/ClientLogin")
-    suspend fun login(@Body body: RequestBody?): ResponseBody
+    suspend fun login(
+        @Field("Email") login: String,
+        @Field("Passwd") password: String,
+        @Field("output") output: String = "json",
+        @Field("client") client: String = "Droidrops",
+        @Field("accountType") accountType: String = "HOSTED_OR_GOOGLE",
+        @Field("service") service: String = "reader"
+    ): ResponseBody
 
     @GET("reader/api/0/token")
     suspend fun getWriteToken(): ResponseBody

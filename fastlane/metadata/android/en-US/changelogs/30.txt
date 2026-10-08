@@ -1,1 +1,4 @@
 Target Android 16 (API 36) to meet Google Play requirements.
+- Tap article images to open a full-screen viewer, then pinch or double-tap to zoom.
+- Fix Miniflux sign-in through the Google Reader API and read-status updates through Fever.
+- Allow mouse-wheel refresh again after a sync completes.

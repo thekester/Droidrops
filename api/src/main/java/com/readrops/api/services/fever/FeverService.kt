@@ -7,6 +7,8 @@ import com.readrops.db.entities.Item
 import okhttp3.MultipartBody
 import okhttp3.ResponseBody
 import retrofit2.http.Body
+import retrofit2.http.Field
+import retrofit2.http.FormUrlEncoded
 import retrofit2.http.POST
 import retrofit2.http.Query
 
@@ -34,9 +36,14 @@ interface FeverService {
     @POST("?saved_item_ids")
     suspend fun getStarredItemsIds(@Body body: MultipartBody): List<String>
 
-    @POST("?mark=item")
-    suspend fun updateItemState(@Body body: MultipartBody, @Query("as") action: String,
-                                @Query("id") id: String)
+    @FormUrlEncoded
+    @POST("?api")
+    suspend fun updateItemState(
+        @Field("api_key") apiKey: String,
+        @Field("mark") mark: String,
+        @Field("as") action: String,
+        @Field("id") id: String
+    )
 
     companion object {
         const val END_POINT = "api/fever.php/"

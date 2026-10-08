@@ -1,5 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="article_image">Image de l’article</string>
+    <string name="close_image_viewer">Fermer la visionneuse d’images</string>
     <string name="add_feed">Ajouter un flux</string>
     <string name="settings">Paramètres</string>
     <string name="add_feed_title">Ajouter un flux</string>

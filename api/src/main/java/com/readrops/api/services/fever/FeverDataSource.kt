@@ -94,9 +94,12 @@ class FeverDataSource(private val service: FeverService) {
     }
 
     suspend fun setItemState(login: String, password: String, action: String, id: String) {
-        val body = getFeverRequestBody(login, password)
-
-        service.updateItemState(body, action, id)
+        service.updateItemState(
+            apiKey = ApiUtils.md5hash("$login:$password"),
+            mark = "item",
+            action = action,
+            id = id
+        )
     }
 
     private fun getFeverRequestBody(login: String, password: String): MultipartBody {

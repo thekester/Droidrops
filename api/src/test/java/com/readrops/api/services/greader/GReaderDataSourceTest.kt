@@ -67,13 +67,9 @@ class GReaderDataSourceTest : KoinTest {
         val request = mockServer.takeRequest()
         val requestBody = request.body.readUtf8()
 
-        assertTrue {
-            requestBody.contains("name=\"Email\"") && requestBody.contains("Login")
-        }
-
-        assertTrue {
-            requestBody.contains("name=\"Passwd\"") && requestBody.contains("Password")
-        }
+        assertEquals("application/x-www-form-urlencoded", request.getHeader("Content-Type")?.substringBefore(';'))
+        assertTrue(requestBody.contains("Email=Login"))
+        assertTrue(requestBody.contains("Passwd=Password"))
     }
 
     @Test

@@ -5,9 +5,11 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -49,6 +51,14 @@ class ItemScreen(
         val items = screenModel.itemState.collectAsLazyPagingItems()
 
         val snackbarHostState = remember { SnackbarHostState() }
+        var imageViewerUrl by remember { mutableStateOf<String?>(null) }
+
+        imageViewerUrl?.let { url ->
+            ItemImageViewerDialog(
+                imageUrl = url,
+                onDismiss = { imageViewerUrl = null }
+            )
+        }
 
         if (state.imageDialogUrl != null) {
             ItemImageDialog(
@@ -137,6 +147,7 @@ class ItemScreen(
                             onShareItem = { screenModel.shareItem(itemWithFeed, context) },
                             onSetReadState = { screenModel.setItemReadState(item) },
                             onSetStarState = { screenModel.setItemStarState(item) },
+                            onOpenImageViewer = { imageViewerUrl = it },
                             onOpenImageDialog = { screenModel.openImageDialog(it) },
                             onPop = { navigator.pop() },
                         )

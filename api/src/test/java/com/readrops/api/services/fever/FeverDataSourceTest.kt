@@ -84,11 +84,11 @@ class FeverDataSourceTest : KoinTest {
         val request = mockServer.takeRequest()
         val requestBody = request.body.readUtf8()
 
-        assertEquals("saved", request.requestUrl?.queryParameter("as"))
-        assertEquals("itemId", request.requestUrl?.queryParameter("id"))
-
-        assertTrue { requestBody.contains("api_key") }
-        assertTrue { requestBody.contains("fb2f5a9b0eccc1ee95c1d559a2dd797a") }
+        assertEquals("application/x-www-form-urlencoded", request.getHeader("Content-Type")?.substringBefore(';'))
+        assertTrue { requestBody.contains("api_key=fb2f5a9b0eccc1ee95c1d559a2dd797a") }
+        assertTrue { requestBody.contains("mark=item") }
+        assertTrue { requestBody.contains("as=saved") }
+        assertTrue { requestBody.contains("id=itemId") }
     }
 
     @Test

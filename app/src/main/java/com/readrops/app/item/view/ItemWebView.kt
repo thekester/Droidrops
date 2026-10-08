@@ -7,6 +7,7 @@ import android.util.AttributeSet
 import android.webkit.WebView
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
+import android.net.Uri
 import androidx.webkit.WebViewAssetLoader
 import android.webkit.WebViewClient
 import androidx.compose.ui.graphics.Color
@@ -24,7 +25,8 @@ import java.util.Locale
 @SuppressLint("SetJavaScriptEnabled", "ViewConstructor")
 class ItemWebView(
     context: Context,
-    onUrlClick: (String) -> Unit,
+    private val onUrlClick: (String) -> Unit,
+    private val onImageClick: (String) -> Unit,
     onImageLongPress: (String) -> Unit,
     attrs: AttributeSet? = null,
 ) : WebView(context, attrs) {
@@ -45,7 +47,15 @@ class ItemWebView(
 
         webViewClient = object : WebViewClient() {
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
-                url?.let { onUrlClick(it) }
+                url?.let(::handleUrl)
+                return true
+            }
+
+            override fun shouldOverrideUrlLoading(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): Boolean {
+                request?.url?.toString()?.let(::handleUrl)
                 return true
             }
 
@@ -62,6 +72,18 @@ class ItemWebView(
             }
 
             false
+        }
+    }
+
+    private fun handleUrl(url: String) {
+        val uri = Uri.parse(url)
+        if (uri.scheme == IMAGE_VIEWER_SCHEME && uri.host == IMAGE_VIEWER_HOST) {
+            val imageUrl = uri.getQueryParameter(IMAGE_VIEWER_QUERY)
+            if (imageUrl?.let { Uri.parse(it).scheme in setOf("http", "https") } == true) {
+                onImageClick(imageUrl)
+            }
+        } else {
+            onUrlClick(url)
         }
     }
 
@@ -180,6 +202,7 @@ class ItemWebView(
         // treat the whole thing as plain text and convert it to HTML turning newlines into <br>/<p> tags
         val body = document.body()
         revealImageHoverText(body)
+        makeImagesZoomable(body)
         if (openVideosInYoutube) replaceVideoEmbeds(body)
         val isPlainText = body.stream().skip(1).allMatch { !it.tag().isKnownTag }
         val html = if (isPlainText) {
@@ -192,12 +215,29 @@ class ItemWebView(
         return if (hasNoProse(body)) html + emptyContentNotice(itemWithFeed) else html
     }
 
+    /** Route image taps to the standalone image viewer instead of zooming the whole article. */
+    private fun makeImagesZoomable(body: Element) {
+        body.select("img[src]").forEach { image ->
+            image.attr(
+                "onclick",
+                "event.preventDefault(); event.stopPropagation(); " +
+                    "window.location.href='$IMAGE_VIEWER_URI?url=' + " +
+                    "encodeURIComponent(this.currentSrc || this.src); return false;"
+            )
+            image.attr("style", (image.attr("style") + ";cursor:zoom-in").trimStart(';'))
+        }
+    }
+
     companion object {
         // characters of text outside links below which an entry is considered link-only
         private const val PROSE_THRESHOLD = 20
 
         // matches the path handler above, so the relative asset urls of the template resolve here
         private const val ASSETS_BASE_URL = "https://appassets.androidplatform.net/assets/"
+        private const val IMAGE_VIEWER_SCHEME = "droidrops-image"
+        private const val IMAGE_VIEWER_HOST = "open"
+        private const val IMAGE_VIEWER_QUERY = "url"
+        private const val IMAGE_VIEWER_URI = "$IMAGE_VIEWER_SCHEME://$IMAGE_VIEWER_HOST"
 
         private val YOUTUBE_EMBED =
             Regex("""(?:youtube(?:-nocookie)?\.com/embed/|youtu\.be/)([A-Za-z0-9_-]{6,})""")

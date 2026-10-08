@@ -47,6 +47,7 @@ fun ItemScreenPage(
     onShareItem: () -> Unit,
     onSetReadState: (Boolean) -> Unit,
     onSetStarState: (Boolean) -> Unit,
+    onOpenImageViewer: (String) -> Unit,
     onOpenImageDialog: (String) -> Unit,
     onPop: () -> Unit,
     openVideosInYoutube: Boolean,
@@ -107,6 +108,7 @@ fun ItemScreenPage(
                             isScrollable = viewHeight - contentHeight < 0
                         },
                         onUrlClick = { url -> onOpenUrl(url) },
+                        onImageClick = { url -> onOpenImageViewer(url) },
                         onImageLongPress = { url -> onOpenImageDialog(url) }
                     ) {
                         if (item.imageLink != null) {

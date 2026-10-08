@@ -8,20 +8,13 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
-import okhttp3.MultipartBody
 import java.io.StringReader
 import java.util.Properties
 
 class GReaderDataSource(private val service: GReaderService) {
 
     suspend fun login(login: String, password: String): String {
-        val requestBody = MultipartBody.Builder()
-            .setType(MultipartBody.FORM)
-            .addFormDataPart("Email", login)
-            .addFormDataPart("Passwd", password)
-            .build()
-
-        val response = service.login(requestBody)
+        val response = service.login(login, password)
 
         val properties = Properties()
         properties.load(StringReader(response.string()))

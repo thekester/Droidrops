@@ -48,6 +48,8 @@ internal fun Modifier.mouseWheelPullToRefresh(
     detector: MouseWheelRefreshDetector,
     onRefresh: () -> Unit
 ): Modifier = pointerInput(canScrollBackward, isRefreshing, detector, onRefresh) {
+    if (isRefreshing) detector.reset()
+
     awaitPointerEventScope {
         while (true) {
             val event = awaitPointerEvent(PointerEventPass.Initial)
@@ -57,7 +59,8 @@ internal fun Modifier.mouseWheelPullToRefresh(
             val verticalScroll = change.scrollDelta.y
 
             if (isRefreshing) {
-                detector.resetAccumulatedScroll()
+                // A completed wheel-triggered refresh must allow the next gesture to refresh too.
+                detector.reset()
             } else if (!canScrollBackward && verticalScroll > 0f) {
                 if (detector.onScroll(verticalScroll, canScrollBackward = false)) {
                     onRefresh()
