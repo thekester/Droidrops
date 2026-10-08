@@ -1,6 +1,21 @@
+# v2.2.10
+
+This release makes it easier to discover feeds and improves article reading and synchronization.
+
+## Changes
+
+- Browse and search a curated directory of RSS feeds, filter by topic, and add several feeds at once.
+- Open article images in a full-screen viewer with pinch and double-tap zoom.
+
+## Fixes
+
+- Fix Miniflux sign-in through the Google Reader API and Fever read-status updates.
+- Restore mouse-wheel pull-to-refresh after a sync completes.
+
 # v2.2.9
 
 - Target Android 16 (API 36) to meet Google Play requirements.
+- Raise the minimum supported Android version to Android 7.0 (API 24) for Google Play automatic protection.
 
 # v2.2.7
 

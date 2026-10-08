@@ -1,0 +1,3 @@
+Browse and search a curated RSS feed directory, filter by topic, and add multiple feeds at once.
+- Open article images in a full-screen viewer and zoom with pinch or double-tap.
+- Fix Google Reader API sign-in, Fever read-status updates, and mouse-wheel refresh after sync.
