@@ -102,7 +102,7 @@ class NewFeedScreenModel(
 
         val url = mutableState.value.actualUrl
 
-        if (state.value.selectedResultsCount > 0) {
+        if (state.value.selectedFeedCount > 0) {
             mutableState.update {
                 it.copy(
                     error = null,
@@ -114,7 +114,16 @@ class NewFeedScreenModel(
             }
 
             screenModelScope.launch(dispatcher) {
-                insertFeeds(state.value.parsingResults
+                val directoryFeeds = FeedDirectory.items
+                    .filter { it.url in state.value.selectedDirectoryFeedUrls }
+                    .map {
+                        Feed(
+                            url = it.url,
+                            folderId = state.value.folderId,
+                            remoteFolderId = state.value.selectedFolder?.remoteId
+                        )
+                    }
+                insertFeeds(directoryFeeds + state.value.parsingResults
                     .filter { it.isSelected }
                     .map {
                         Feed(
@@ -301,6 +310,18 @@ class NewFeedScreenModel(
 
     fun updateUrl(url: String) = mutableState.update { it.copy(url = url, urlError = null) }
 
+    fun updateDirectorySearch(query: String) = mutableState.update { it.copy(directorySearch = query) }
+
+    fun updateDirectoryCategory(category: String) = mutableState.update { it.copy(directoryCategory = category) }
+
+    fun toggleDirectoryFeed(url: String) = mutableState.update {
+        val updated = it.selectedDirectoryFeedUrls.toMutableSet()
+        if (!updated.add(url)) updated.remove(url)
+        it.copy(selectedDirectoryFeedUrls = updated)
+    }
+
+    fun toggleManualEntry() = mutableState.update { it.copy(isManualEntryExpanded = !it.isManualEntryExpanded) }
+
     fun updateAccountDropDownExpandStatus(isExpanded: Boolean) =
         mutableState.update { it.copy(isAccountDropdownExpanded = isExpanded) }
 
@@ -408,11 +429,24 @@ data class State(
     val popScreen: Boolean = false,
     val login: String = "",
     val password: String = "",
-    val parsingResults: List<ParsingResultState> = listOf()
+    val parsingResults: List<ParsingResultState> = listOf(),
+    val directorySearch: String = "",
+    val directoryCategory: String = "All",
+    val selectedDirectoryFeedUrls: Set<String> = emptySet(),
+    val isManualEntryExpanded: Boolean = url.isNotBlank()
 ) {
     val isURLError: Boolean get() = urlError != null
 
     val selectedResultsCount: Int get() = parsingResults.count { it.isSelected }
+
+    val selectedFeedCount: Int get() = selectedResultsCount + selectedDirectoryFeedUrls.size
+
+    val visibleDirectoryFeeds: List<FeedDirectoryItem>
+        get() = FeedDirectory.items.filter { feed ->
+            (directoryCategory == "All" || feed.category == directoryCategory) &&
+                    (directorySearch.isBlank() || listOf(feed.title, feed.publisher, feed.category, feed.description)
+                        .any { it.contains(directorySearch, ignoreCase = true) })
+        }
 
     val folderId: Int? get() = selectedFolder?.id.takeUnless { it == 0 }
 

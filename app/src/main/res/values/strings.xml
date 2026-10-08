@@ -267,6 +267,12 @@
     <string name="feed_authentication">Authentication (optional)</string>
     <string name="feed_login">Login</string>
     <string name="feed_password">Password</string>
+    <string name="feed_directory_title">Discover feeds</string>
+    <string name="feed_directory_subtitle">Search a curated list or browse by topic. Choose where to save your feeds.</string>
+    <string name="search_feeds">Search feeds or topics</string>
+    <string name="no_matching_feeds">No feeds match your search.</string>
+    <string name="add_custom_feed">Add a feed by URL</string>
+    <string name="hide_manual_feed">Hide URL options</string>
     <string name="tags">Tags</string>
     <string name="feed_authentication_section">Authentication</string>
     <string name="feed_credentials_saved">Saved for %1$s</string>
