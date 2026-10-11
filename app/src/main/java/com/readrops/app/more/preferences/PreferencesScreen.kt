@@ -105,7 +105,11 @@ class PreferencesScreen : AndroidScreen() {
                                     "light" to stringResource(id = R.string.light),
                                     "dark" to stringResource(id = R.string.dark),
                                     "system" to stringResource(id = R.string.system)
-                                ),
+                                ) + if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                                    mapOf("dynamic" to stringResource(id = R.string.dynamic_colors))
+                                } else {
+                                    emptyMap()
+                                },
                                 title = stringResource(id = R.string.theme),
                                 onValueChange = {}
                             )

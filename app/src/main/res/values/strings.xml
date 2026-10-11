@@ -98,6 +98,7 @@
     <string name="favorites">Favorites</string>
     <string name="changelog_url" translatable="false">https://github.com/thekester/Droidrops/blob/develop/CHANGELOG.md</string>
     <string name="system">System theme</string>
+    <string name="dynamic_colors">Material You</string>
     <string name="hide_feeds">Hide feeds without new items</string>
     <string name="mark_items_read_on_scroll">Mark items read on scroll</string>
     <string name="new_articles">New articles</string>

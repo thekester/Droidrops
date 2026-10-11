@@ -40,7 +40,6 @@ import com.readrops.app.util.theme.ReadropsTheme
 import com.readrops.db.Database
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
@@ -67,18 +66,18 @@ class MainActivity : ComponentActivity(), KoinComponent {
         val preferences = get<Preferences>()
 
         val darkFlag = resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK
-        val initialUseDarkTheme = runBlocking {
-            useDarkTheme(preferences.theme.flow.first(), darkFlag)
+        val initialThemeMode = runBlocking {
+            preferences.theme.flow.first()
         }
 
         setContent {
             KoinAndroidContext {
-                val useDarkTheme by preferences.theme.flow
-                    .map { mode -> useDarkTheme(mode, darkFlag) }
-                    .collectAsState(initial = initialUseDarkTheme)
+                val themeMode by preferences.theme.flow.collectAsState(initial = initialThemeMode)
+                val useDarkTheme = useDarkTheme(themeMode, darkFlag)
 
                 ReadropsTheme(
-                    useDarkTheme = useDarkTheme
+                    useDarkTheme = useDarkTheme,
+                    useDynamicColor = themeMode == DYNAMIC_THEME
                 ) {
                     enableEdgeToEdge(
                         statusBarStyle = SystemBarStyle.auto(
@@ -169,5 +168,9 @@ class MainActivity : ComponentActivity(), KoinComponent {
             "dark" -> true
             else -> darkFlag == Configuration.UI_MODE_NIGHT_YES
         }
+    }
+
+    private companion object {
+        const val DYNAMIC_THEME = "dynamic"
     }
 }
