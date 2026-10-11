@@ -32,16 +32,24 @@ class AccountCredentialsScreenModel(
 ), KoinComponent {
     init {
         if (mode == AccountCredentialsScreenMode.EDIT_CREDENTIALS) {
+            // Credentials are @Ignore fields on Account, so Room never restores them.
+            // Read them from encrypted preferences when the edit screen is opened.
+            val encryptedPreferences = get<SharedPreferences>()
+            val accountType = account.type
             mutableState.update {
                 it.copy(
-                    name = account.name!!,
-                    url = account.url!!,
-                    login = account.login!!,
-                    password = account.password!!
+                    name = account.name.orEmpty(),
+                    url = account.url.orEmpty(),
+                    login = account.login
+                        ?: accountType?.let { type -> encryptedPreferences.getString(type.name + "_login_" + account.id, null) }
+                        .orEmpty(),
+                    password = account.password
+                        ?: accountType?.let { type -> encryptedPreferences.getString(type.name + "_password_" + account.id, null) }
+                        .orEmpty()
                 )
             }
         } else {
-            mutableState.update { it.copy(name = account.name!!) }
+            mutableState.update { it.copy(name = account.name.orEmpty()) }
         }
     }
 
