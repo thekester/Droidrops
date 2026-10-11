@@ -103,6 +103,7 @@ fun ItemScreenPage(
                 factory = { context ->
                     ItemNestedScrollView(
                         context = context,
+                        articleId = item.id,
                         useBackgroundTitle = item.imageLink != null,
                         onGlobalLayoutListener = { viewHeight, contentHeight ->
                             isScrollable = viewHeight - contentHeight < 0

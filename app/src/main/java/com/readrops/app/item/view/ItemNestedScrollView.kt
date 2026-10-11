@@ -3,6 +3,8 @@ package com.readrops.app.item.view
 import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.RelativeLayout
+import android.os.Handler
+import android.os.Looper
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.ComposeView
 import androidx.core.view.ViewCompat
@@ -11,6 +13,7 @@ import androidx.core.widget.NestedScrollView
 @SuppressLint("ResourceType", "ViewConstructor")
 class ItemNestedScrollView(
     context: Context,
+    private val articleId: Int,
     useBackgroundTitle: Boolean,
     onGlobalLayoutListener: (viewHeight: Int, contentHeight: Int) -> Unit,
     onUrlClick: (String) -> Unit,
@@ -18,6 +21,13 @@ class ItemNestedScrollView(
     onImageLongPress: (String) -> Unit,
     composeViewContent: @Composable () -> Unit
 ) : NestedScrollView(context) {
+
+    private val scrollPositions = ArticleScrollPositions(context)
+    private val scrollSaveHandler = Handler(Looper.getMainLooper())
+    private var restorePending = true
+    private val saveScrollPosition = Runnable {
+        scrollPositions.save(articleId, scrollY)
+    }
 
     init {
         addView(
@@ -44,7 +54,8 @@ class ItemNestedScrollView(
                     context = context,
                     onUrlClick = onUrlClick,
                     onImageClick = onImageClick,
-                    onImageLongPress = onImageLongPress
+                    onImageLongPress = onImageLongPress,
+                    onContentLoaded = { restoreArticlePosition() }
                 ).apply {
                     id = 2
                     ViewCompat.setNestedScrollingEnabled(this, true)
@@ -75,5 +86,34 @@ class ItemNestedScrollView(
 
             onGlobalLayoutListener(viewHeight, contentHeight)
         }
+    }
+
+    override fun onScrollChanged(l: Int, t: Int, oldl: Int, oldt: Int) {
+        super.onScrollChanged(l, t, oldl, oldt)
+        if (!restorePending) {
+            scrollSaveHandler.removeCallbacks(saveScrollPosition)
+            scrollSaveHandler.postDelayed(saveScrollPosition, SCROLL_SAVE_DELAY_MS)
+        }
+    }
+
+    override fun onDetachedFromWindow() {
+        scrollSaveHandler.removeCallbacks(saveScrollPosition)
+        if (!restorePending) {
+            scrollPositions.save(articleId, scrollY)
+        }
+        super.onDetachedFromWindow()
+    }
+
+    private fun restoreArticlePosition() {
+        if (!restorePending) return
+
+        restorePending = false
+        post {
+            scrollTo(0, scrollPositions.get(articleId))
+        }
+    }
+
+    private companion object {
+        const val SCROLL_SAVE_DELAY_MS = 250L
     }
 }

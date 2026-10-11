@@ -28,6 +28,7 @@ class ItemWebView(
     private val onUrlClick: (String) -> Unit,
     private val onImageClick: (String) -> Unit,
     onImageLongPress: (String) -> Unit,
+    private val onContentLoaded: () -> Unit,
     attrs: AttributeSet? = null,
 ) : WebView(context, attrs) {
 
@@ -46,6 +47,10 @@ class ItemWebView(
         isVerticalScrollBarEnabled = false
 
         webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                onContentLoaded()
+            }
+
             override fun shouldOverrideUrlLoading(view: WebView?, url: String?): Boolean {
                 url?.let(::handleUrl)
                 return true
