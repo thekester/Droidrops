@@ -162,6 +162,31 @@ class LocalRSSDataSourceTest : KoinTest {
     }
 
     @Test
+    fun atomExternalContentWithoutAlternateLinkTest() {
+        mockServer.enqueue(MockResponse().setResponseCode(HttpURLConnection.HTTP_OK)
+            .addHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/atom+xml")
+            .setBody(
+                """<?xml version="1.0" encoding="UTF-8"?>
+                    <feed xmlns="http://www.w3.org/2005/Atom">
+                      <title>John Doe Blog</title>
+                      <updated>2025-02-10T22:46:38+01:00</updated>
+                      <id>urn:uuid:feed</id>
+                      <entry>
+                        <title>Slug in Atom Publishing Protocol</title>
+                        <updated>2025-02-10T22:46:34+01:00</updated>
+                        <id>urn:uuid:item</id>
+                        <content src="https://example.org/article.txt" type="text/plain"/>
+                      </entry>
+                    </feed>""".trimIndent()
+            ))
+
+        val result = localRSSDataSource.queryRSSResource(url.toString(), null)!!
+
+        assertEquals(1, result.second.size)
+        assertEquals("https://example.org/article.txt", result.second.single().link)
+    }
+
+    @Test
     fun specialCasesRSS1Test() {
         val stream = TestUtils.loadResource("localfeed/rss1/rss1_feed_no_url_siteurl.xml")
 

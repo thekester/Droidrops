@@ -37,7 +37,17 @@ class ATOMItemAdapter : XmlAdapter<Item> {
                     "link" -> parseLink(this, this@apply)
                     "author" -> allChildrenAutoIgnore("name") { author = nullableText() }
                     "summary" -> description = nullableTextRecursively()
-                    "content" -> content = nullableTextRecursively()
+                    "content" -> {
+                        val contentSource = attributes.getValueOrNull("src")
+                        content = nullableTextRecursively()
+
+                        // Atom permits external content via content@src without an
+                        // alternate link. Use that resource as the item's destination
+                        // so otherwise-valid entries remain readable.
+                        if (link == null) {
+                            link = contentSource
+                        }
+                    }
                     "media:group" -> RSSMedia.parseMediaGroup(this, item)
                     "category" -> {
                         attributes.getValueOrNull("term")?.let {
