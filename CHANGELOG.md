@@ -1,3 +1,22 @@
+# v2.2.11
+
+This release improves article reading, feed synchronization, and tablet navigation.
+
+## Changes
+
+- Add the Material You dynamic color theme on Android 12 and later.
+- Allow the timeline navigation pane to be closed and reopened on tablets.
+- Show article publication times and restore reading positions when reopening articles.
+- Make timeline swipe actions less likely to trigger by accident and add undo for marking articles read.
+- Support Atom entries with externally hosted content and JSON feeds served as `application/json`.
+
+## Fixes
+
+- Update edited FreshRSS articles in place instead of creating duplicates, while preserving read and favorite states.
+- Keep synchronization of articles with very large content within SQLite cursor limits.
+- Recover from unavailable encrypted preferences and preserve credentials when editing accounts.
+- Accept complete FreshRSS API endpoint URLs and improve image downloads and article navigation.
+
 # v2.2.10
 
 This release makes it easier to discover feeds and improves article reading and synchronization.
