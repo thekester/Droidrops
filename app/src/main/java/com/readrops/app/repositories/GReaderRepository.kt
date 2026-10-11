@@ -260,21 +260,19 @@ class GReaderRepository(
         val newItems = arrayListOf<Item>()
         val itemsFeedsIds = mutableMapOf<String?, Int>()
 
-        // an item can be returned by two different calls, typically the items of a feed just added
-        // and the next classic synchronization, inserting it twice would duplicate it in the
-        // timeline as nothing makes Item.remote_id unique
-        val insertedIds = database.itemDao()
-            .selectExistingRemoteIds(items.mapNotNull { it.remoteId }, account.id)
-            .toMutableSet()
+        // An item can be returned by multiple calls, or again with changed content by FreshRSS.
+        // Existing rows are updated below, while this set avoids duplicates within this response.
+        val existingItemsByRemoteId = database.itemDao()
+            .selectExistingItems(items.mapNotNull { it.remoteId }, account.id)
+            .groupBy { it.remoteId }
+            .mapValues { (_, existingItems) -> existingItems.toMutableList() }
+            .toMutableMap()
+        val insertedIds = existingItemsByRemoteId.keys.toMutableSet()
 
         for (item in items) {
             val remoteId = item.remoteId ?: continue
 
             if (filterStarredItems && item.isStarred) {
-                continue
-            }
-
-            if (!insertedIds.add(remoteId)) {
                 continue
             }
 
@@ -285,6 +283,35 @@ class GReaderRepository(
                 feedId =
                     database.feedDao().selectRemoteFeedLocalId(item.feedRemoteId!!, account.id)
                 itemsFeedsIds[item.feedRemoteId] = feedId
+            }
+
+            val existingItems = existingItemsByRemoteId[remoteId]
+            if (!existingItems.isNullOrEmpty()) {
+                val existingItem = existingItems.first()
+
+                // GReader APIs such as FreshRSS can return modified articles with their original
+                // id. Update the stored article in place, preserving its local read/star state.
+                item.id = existingItem.id
+                item.feedId = feedId
+                item.isRead = existingItem.isRead
+                item.isStarred = existingItem.isStarred
+
+                if (item.text != null) {
+                    item.readTime = Utils.readTimeFromString(item.text!!)
+                }
+
+                database.itemDao().update(item)
+
+                // Older versions could already have stored the same remote id more than once.
+                if (existingItems.size > 1) {
+                    database.itemDao().delete(existingItems.drop(1))
+                    existingItemsByRemoteId[remoteId] = mutableListOf(existingItem)
+                }
+                continue
+            }
+
+            if (!insertedIds.add(remoteId)) {
+                continue
             }
 
             item.feedId = feedId

@@ -85,6 +85,15 @@ class GReaderRepositoryTest : KoinTest {
     }]}
     """.trimIndent()
 
+    private fun item(id: String, title: String, content: String) = """
+        {"id":"feed/1","updated":1625235516,"items":[
+        {"id":"$id","published":1625234040,"title":"$title",
+        "summary":{"content":"$content"},
+        "alternate":[{"href":"https://example.com/$id"}],
+        "categories":["user/-/state/com.google/reading-list"],
+        "origin":{"streamId":"feed/1","title":"Hacker News"}}]}
+    """.trimIndent()
+
     private val noIds = """{"itemRefs":[]}"""
 
     /**
@@ -266,5 +275,49 @@ class GReaderRepositoryTest : KoinTest {
             "items already inserted must not be inserted a second time",
             2, database.itemDao().selectItems(feedId).size
         )
+    }
+
+    /**
+     * FreshRSS can return an existing article again after editing it. The local row must be
+     * updated in place, instead of adding another copy or resetting its local state.
+     */
+    @Test
+    fun modifiedArticleUpdatesExistingItemTest() = runTest {
+        var title = "Original title"
+        var content = "Original content"
+
+        mockServer.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                with(request.path!!) {
+                    return when {
+                        contains("tag/list") -> ok(folders("Tech"))
+                        contains("subscription/list") -> ok(subscriptions("Tech"))
+                        contains("stream/items/ids") -> ok(noIds)
+                        contains("stream/contents") -> ok(item("item/1", title, content))
+                        else -> MockResponse().setResponseCode(404)
+                    }
+                }
+            }
+        }
+
+        repository().synchronize()
+
+        val feedId = database.feedDao().selectFeeds(account.id).single().id
+        val original = database.itemDao().selectItems(feedId).single()
+        original.isRead = true
+        original.isStarred = true
+        database.itemDao().update(original)
+
+        title = "Edited title"
+        content = "Edited content"
+        repository().synchronize()
+
+        val updatedItems = database.itemDao().selectItems(feedId)
+        assertEquals("the changed remote article must not be duplicated", 1, updatedItems.size)
+        assertEquals("the existing local row must be reused", original.id, updatedItems.single().id)
+        assertEquals("Edited title", updatedItems.single().title)
+        assertEquals("Edited content", updatedItems.single().content)
+        assertTrue("the local read state must be preserved", updatedItems.single().isRead)
+        assertTrue("the local starred state must be preserved", updatedItems.single().isStarred)
     }
 }

@@ -87,6 +87,10 @@ interface ItemDao : BaseDao<Item> {
         Where account_id = :accountId And Item.remote_id In (:remoteIds)""")
     suspend fun selectExistingRemoteIdsChunk(remoteIds: List<String>, accountId: Int): List<String>
 
+    @Query("""Select Item.* From Item Inner Join Feed On Item.feed_id = Feed.id
+        Where account_id = :accountId And Item.remote_id In (:remoteIds)""")
+    suspend fun selectExistingItemsChunk(remoteIds: List<String>, accountId: Int): List<Item>
+
     /**
      * @return among [remoteIds], the ones already inserted for [accountId]
      */
@@ -94,6 +98,10 @@ interface ItemDao : BaseDao<Item> {
         remoteIds.chunked(SQLITE_MAX_VARIABLES)
             .flatMap { chunk -> selectExistingRemoteIdsChunk(chunk, accountId) }
             .toSet()
+
+    suspend fun selectExistingItems(remoteIds: List<String>, accountId: Int): List<Item> =
+        remoteIds.chunked(SQLITE_MAX_VARIABLES)
+            .flatMap { chunk -> selectExistingItemsChunk(chunk, accountId) }
 }
 
 // SQLite refuses more than 999 variables per statement before version 3.32
