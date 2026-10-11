@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -21,6 +22,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -164,6 +169,8 @@ fun LargeTimelineItem(
     modifier: Modifier = Modifier
 ) {
     val displayColor = itemWithFeed.displayColor(CardDefaults.cardColors().containerColor.toArgb())
+    var imageLoadFailed by remember(itemWithFeed.item.imageLink) { mutableStateOf(false) }
+    var imageLoaded by remember(itemWithFeed.item.imageLink) { mutableStateOf(false) }
 
     if (itemWithFeed.item.cleanDescription.isNullOrBlank() && !itemWithFeed.item.hasImage) {
         RegularTimelineItem(
@@ -241,7 +248,7 @@ fun LargeTimelineItem(
                     }
                 }
 
-                if (itemWithFeed.item.hasImage) {
+                if (itemWithFeed.item.hasImage && !imageLoadFailed) {
                     AsyncImage(
                         model = if (!LocalInspectionMode.current) {
                             itemWithFeed.item.imageLink
@@ -252,10 +259,21 @@ fun LargeTimelineItem(
                         },
                         contentDescription = itemWithFeed.item.title!!,
                         contentScale = ContentScale.Crop,
-                        modifier = Modifier
-                            .aspectRatio(16f / 9f)
-                            .fillMaxWidth()
-                            .alpha(if (itemWithFeed.isRead) readAlpha else 1f)
+                        onState = { state ->
+                            when (state) {
+                                is coil3.compose.AsyncImagePainter.State.Success -> imageLoaded = true
+                                is coil3.compose.AsyncImagePainter.State.Error -> imageLoadFailed = true
+                                else -> Unit
+                            }
+                        },
+                        modifier = if (imageLoaded) {
+                            Modifier
+                                .aspectRatio(16f / 9f)
+                                .fillMaxWidth()
+                                .alpha(if (itemWithFeed.isRead) readAlpha else 1f)
+                        } else {
+                            Modifier.size(1.dp)
+                        }
                     )
                 }
             }
