@@ -26,9 +26,13 @@ fun TimelineAppBar(
     state: TimelineState,
     topAppBarScrollBehavior: TopAppBarScrollBehavior,
     onOpenDrawer: () -> Unit,
+    tabletDrawerOpen: Boolean,
+    onToggleTabletDrawer: () -> Unit,
     onOpenFilterSheet:  () -> Unit,
     onRefreshTimeline: () -> Unit,
 ) {
+    val isTablet = isTabletUi()
+
     TopAppBar(
         title = {
             Column {
@@ -58,9 +62,11 @@ fun TimelineAppBar(
             }
         },
         navigationIcon = {
-            if (!isTabletUi()) {
+            if (!isTablet || !tabletDrawerOpen) {
                 IconButton(
-                    onClick = onOpenDrawer
+                    onClick = {
+                        if (isTablet) onToggleTabletDrawer() else onOpenDrawer()
+                    }
                 ) {
                     Icon(
                         imageVector = Icons.Default.Menu,

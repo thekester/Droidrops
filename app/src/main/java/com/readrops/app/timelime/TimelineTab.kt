@@ -30,7 +30,10 @@ import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -99,6 +102,7 @@ object TimelineTab : Tab {
 
         val screenModel = koinScreenModel<TimelineScreenModel>()
         val state by screenModel.timelineState.collectAsStateWithLifecycle()
+        var tabletDrawerOpen by rememberSaveable { mutableStateOf(true) }
         val preferences = state.preferences
         val mouseWheelRefreshDetector = remember { MouseWheelRefreshDetector() }
         val items = state.itemState.collectAsLazyPagingItems()
@@ -259,6 +263,8 @@ object TimelineTab : Tab {
         TimelineDrawer(
             state = state,
             drawerState = drawerState,
+            tabletDrawerOpen = tabletDrawerOpen,
+            onToggleTabletDrawer = { tabletDrawerOpen = !tabletDrawerOpen },
             onClickDefaultItem = { screenModel.updateDrawerDefaultItem(it) },
             onFolderClick = { screenModel.updateDrawerFolderSelection(it) },
             onFeedClick = { screenModel.updateDrawerFeedSelection(it) },
@@ -270,6 +276,8 @@ object TimelineTab : Tab {
                         state = state,
                         topAppBarScrollBehavior = topAppBarScrollBehavior,
                         onOpenDrawer = { screenModel.openDrawer() },
+                        tabletDrawerOpen = tabletDrawerOpen,
+                        onToggleTabletDrawer = { tabletDrawerOpen = !tabletDrawerOpen },
                         onOpenFilterSheet = { screenModel.openDialog(DialogState.FilterSheet) },
                         onRefreshTimeline = { screenModel.refreshTimeline() }
                     )

@@ -1,17 +1,22 @@
 package com.readrops.app.timelime.drawer
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.DrawerState
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
@@ -42,6 +47,8 @@ import com.readrops.db.filters.SubFilter
 fun TimelineDrawer(
     state: TimelineState,
     drawerState: DrawerState,
+    tabletDrawerOpen: Boolean,
+    onToggleTabletDrawer: () -> Unit,
     onClickDefaultItem: (MainFilter) -> Unit,
     onFolderClick: (Folder) -> Unit,
     onFeedClick: (Feed) -> Unit,
@@ -49,18 +56,23 @@ fun TimelineDrawer(
     content: @Composable () -> Unit,
 ) {
     if (isTabletUi()) {
-        PermanentNavigationDrawer(
-            drawerContent = {
-                TimelineDrawerContent(
-                    state = state,
-                    onClickDefaultItem = onClickDefaultItem,
-                    onFolderClick = onFolderClick,
-                    onFeedClick = onFeedClick,
-                    onTagClick = onTagClick
-                )
-            },
-            content = content
-        )
+        if (tabletDrawerOpen) {
+            PermanentNavigationDrawer(
+                drawerContent = {
+                    TimelineDrawerContent(
+                        state = state,
+                        onClickDefaultItem = onClickDefaultItem,
+                        onFolderClick = onFolderClick,
+                        onFeedClick = onFeedClick,
+                        onTagClick = onTagClick,
+                        onCloseDrawer = onToggleTabletDrawer
+                    )
+                },
+                content = content
+            )
+        } else {
+            content()
+        }
     } else {
         ModalNavigationDrawer(
             drawerState = drawerState,
@@ -85,6 +97,7 @@ fun TimelineDrawerContent(
     onFolderClick: (Folder) -> Unit,
     onFeedClick: (Feed) -> Unit,
     onTagClick: (Tag) -> Unit,
+    onCloseDrawer: (() -> Unit)? = null,
 ) {
     val scrollState = rememberScrollState()
 
@@ -99,6 +112,22 @@ fun TimelineDrawerContent(
                 .fillMaxHeight()
                 .verticalScroll(scrollState)
         ){
+            if (onCloseDrawer != null) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(end = 8.dp),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    IconButton(onClick = onCloseDrawer) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = stringResource(R.string.close_navigation_menu)
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.size(MaterialTheme.spacing.drawerSpacing))
 
             DrawerDefaultItems(
