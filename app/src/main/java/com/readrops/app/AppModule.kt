@@ -12,6 +12,7 @@ import androidx.datastore.preferences.core.emptyPreferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import android.security.keystore.KeyPermanentlyInvalidatedException
 import com.readrops.api.services.Credentials
 import com.readrops.api.utils.NetworkFailureListener
 import com.readrops.app.account.AccountScreenModel
@@ -48,6 +49,9 @@ import kotlinx.coroutines.SupervisorJob
 import org.koin.android.ext.koin.androidContext
 import org.koin.core.parameter.parametersOf
 import org.koin.dsl.module
+import java.security.KeyStore
+import java.security.UnrecoverableKeyException
+import javax.crypto.AEADBadTagException
 import java.io.File
 
 val appModule = module {
@@ -145,16 +149,53 @@ val appModule = module {
 // encrypted SharedPreferences implementation. Keep the suppression isolated
 // so the rest of the app remains warning-clean without weakening encryption.
 @Suppress("DEPRECATION")
-private fun createEncryptedPreferences(context: Context): SharedPreferences {
-    val masterKey = MasterKey.Builder(context)
+internal fun createEncryptedPreferences(
+    context: Context,
+    preferencesName: String = ACCOUNT_CREDENTIALS_PREFERENCES,
+    masterKeyAlias: String = MasterKey.DEFAULT_MASTER_KEY_ALIAS
+): SharedPreferences = try {
+    openEncryptedPreferences(context, preferencesName, masterKeyAlias)
+} catch (exception: Exception) {
+    if (!exception.hasEncryptedPreferencesKeyFailure()) throw exception
+
+    // An old device backup can restore the ciphertext without its Keystore key.
+    // Those values cannot be recovered, but removing the stale file lets the app
+    // start and create a fresh encrypted store instead of crashing at launch.
+    context.deleteSharedPreferences(preferencesName)
+    runCatching {
+        KeyStore.getInstance("AndroidKeyStore").apply {
+            load(null)
+            deleteEntry(masterKeyAlias)
+        }
+    }
+
+    openEncryptedPreferences(context, preferencesName, masterKeyAlias)
+}
+
+@Suppress("DEPRECATION")
+private fun openEncryptedPreferences(
+    context: Context,
+    preferencesName: String,
+    masterKeyAlias: String
+): SharedPreferences {
+    val masterKey = MasterKey.Builder(context, masterKeyAlias)
         .setKeyScheme(MasterKey.KeyScheme.AES256_GCM)
         .build()
 
     return EncryptedSharedPreferences.create(
         context,
-        "account_credentials",
+        preferencesName,
         masterKey,
         EncryptedSharedPreferences.PrefKeyEncryptionScheme.AES256_SIV,
         EncryptedSharedPreferences.PrefValueEncryptionScheme.AES256_GCM
     )
 }
+
+private fun Throwable.hasEncryptedPreferencesKeyFailure(): Boolean =
+    generateSequence(this) { it.cause }.any {
+        it is AEADBadTagException ||
+            it is KeyPermanentlyInvalidatedException ||
+            it is UnrecoverableKeyException
+    }
+
+private const val ACCOUNT_CREDENTIALS_PREFERENCES = "account_credentials"
