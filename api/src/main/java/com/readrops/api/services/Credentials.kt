@@ -12,12 +12,26 @@ abstract class Credentials(val authorization: String?, val url: String) {
     companion object {
         fun toCredentials(account: Account): Credentials {
             val endPoint = getEndPoint(account.type!!)
+            val url = if (account.type == AccountType.FRESHRSS) {
+                freshRssApiUrl(account.url.orEmpty())
+            } else {
+                account.url + endPoint
+            }
 
             return when (account.type) {
-                AccountType.NEXTCLOUD_NEWS -> NextcloudNewsCredentials(account.login, account.password, account.url + endPoint)
-                AccountType.FRESHRSS, AccountType.GREADER -> GReaderCredentials(account.token, account.url + endPoint)
-                AccountType.FEVER -> FeverCredentials(account.login, account.password, account.url + endPoint)
+                AccountType.NEXTCLOUD_NEWS -> NextcloudNewsCredentials(account.login, account.password, url)
+                AccountType.FRESHRSS, AccountType.GREADER -> GReaderCredentials(account.token, url)
+                AccountType.FEVER -> FeverCredentials(account.login, account.password, url)
                 else -> throw IllegalArgumentException("Unknown account type")
+            }
+        }
+
+        private fun freshRssApiUrl(serverUrl: String): String {
+            val normalizedUrl = serverUrl.trimEnd('/')
+            return if (normalizedUrl.endsWith("/api/greader.php", ignoreCase = true)) {
+                "$normalizedUrl/"
+            } else {
+                "$normalizedUrl/api/greader.php/"
             }
         }
 
