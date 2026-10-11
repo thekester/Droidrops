@@ -399,7 +399,7 @@ fun TimelineItemTitle(
     Text(
         text = title,
         style = MaterialTheme.typography.titleMedium,
-        maxLines = 2,
+        maxLines = 1,
         overflow = TextOverflow.Ellipsis,
         // unread items are emphasized by weight, not opacity, so read items keep full contrast
         fontWeight = if (isRead) FontWeight.Normal else FontWeight.Bold,
