@@ -1,12 +1,18 @@
 package com.readrops.app.repositories
 
+import androidx.paging.PagingSource
 import com.readrops.api.utils.ApiUtils
 import com.readrops.app.testutil.ReadropsTestRule
 import com.readrops.app.testutil.TestUtils
 import com.readrops.db.Database
 import com.readrops.db.entities.Feed
+import com.readrops.db.entities.Item
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
+import com.readrops.db.filters.QueryFilters
+import com.readrops.db.queries.ItemSelectionQueryBuilder
+import com.readrops.db.queries.ItemsQueryBuilder
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
 import okhttp3.mockwebserver.MockResponse
@@ -100,5 +106,38 @@ class LocalRSSRepositoryTest : KoinTest {
         assertTrue {
             database.itemDao().itemExists(result.first.items.first().remoteId!!, account.id)
         }
+    }
+
+    @Test
+    fun oversizedArticleCanBeReadWithoutExceedingCursorWindow(): Unit = runTest {
+        val oversizedText = "x".repeat(1_100_000)
+        val itemId = database.itemDao().insert(
+            Item(
+                title = "Oversized article",
+                description = oversizedText,
+                cleanDescription = oversizedText,
+                content = oversizedText,
+                link = "https://example.org/article",
+                remoteId = "oversized-article",
+                feedId = feeds.first().id
+            )
+        ).toInt()
+
+        val directItem = database.itemDao().select(itemId)
+        assertEquals(100_001, directItem.content!!.length)
+        assertTrue(directItem.content!!.endsWith("…"))
+        assertEquals(100_001, database.itemDao().selectItems(feeds.first().id).single().description!!.length)
+
+        val article = database.itemDao()
+            .selectItemById(ItemSelectionQueryBuilder.buildQuery(itemId, separateState = false))
+            .first()
+        assertEquals(100_001, article.item.content!!.length)
+
+        val timelinePage = database.itemDao()
+            .selectAll(ItemsQueryBuilder.buildItemsQuery(QueryFilters(accountId = account.id), false))
+            .load(PagingSource.LoadParams.Refresh(key = null, loadSize = 10, placeholdersEnabled = false))
+
+        assertTrue(timelinePage is PagingSource.LoadResult.Page)
+        assertEquals(100_001, (timelinePage as PagingSource.LoadResult.Page).data.single().item.cleanDescription!!.length)
     }
 }

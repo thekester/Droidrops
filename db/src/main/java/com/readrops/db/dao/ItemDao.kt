@@ -11,6 +11,7 @@ import com.readrops.db.entities.Folder
 import com.readrops.db.entities.Item
 import com.readrops.db.entities.ItemState
 import com.readrops.db.pojo.ItemWithFeed
+import com.readrops.db.queries.ItemContentProjection
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -18,13 +19,13 @@ interface ItemDao : BaseDao<Item> {
     @Query("Select Count(id) From Item")
     suspend fun count(): Int
 
-    @Query("Select * From Item Where id = :itemId")
+    @Query("Select ${ItemContentProjection.ITEM_COLUMNS} From Item Where id = :itemId")
     suspend fun select(itemId: Int): Item
 
-    @Query("Select * From Item Limit 1")
+    @Query("Select ${ItemContentProjection.ITEM_COLUMNS} From Item Limit 1")
     suspend fun selectFirst(): Item
 
-    @Query("Select * From Item Where feed_id = :feedId")
+    @Query("Select ${ItemContentProjection.ITEM_COLUMNS} From Item Where feed_id = :feedId")
     suspend fun selectItems(feedId: Int): List<Item>
 
     @RawQuery(observedEntities = [Item::class, Feed::class, Folder::class, ItemState::class])

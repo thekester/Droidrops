@@ -12,7 +12,7 @@ enum class AccountType(
     // official documentation, shown as a help link when creating the account
     val documentationUrl: String? = null
 ) {
-    LOCAL(R.mipmap.ic_launcher, R.string.local_account, AccountConfig.LOCAL),
+    LOCAL(R.drawable.ic_local_account, R.string.local_account, AccountConfig.LOCAL),
     NEXTCLOUD_NEWS(
         R.drawable.ic_nextcloud_news, R.string.nextcloud_news, AccountConfig.NEXTCLOUD_NEWS,
         "https://apps.nextcloud.com/apps/news"

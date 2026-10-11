@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -204,7 +205,10 @@ object AccountTab : Tab {
                         Image(
                             painter = adaptiveIconPainterResource(id = state.account.type!!.iconRes),
                             contentDescription = null,
-                            modifier = Modifier.size(48.dp)
+                            modifier = Modifier.size(48.dp),
+                            colorFilter = if (state.account.type == AccountType.LOCAL) {
+                                ColorFilter.tint(MaterialTheme.colorScheme.onSurfaceVariant)
+                            } else null
                         )
 
                         MediumSpacer()
@@ -319,6 +323,9 @@ object AccountTab : Tab {
                             padding = MaterialTheme.spacing.mediumSpacing,
                             spacing = MaterialTheme.spacing.mediumSpacing,
                             imageSize = 24.dp,
+                            imageTint = if (account.type == AccountType.LOCAL) {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            } else null,
                             onClick = { screenModel.updateCurrentAccount(account) }
                         )
                     }
