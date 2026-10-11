@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.dp
 import com.readrops.app.R
 import com.readrops.app.timelime.TimelineState
 import com.readrops.app.util.components.FeedIcon
-import com.readrops.app.util.extensions.isTabletUi
 import com.readrops.app.util.theme.spacing
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Folder
@@ -47,6 +46,7 @@ import com.readrops.db.filters.SubFilter
 fun TimelineDrawer(
     state: TimelineState,
     drawerState: DrawerState,
+    usePermanentDrawer: Boolean,
     tabletDrawerOpen: Boolean,
     onToggleTabletDrawer: () -> Unit,
     onClickDefaultItem: (MainFilter) -> Unit,
@@ -55,7 +55,7 @@ fun TimelineDrawer(
     onTagClick: (Tag) -> Unit,
     content: @Composable () -> Unit,
 ) {
-    if (isTabletUi()) {
+    if (usePermanentDrawer) {
         if (tabletDrawerOpen) {
             PermanentNavigationDrawer(
                 drawerContent = {

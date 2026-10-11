@@ -16,7 +16,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import com.readrops.app.R
 import com.readrops.app.timelime.TimelineState
-import com.readrops.app.util.extensions.isTabletUi
 import com.readrops.db.filters.MainFilter
 import com.readrops.db.filters.SubFilter
 
@@ -26,13 +25,12 @@ fun TimelineAppBar(
     state: TimelineState,
     topAppBarScrollBehavior: TopAppBarScrollBehavior,
     onOpenDrawer: () -> Unit,
+    usePermanentDrawer: Boolean,
     tabletDrawerOpen: Boolean,
     onToggleTabletDrawer: () -> Unit,
     onOpenFilterSheet:  () -> Unit,
     onRefreshTimeline: () -> Unit,
 ) {
-    val isTablet = isTabletUi()
-
     TopAppBar(
         title = {
             Column {
@@ -62,10 +60,10 @@ fun TimelineAppBar(
             }
         },
         navigationIcon = {
-            if (!isTablet || !tabletDrawerOpen) {
+            if (!usePermanentDrawer || !tabletDrawerOpen) {
                 IconButton(
                     onClick = {
-                        if (isTablet) onToggleTabletDrawer() else onOpenDrawer()
+                        if (usePermanentDrawer) onToggleTabletDrawer() else onOpenDrawer()
                     }
                 ) {
                     Icon(

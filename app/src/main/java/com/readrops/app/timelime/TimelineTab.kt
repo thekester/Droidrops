@@ -2,6 +2,7 @@ package com.readrops.app.timelime
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.content.res.Configuration
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -101,6 +102,8 @@ object TimelineTab : Tab {
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current
         val isTablet = context.isTabletUi()
+        val usePermanentDrawer = isTablet &&
+                context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
 
         val screenModel = koinScreenModel<TimelineScreenModel>()
         val state by screenModel.timelineState.collectAsStateWithLifecycle()
@@ -207,11 +210,11 @@ object TimelineTab : Tab {
             onBack = { screenModel.closeDrawer() }
         )
 
-        LaunchedEffect(state.isDrawerOpen, isTablet) {
+        LaunchedEffect(state.isDrawerOpen, usePermanentDrawer) {
             // Tablets use a permanent drawer, which may not be composed while closed. A
             // DrawerState only gets its density from ModalNavigationDrawer, so don't animate it
             // when the modal drawer isn't part of the composition.
-            if (isTablet) return@LaunchedEffect
+            if (usePermanentDrawer) return@LaunchedEffect
 
             if (state.isDrawerOpen) {
                 drawerState.open()
@@ -270,6 +273,7 @@ object TimelineTab : Tab {
         TimelineDrawer(
             state = state,
             drawerState = drawerState,
+            usePermanentDrawer = usePermanentDrawer,
             tabletDrawerOpen = tabletDrawerOpen,
             onToggleTabletDrawer = { tabletDrawerOpen = !tabletDrawerOpen },
             onClickDefaultItem = { screenModel.updateDrawerDefaultItem(it) },
@@ -283,6 +287,7 @@ object TimelineTab : Tab {
                         state = state,
                         topAppBarScrollBehavior = topAppBarScrollBehavior,
                         onOpenDrawer = { screenModel.openDrawer() },
+                        usePermanentDrawer = usePermanentDrawer,
                         tabletDrawerOpen = tabletDrawerOpen,
                         onToggleTabletDrawer = { tabletDrawerOpen = !tabletDrawerOpen },
                         onOpenFilterSheet = { screenModel.openDialog(DialogState.FilterSheet) },
