@@ -66,6 +66,7 @@ import com.readrops.app.util.components.RefreshScreen
 import com.readrops.app.util.extensions.isError
 import com.readrops.app.util.extensions.isLoading
 import com.readrops.app.util.extensions.isNotEmpty
+import com.readrops.app.util.extensions.isTabletUi
 import com.readrops.app.util.extensions.MouseWheelRefreshDetector
 import com.readrops.app.util.extensions.mouseWheelPullToRefresh
 import com.readrops.app.util.extensions.openInCustomTab
@@ -99,6 +100,7 @@ object TimelineTab : Tab {
     override fun Content() {
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current
+        val isTablet = context.isTabletUi()
 
         val screenModel = koinScreenModel<TimelineScreenModel>()
         val state by screenModel.timelineState.collectAsStateWithLifecycle()
@@ -205,7 +207,12 @@ object TimelineTab : Tab {
             onBack = { screenModel.closeDrawer() }
         )
 
-        LaunchedEffect(state.isDrawerOpen) {
+        LaunchedEffect(state.isDrawerOpen, isTablet) {
+            // Tablets use a permanent drawer, which may not be composed while closed. A
+            // DrawerState only gets its density from ModalNavigationDrawer, so don't animate it
+            // when the modal drawer isn't part of the composition.
+            if (isTablet) return@LaunchedEffect
+
             if (state.isDrawerOpen) {
                 drawerState.open()
             } else {
