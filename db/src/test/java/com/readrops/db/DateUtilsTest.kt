@@ -5,9 +5,28 @@ import junit.framework.TestCase.assertEquals
 import org.junit.Test
 import java.time.Instant
 import java.time.LocalDateTime
+import java.util.Locale
+import org.junit.Assert.assertTrue
 import java.time.ZoneId
 
 class DateUtilsTest {
+
+    @Test
+    fun formattedDateTimeIncludesPublicationTimeInLocalLocale() {
+        val previousLocale = Locale.getDefault()
+        try {
+            Locale.setDefault(Locale.UK)
+
+            val formatted = DateUtils.formattedDateTimeByLocal(
+                LocalDateTime.of(2019, 1, 4, 22, 21)
+            )
+
+            assertTrue(formatted.contains("22:21"))
+            assertTrue(formatted.contains("2019"))
+        } finally {
+            Locale.setDefault(previousLocale)
+        }
+    }
 
     /**
      * A feed date carrying an offset denotes a precise instant, which the parser converts to

@@ -100,7 +100,7 @@ fun SimpleTitle(
             stringResource(id = R.string.read_time_lower_than_1)
         }
         Text(
-            text = "${DateUtils.formattedDateByLocal(item.pubDate!!)} ${stringResource(id = R.string.interpoint)} $readTime",
+            text = "${DateUtils.formattedDateTimeByLocal(item.pubDate!!)} ${stringResource(id = R.string.interpoint)} $readTime",
             style = MaterialTheme.typography.labelMedium,
             color = onBackgroundColor
         )

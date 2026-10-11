@@ -426,7 +426,7 @@ fun TimelineItemBadge(
             )
         ) {
             Text(
-                text = DateUtils.formattedDateByLocal(date),
+                text = DateUtils.formattedDateTimeByLocal(date),
                 style = MaterialTheme.typography.labelSmall,
                 color = onAccentColor
             )
