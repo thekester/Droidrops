@@ -2,7 +2,7 @@ package com.readrops.api.services.nextcloudnews.adapters
 
 import android.annotation.SuppressLint
 import com.readrops.api.utils.exceptions.ParseException
-import com.readrops.api.utils.extensions.nextNonEmptyString
+import com.readrops.api.utils.extensions.nextNullableString
 import com.readrops.db.entities.Folder
 import com.squareup.moshi.FromJson
 import com.squareup.moshi.JsonReader
@@ -26,18 +26,24 @@ class NextcloudNewsFoldersAdapter {
             while (reader.hasNext()) {
                 val folder = Folder()
                 reader.beginObject()
+                var hasName = false
 
                 while (reader.hasNext()) {
                     with(folder) {
                         when (reader.selectName(NAMES)) {
                             0 -> remoteId = reader.nextInt().toString()
-                            1 -> name = reader.nextNonEmptyString()
+                            1 -> {
+                                name = reader.nextNullableString()?.takeIf { it.isNotBlank() }
+                                hasName = name != null
+                            }
                             else -> reader.skipValue()
                         }
                     }
                 }
 
-                folders += folder
+                // Nextcloud News permits nameless empty folders. They have no useful
+                // representation in Droidrops, but must not invalidate the whole response.
+                if (hasName) folders += folder
                 reader.endObject()
             }
 

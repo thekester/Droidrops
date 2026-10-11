@@ -352,6 +352,7 @@ object TimelineTab : Tab {
                                     )
 
                                     LazyColumn(
+                                        modifier = Modifier.fillMaxSize(),
                                         state = lazyListState,
                                         contentPadding = PaddingValues(vertical = lazyColumnPadding),
                                         verticalArrangement = Arrangement.spacedBy(lazyColumnPadding)
