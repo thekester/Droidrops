@@ -8,6 +8,7 @@ import coil3.imageLoader
 import com.readrops.api.utils.ApiUtils
 import com.readrops.app.R
 import com.readrops.app.ReadropsApp
+import com.readrops.app.repositories.BaseRepository
 import com.readrops.app.testutil.ReadropsTestRule
 import com.readrops.app.testutil.TestUtils
 import com.readrops.app.testutil.okResponseWithBody
@@ -23,6 +24,8 @@ import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
+import org.koin.core.parameter.parametersOf
+import org.koin.test.get
 import okio.Buffer
 import org.junit.After
 import org.junit.Before
@@ -281,5 +284,65 @@ class SynchronizerTest : KoinTest {
         val diskCache = context.imageLoader.diskCache!!
 
         assertNotNull { diskCache.openSnapshot(feeds.first().iconUrl!!) }
+    }
+
+    @Test
+    fun feverSyncRetriesQueuedReadStateWithoutRevertingLocalArticle() = runTest {
+        var itemRequests = 0
+        var stateRequests = 0
+        mockServer.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse = when {
+                request.path.orEmpty().contains("/?feeds") -> MockResponse.okResponseWithBody(
+                    TestUtils.loadResource("fever/feeds.json")
+                )
+                request.path.orEmpty().contains("/?groups") -> MockResponse.okResponseWithBody(
+                    TestUtils.loadResource("fever/folders.json")
+                )
+                request.path.orEmpty().contains("/?favicons") -> MockResponse.okResponseWithBody(
+                    TestUtils.loadResource("fever/favicons.json")
+                )
+                request.path.orEmpty().contains("/?unread_item_ids") -> MockResponse()
+                    .setResponseCode(200)
+                    .setHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/json")
+                    .setBody("""{"api_version":3,"auth":1,"unread_item_ids":"3"}""")
+                request.path.orEmpty().contains("/?saved_item_ids") -> MockResponse()
+                    .setResponseCode(200)
+                    .setHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/json")
+                    .setBody("""{"api_version":3,"auth":1,"saved_item_ids":""}""")
+                request.path.orEmpty().contains("/?items") -> {
+                    if (itemRequests++ == 0) {
+                        MockResponse.okResponseWithBody(TestUtils.loadResource("fever/items_page1.json"))
+                    } else {
+                        MockResponse()
+                            .setResponseCode(200)
+                            .setHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/json")
+                            .setBody("""{"api_version":3,"auth":1,"total_items":0,"items":[]}""")
+                    }
+                }
+                request.path.orEmpty().contains("/?api") -> {
+                    if (stateRequests++ == 0) MockResponse().setResponseCode(500)
+                    else MockResponse().setResponseCode(200)
+                }
+                else -> MockResponse().setResponseCode(404)
+            }
+        }
+
+        val repository = get<BaseRepository> { parametersOf(feverAccount) }
+        repository.synchronize()
+
+        val unreadRemoteId = "3"
+        val item = database.itemDao().selectItems(database.feedDao().selectFeeds(feverAccount.id).first().id)
+            .first { it.remoteId == unreadRemoteId }
+        repository.setItemReadState(item.apply { isRead = true })
+        assertEquals(1, database.itemStateChangeDao().selectItemStateChanges(feverAccount.id).size)
+
+        // The server snapshot still reports this item as unread. Sync must retain and retry
+        // the user's queued read action instead of replacing it with that stale snapshot.
+        repository.synchronize()
+
+        val resultingState = database.itemStateDao().selectItemState(feverAccount.id, unreadRemoteId)
+        assertEquals(true, resultingState.read)
+        assertEquals(2, stateRequests)
+        assertEquals(0, database.itemStateChangeDao().selectItemStateChanges(feverAccount.id).size)
     }
 }

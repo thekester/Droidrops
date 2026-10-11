@@ -44,11 +44,28 @@ class FeverRepository(
             syncType,
             account.lastModified.toString()
         ).run {
+            // The server snapshots below replace ItemState. Keep local actions which are still
+            // queued after a failed request so the snapshot cannot undo a user's read/star choice.
+            val pendingStateChanges = database.itemStateChangeDao()
+                .selectItemStateChanges(account.id)
+
             insertFolders(folders)
             val newFeeds = insertFeeds(feverFeeds)
 
             val newItems = insertItems(items)
             insertItemsIds(unreadIds, starredIds.toMutableList())
+
+            pendingStateChanges.forEach { pending ->
+                val state = ItemState(
+                    read = pending.read,
+                    starred = pending.starred,
+                    remoteId = pending.remoteId,
+                    accountId = account.id
+                )
+                if (pending.readChange) database.itemStateDao().upsertItemReadState(state)
+                if (pending.starChange) database.itemStateDao().upsertItemStarState(state)
+            }
+            sendPreviousItemStateChanges()
 
             // We use the most recent item id as lastModified instead of a timestamp
             database.accountDao().updateLastModified(sinceId, account.id)
@@ -178,15 +195,20 @@ class FeverRepository(
                 }
             }
 
-            feverDataSource.setItemState(
-                account.login!!,
-                account.password!!,
-                action.value,
-                stateChange.remoteId
-            )
+            try {
+                feverDataSource.setItemState(
+                    account.login!!,
+                    account.password!!,
+                    action.value,
+                    stateChange.remoteId
+                )
 
-            database.itemStateChangeDao()
-                .delete(ItemStateChange(id = stateChange.id, accountId = account.id))
+                database.itemStateChangeDao()
+                    .delete(ItemStateChange(id = stateChange.id, accountId = account.id))
+            } catch (e: Exception) {
+                // Keep this queued action for a later sync; don't make the whole sync fail.
+                Log.e(TAG, "sendPreviousItemStateChanges: ${e.message}", e)
+            }
         }
     }
 
