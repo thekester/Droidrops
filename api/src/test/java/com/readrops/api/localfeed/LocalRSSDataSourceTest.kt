@@ -114,6 +114,40 @@ class LocalRSSDataSourceTest : KoinTest {
     }
 
     @Test
+    fun jsonFeedWithGenericJsonContentTypeTest() {
+        val stream = TestUtils.loadResource("localfeed/json/json_feed.json")
+
+        mockServer.enqueue(MockResponse().setResponseCode(HttpURLConnection.HTTP_OK)
+            .addHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/json; charset=UTF-8")
+            .setBody(Buffer().readFrom(stream)))
+
+        assertTrue(localRSSDataSource.isUrlRSSResource(url.toString()))
+    }
+
+    @Test
+    fun queryJsonFeedWithGenericJsonContentTypeTest() {
+        val stream = TestUtils.loadResource("localfeed/json/json_feed.json")
+
+        mockServer.enqueue(MockResponse().setResponseCode(HttpURLConnection.HTTP_OK)
+            .addHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/json")
+            .setBody(Buffer().readFrom(stream)))
+
+        val result = localRSSDataSource.queryRSSResource(url.toString(), null)!!
+
+        assertEquals("News from Flying Meat", result.first.name)
+        assertEquals(10, result.second.size)
+    }
+
+    @Test
+    fun genericJsonDocumentIsNotTreatedAsFeedTest() {
+        mockServer.enqueue(MockResponse().setResponseCode(HttpURLConnection.HTTP_OK)
+            .addHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/json")
+            .setBody("{\"status\":\"ok\"}"))
+
+        assertFalse(localRSSDataSource.isUrlRSSResource(url.toString()))
+    }
+
+    @Test
     fun specialCasesAtomTest() {
         val stream = TestUtils.loadResource("localfeed/atom/atom_feed_no_url_siteurl.xml")
 

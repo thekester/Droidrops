@@ -67,6 +67,13 @@ class LocalRSSDataSource(private val httpClient: OkHttpClient) : KoinComponent {
 
             var type = LocalRSSHelper.getRSSType(contentType)
 
+            // Many JSON Feed hosts use application/json instead of the registered
+            // application/feed+json media type. Confirm the document is a JSON Feed
+            // before treating an arbitrary JSON API response as a feed.
+            if (LocalRSSHelper.isGenericJsonContentType(contentType)) {
+                return response.use { isJSONFeed(it) }
+            }
+
             if (type == LocalRSSHelper.RSSType.UNKNOWN) {
                 val konsumer = response.body!!.byteStream().konsumeXml().apply {
                     try {
@@ -102,6 +109,14 @@ class LocalRSSDataSource(private val httpClient: OkHttpClient) : KoinComponent {
                 ?: throw ParseException("Unable to parse $url content-type")
 
         var type = LocalRSSHelper.getRSSType(contentType)
+
+        if (LocalRSSHelper.isGenericJsonContentType(contentType)) {
+            type = if (isJSONFeed(response)) {
+                LocalRSSHelper.RSSType.JSONFEED
+            } else {
+                throw UnknownFormatException("Response from $url is not a JSON Feed")
+            }
+        }
 
         var konsumer: Konsumer? = null
         if (type != LocalRSSHelper.RSSType.JSONFEED)
@@ -175,4 +190,23 @@ class LocalRSSDataSource(private val httpClient: OkHttpClient) : KoinComponent {
                     if (siteUrl == null) siteUrl = response.request.url.scheme + "://" + response.request.url.host
                 }
             }
+
+    private fun isJSONFeed(response: Response): Boolean {
+        return try {
+            val document = Moshi.Builder()
+                .build()
+                .adapter(Any::class.java)
+                .fromJson(response.peekBody(MAX_JSON_FEED_PROBE_BYTES).source()) as? Map<*, *>
+
+            (document?.get("version") as? String)
+                ?.startsWith(JSON_FEED_VERSION_PREFIX) == true && document["items"] is List<*>
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    private companion object {
+        const val MAX_JSON_FEED_PROBE_BYTES = 1_048_576L
+        const val JSON_FEED_VERSION_PREFIX = "https://jsonfeed.org/version/"
+    }
 }

@@ -33,6 +33,8 @@ object LocalRSSHelper {
     fun isRSSType(type: String?): Boolean =
             if (type != null) getRSSType(type) != RSSType.UNKNOWN else false
 
+    fun isGenericJsonContentType(type: String): Boolean = type == JSON_CONTENT_TYPE
+
     fun guessRSSType(konsumer: Konsumer): RSSType = when {
         konsumer.checkRoot(RSS_1_ROOT_NAME) -> RSSType.RSS_1
         konsumer.checkRoot(RSS_2_ROOT_NAME) -> RSSType.RSS_2
