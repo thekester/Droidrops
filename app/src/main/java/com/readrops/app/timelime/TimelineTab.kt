@@ -407,7 +407,22 @@ object TimelineTab : Tab {
                                                         screenModel.shareItem(itemWithFeed, context)
                                                     },
                                                     onSetReadState = {
+                                                        val wasRead = itemWithFeed.item.isRead
                                                         screenModel.updateItemReadState(itemWithFeed.item)
+
+                                                        if (!wasRead) {
+                                                            coroutineScope.launch {
+                                                                val action = snackbarHostState.showSnackbar(
+                                                                    message = context.getString(R.string.marked_as_read),
+                                                                    actionLabel = context.getString(R.string.undo),
+                                                                    duration = SnackbarDuration.Short
+                                                                )
+
+                                                                if (action == SnackbarResult.ActionPerformed) {
+                                                                    screenModel.updateItemReadState(itemWithFeed.item)
+                                                                }
+                                                            }
+                                                        }
                                                     },
                                                     size = preferences.itemSize,
                                                     modifier = Modifier.animateItem()
