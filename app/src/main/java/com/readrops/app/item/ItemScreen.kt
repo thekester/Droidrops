@@ -1,5 +1,10 @@
 package com.readrops.app.item
 
+import android.Manifest
+import android.content.pm.PackageManager
+import android.os.Build
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.MaterialTheme
@@ -10,6 +15,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -52,6 +58,28 @@ class ItemScreen(
 
         val snackbarHostState = remember { SnackbarHostState() }
         var imageViewerUrl by remember { mutableStateOf<String?>(null) }
+        var pendingDownloadUrl by remember { mutableStateOf<String?>(null) }
+        val downloadPermissionLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.RequestPermission()
+        ) { granted ->
+            val url = pendingDownloadUrl
+            pendingDownloadUrl = null
+            if (granted && url != null) {
+                screenModel.downloadImage(url, context)
+            } else if (url != null) {
+                screenModel.reportImageDownloadError(context)
+            }
+        }
+        val requestImageDownload: (String) -> Unit = { url ->
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q &&
+                ContextCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED
+            ) {
+                pendingDownloadUrl = url
+                downloadPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            } else {
+                screenModel.downloadImage(url, context)
+            }
+        }
 
         imageViewerUrl?.let { url ->
             ItemImageViewerDialog(
@@ -66,7 +94,7 @@ class ItemScreen(
                     if (it == ItemImageChoice.SHARE) {
                         screenModel.shareImage(state.imageDialogUrl!!, context)
                     } else {
-                        screenModel.downloadImage(state.imageDialogUrl!!, context)
+                        requestImageDownload(state.imageDialogUrl!!)
                     }
 
                     screenModel.closeImageDialog()
@@ -78,6 +106,7 @@ class ItemScreen(
         LaunchedEffect(state.fileDownloadedEvent) {
             if (state.fileDownloadedEvent) {
                 snackbarHostState.showSnackbar(context.getString(R.string.downloaded_file))
+                screenModel.consumeFileDownloadedEvent()
             }
         }
 

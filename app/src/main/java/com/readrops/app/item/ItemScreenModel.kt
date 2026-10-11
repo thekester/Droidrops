@@ -1,13 +1,15 @@
 package com.readrops.app.item
 
 import android.content.ClipData
+import android.content.ContentValues
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.graphics.Bitmap
-import android.media.MediaScannerConnection
 import android.net.Uri
+import android.os.Build
 import android.os.Environment
+import android.provider.MediaStore
 import androidx.compose.runtime.Stable
 import androidx.core.content.FileProvider
 import androidx.paging.LoadState
@@ -30,6 +32,7 @@ import com.readrops.app.util.PAGING_PAGE_SIZE
 import com.readrops.app.util.PAGING_PREFETCH_DISTANCE
 import com.readrops.app.util.Preferences
 import com.readrops.app.util.Utils
+import com.readrops.app.util.diagnostics.DiagnosticLog
 import com.readrops.db.Database
 import com.readrops.db.entities.Item
 import com.readrops.db.entities.account.Account
@@ -40,6 +43,7 @@ import com.readrops.db.pojo.ItemWithFeed
 import com.readrops.db.queries.ItemSelectionQueryBuilder
 import com.readrops.db.queries.ItemsQueryBuilder
 import kotlinx.coroutines.CoroutineDispatcher
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
@@ -285,26 +289,75 @@ class ItemScreenModel(
 
     fun downloadImage(url: String, context: Context) {
         screenModelScope.launch(dispatcher) {
-            val bitmap = getImage(url, context)
-
-            if (bitmap == null) {
-                mutableState.update { it.copy(error = context.getString(R.string.error_image_download)) }
-                return@launch
-            }
-
-            val target = File(
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                url.substringAfterLast('/')
-            ).apply {
-                outputStream().apply {
-                    bitmap.compress(Bitmap.CompressFormat.PNG, 90, this)
-                    flush()
-                    close()
+            try {
+                val bitmap = getImage(url, context)
+                    ?: throw IllegalStateException("Image could not be decoded")
+                saveImageToDownloads(bitmap, url, context)
+                mutableState.update { it.copy(fileDownloadedEvent = true, error = null) }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                get<DiagnosticLog>().warning("Image", "Image download failed", e)
+                mutableState.update {
+                    it.copy(error = context.getString(R.string.error_image_download))
                 }
             }
+        }
+    }
 
-            MediaScannerConnection.scanFile(context, arrayOf(target.absolutePath), null, null)
-            mutableState.update { it.copy(fileDownloadedEvent = true) }
+    fun consumeFileDownloadedEvent() = mutableState.update { it.copy(fileDownloadedEvent = false) }
+
+    fun reportImageDownloadError(context: Context) {
+        mutableState.update { it.copy(error = context.getString(R.string.error_image_download)) }
+    }
+
+    private fun saveImageToDownloads(bitmap: Bitmap, url: String, context: Context) {
+        val fileName = Uri.parse(url).lastPathSegment.orEmpty()
+            .substringBeforeLast('.', missingDelimiterValue = "image")
+            .replace(Regex("[^A-Za-z0-9._-]"), "_")
+            .ifBlank { "image" } + ".png"
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            val resolver = context.contentResolver
+            val values = ContentValues().apply {
+                put(MediaStore.MediaColumns.DISPLAY_NAME, fileName)
+                put(MediaStore.MediaColumns.MIME_TYPE, "image/png")
+                put(MediaStore.MediaColumns.RELATIVE_PATH, "${Environment.DIRECTORY_DOWNLOADS}/Droidrops")
+                put(MediaStore.MediaColumns.IS_PENDING, 1)
+            }
+            val uri = resolver.insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, values)
+                ?: throw IllegalStateException("Could not create a Downloads entry")
+
+            try {
+                val output = resolver.openOutputStream(uri)
+                    ?: throw IllegalStateException("Could not open the Downloads entry")
+                output.use {
+                    if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) {
+                        throw IllegalStateException("Could not encode the image")
+                    }
+                }
+                val published = resolver.update(uri, ContentValues().apply {
+                    put(MediaStore.MediaColumns.IS_PENDING, 0)
+                }, null, null)
+                if (published == 0) throw IllegalStateException("Could not publish the downloaded image")
+            } catch (e: Exception) {
+                resolver.delete(uri, null, null)
+                throw e
+            }
+        } else {
+            val directory = File(
+                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                "Droidrops"
+            )
+            if (!directory.exists() && !directory.mkdirs()) {
+                throw IllegalStateException("Could not create the Downloads directory")
+            }
+            File(directory, fileName).outputStream().use {
+                if (!bitmap.compress(Bitmap.CompressFormat.PNG, 100, it)) {
+                    throw IllegalStateException("Could not encode the image")
+                }
+            }
+            android.media.MediaScannerConnection.scanFile(context, arrayOf(File(directory, fileName).absolutePath), arrayOf("image/png"), null)
         }
     }
 
