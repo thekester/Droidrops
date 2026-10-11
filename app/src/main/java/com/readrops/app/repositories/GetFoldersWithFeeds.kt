@@ -65,7 +65,9 @@ class GetFoldersWithFeeds(
                 if (listEntry.value.any { it.id == 0 }) {
                     listOf()
                 } else {
-                    listEntry.value
+                    listEntry.value.sortedWith(
+                        compareBy(String.CASE_INSENSITIVE_ORDER) { feed -> feed.name.orEmpty() }
+                    )
                 }
             }
 

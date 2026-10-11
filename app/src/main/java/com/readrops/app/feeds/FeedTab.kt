@@ -53,6 +53,7 @@ import com.readrops.app.util.components.ErrorMessage
 import com.readrops.app.util.components.Placeholder
 import com.readrops.app.util.theme.spacing
 import com.readrops.db.entities.Feed
+import com.readrops.db.entities.Folder
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.receiveAsFlow
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -196,9 +197,19 @@ object FeedTab : Tab {
                                 items(
                                     items = foldersAndFeeds.toList()
                                 ) { folderWithFeeds ->
-                                    fun onFeedLongClick(feed: Feed) {
+                                    fun onFeedClick(feed: Feed) {
+                                        (feed.siteUrl ?: feed.url)?.let(uriHandler::openUri)
+                                    }
+
+                                    fun onFeedLongClick(feed: Feed, folder: Folder?) {
                                         haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                                        uriHandler.openUri(feed.siteUrl!!)
+                                        screenModel.openDialog(
+                                            DialogState.FeedSheet(
+                                                feed = feed,
+                                                folder = folder,
+                                                config = state.config!!
+                                            )
+                                        )
                                     }
 
                                     if (folderWithFeeds.first != null) {
@@ -208,16 +219,8 @@ object FeedTab : Tab {
                                             folder = folder,
                                             feeds = folderWithFeeds.second,
                                             isExpanded = state.areFoldersExpanded,
-                                            onFeedClick = { feed ->
-                                                screenModel.openDialog(
-                                                    DialogState.FeedSheet(
-                                                        feed = feed,
-                                                        folder = folder,
-                                                        config = state.config!!
-                                                    )
-                                                )
-                                            },
-                                            onFeedLongClick = { feed -> onFeedLongClick(feed) },
+                                            onFeedClick = ::onFeedClick,
+                                            onFeedLongClick = { feed -> onFeedLongClick(feed, folder) },
                                             onUpdateFolder = {
                                                 screenModel.openDialog(
                                                     DialogState.UpdateFolder(folder)
@@ -236,16 +239,8 @@ object FeedTab : Tab {
                                         for (feed in feeds) {
                                             FeedItem(
                                                 feed = feed,
-                                                onClick = {
-                                                    screenModel.openDialog(
-                                                        DialogState.FeedSheet(
-                                                            feed = feed,
-                                                            folder = null,
-                                                            config = state.config!!
-                                                        )
-                                                    )
-                                                },
-                                                onLongClick = { onFeedLongClick(feed) },
+                                                onClick = { onFeedClick(feed) },
+                                                onLongClick = { onFeedLongClick(feed, null) },
                                                 displayDivider = false
                                             )
                                         }

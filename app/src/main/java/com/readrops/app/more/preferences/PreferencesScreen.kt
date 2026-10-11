@@ -169,6 +169,13 @@ class PreferencesScreen : AndroidScreen() {
                                 title = stringResource(R.string.open_videos_in_youtube)
                             )
 
+                            SwitchPreferenceWidget(
+                                preference = loadedState.swipeBetweenArticles.second,
+                                isChecked = loadedState.swipeBetweenArticles.first,
+                                title = stringResource(R.string.swipe_between_articles),
+                                subtitle = stringResource(R.string.swipe_between_articles_subtitle)
+                            )
+
                             ListPreferenceWidget(
                                 preference = loadedState.mainFilterPref.second,
                                 selectedKey = loadedState.mainFilterPref.first,

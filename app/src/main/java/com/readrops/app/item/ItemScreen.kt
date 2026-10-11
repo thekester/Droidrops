@@ -148,6 +148,7 @@ class ItemScreen(
 
                 HorizontalPager(
                     state = pagerState,
+                    userScrollEnabled = state.swipeBetweenArticles,
                     beyondViewportPageCount = 2,
                     key = items.itemKey { it.item.id }
                 ) { page ->

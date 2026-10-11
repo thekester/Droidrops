@@ -226,6 +226,8 @@
     <string name="disabled">Désactivé</string>
     <string name="swipe_to_right_action">Action de glisser à droite</string>
     <string name="swipe_to_left_action">Action de glisser à gauche</string>
+    <string name="swipe_between_articles">Balayer entre les articles</string>
+    <string name="swipe_between_articles_subtitle">Désactivez cette option pour éviter d’ouvrir un autre article en faisant défiler la page.</string>
     <string name="freshrss_delete_folder_question">Voulez-vous supprimer le dossier %1$s ? Tous les flux associés seront déplacés vers le dossier par défaut.</string>
     <string name="no_network">Aucune connexion internet disponible</string>
     <string name="empty_file">Le fichier est vide</string>

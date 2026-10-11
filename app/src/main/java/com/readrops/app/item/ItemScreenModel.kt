@@ -138,18 +138,20 @@ class ItemScreenModel(
             combine(
                 preferences.openLinksWith.flow,
                 preferences.theme.flow,
-                preferences.openVideosInYoutube.flow
-            ) { openLinksWith, theme, openVideosInYoutube ->
-                Triple(openLinksWith, theme, openVideosInYoutube)
-            }.collect { (openLinksWith, theme, openVideosInYoutube) ->
+                preferences.openVideosInYoutube.flow,
+                preferences.swipeBetweenArticles.flow
+            ) { openLinksWith, theme, openVideosInYoutube, swipeBetweenArticles ->
+                ItemDisplayPreferences(openLinksWith, theme, openVideosInYoutube, swipeBetweenArticles)
+            }.collect { displayPreferences ->
                 mutableState.update {
                     it.copy(
-                        openInExternalBrowser = when (openLinksWith) {
+                        openInExternalBrowser = when (displayPreferences.openLinksWith) {
                             "external_navigator" -> true
                             else -> false
                         },
-                        theme = theme,
-                        openVideosInYoutube = openVideosInYoutube
+                        theme = displayPreferences.theme,
+                        openVideosInYoutube = displayPreferences.openVideosInYoutube,
+                        swipeBetweenArticles = displayPreferences.swipeBetweenArticles
                     )
                 }
             }
@@ -166,6 +168,13 @@ class ItemScreenModel(
             pagingSource = this
         }
     }
+
+    private data class ItemDisplayPreferences(
+        val openLinksWith: String,
+        val theme: String,
+        val openVideosInYoutube: Boolean,
+        val swipeBetweenArticles: Boolean
+    )
 
     private fun buildPager(): Flow<PagingData<ItemWithFeed>> {
         val pageNb = (((itemIndex + PAGING_PAGE_SIZE - 1) / PAGING_PAGE_SIZE) + 1)
@@ -459,6 +468,7 @@ data class ItemState(
     val openInExternalBrowser: Boolean = false,
     val theme: String? = "",
     val openVideosInYoutube: Boolean = false,
+    val swipeBetweenArticles: Boolean = true,
     val error: String? = null,
     val stateChanges: List<StateChange> = listOf()
 )

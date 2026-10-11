@@ -108,6 +108,12 @@ class Preferences(
         default = false
     )
 
+    val swipeBetweenArticles = Preference(
+        dataStore = dataStore,
+        key = booleanPreferencesKey("swipe_between_articles"),
+        default = true
+    )
+
     val mainFilter = Preference(
         dataStore = dataStore,
         key = stringPreferencesKey("main_filter"),
