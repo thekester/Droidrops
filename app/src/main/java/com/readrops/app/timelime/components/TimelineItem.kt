@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.readrops.app.R
@@ -30,6 +31,8 @@ import com.readrops.db.entities.OpenIn
 import com.readrops.db.entities.Tag
 import com.readrops.db.pojo.ItemWithFeed
 import java.time.LocalDateTime
+import kotlin.math.max
+import kotlin.math.min
 
 enum class TimelineItemSize {
     COMPACT,
@@ -44,6 +47,12 @@ enum class SwipeAction {
 }
 
 const val readAlpha = 0.6f
+
+internal fun timelineSwipeThreshold(totalDistance: Float, minimumDistance: Float): Float {
+    if (totalDistance <= 0f) return 0f
+
+    return min(totalDistance * 0.8f, max(totalDistance * 0.45f, minimumDistance))
+}
 
 
 @Composable
@@ -67,7 +76,13 @@ fun TimelineItem(
         }
     }
 
-    val swipeState = rememberSwipeToDismissBoxState()
+    val density = LocalDensity.current
+    val swipeState = rememberSwipeToDismissBoxState { totalDistance ->
+        timelineSwipeThreshold(
+            totalDistance = totalDistance,
+            minimumDistance = with(density) { 80.dp.toPx() }
+        )
+    }
 
     LaunchedEffect(swipeState.currentValue) {
         if (swipeState.currentValue == SwipeToDismissBoxValue.EndToStart) {
