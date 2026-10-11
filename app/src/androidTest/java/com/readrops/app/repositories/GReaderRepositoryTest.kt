@@ -284,7 +284,8 @@ class GReaderRepositoryTest : KoinTest {
     @Test
     fun modifiedArticleUpdatesExistingItemTest() = runTest {
         var title = "Original title"
-        var content = "Original content"
+        // Larger than SQLite's CursorWindow so the duplicate lookup must not fetch the body.
+        var content = "x".repeat(3_200_000)
 
         mockServer.dispatcher = object : Dispatcher() {
             override fun dispatch(request: RecordedRequest): MockResponse {

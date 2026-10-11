@@ -10,6 +10,7 @@ import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Folder
 import com.readrops.db.entities.Item
 import com.readrops.db.entities.ItemState
+import com.readrops.db.pojo.ExistingItem
 import com.readrops.db.pojo.ItemWithFeed
 import com.readrops.db.queries.ItemContentProjection
 import kotlinx.coroutines.flow.Flow
@@ -36,6 +37,9 @@ interface ItemDao : BaseDao<Item> {
 
     @Query("Update Item Set read = :read Where id = :itemId")
     suspend fun updateReadState(itemId: Int, read: Boolean)
+
+    @Query("Delete From Item Where id In (:itemIds)")
+    suspend fun deleteByIds(itemIds: List<Int>)
 
     @Query("Update Item Set starred = :starred Where id = :itemId")
     suspend fun updateStarState(itemId: Int, starred: Boolean)
@@ -87,9 +91,10 @@ interface ItemDao : BaseDao<Item> {
         Where account_id = :accountId And Item.remote_id In (:remoteIds)""")
     suspend fun selectExistingRemoteIdsChunk(remoteIds: List<String>, accountId: Int): List<String>
 
-    @Query("""Select Item.* From Item Inner Join Feed On Item.feed_id = Feed.id
+    @Query("""Select Item.id, Item.remote_id, Item.feed_id, Item.read, Item.starred
+        From Item Inner Join Feed On Item.feed_id = Feed.id
         Where account_id = :accountId And Item.remote_id In (:remoteIds)""")
-    suspend fun selectExistingItemsChunk(remoteIds: List<String>, accountId: Int): List<Item>
+    suspend fun selectExistingItemsChunk(remoteIds: List<String>, accountId: Int): List<ExistingItem>
 
     /**
      * @return among [remoteIds], the ones already inserted for [accountId]
@@ -99,7 +104,7 @@ interface ItemDao : BaseDao<Item> {
             .flatMap { chunk -> selectExistingRemoteIdsChunk(chunk, accountId) }
             .toSet()
 
-    suspend fun selectExistingItems(remoteIds: List<String>, accountId: Int): List<Item> =
+    suspend fun selectExistingItems(remoteIds: List<String>, accountId: Int): List<ExistingItem> =
         remoteIds.chunked(SQLITE_MAX_VARIABLES)
             .flatMap { chunk -> selectExistingItemsChunk(chunk, accountId) }
 }

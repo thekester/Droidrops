@@ -304,7 +304,7 @@ class GReaderRepository(
 
                 // Older versions could already have stored the same remote id more than once.
                 if (existingItems.size > 1) {
-                    database.itemDao().delete(existingItems.drop(1))
+                    database.itemDao().deleteByIds(existingItems.drop(1).map { it.id })
                     existingItemsByRemoteId[remoteId] = mutableListOf(existingItem)
                 }
                 continue
