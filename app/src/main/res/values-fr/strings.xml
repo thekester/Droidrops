@@ -160,6 +160,12 @@
     <string name="update_color">Modifier la couleur</string>
     <string name="external">Externe</string>
     <string name="mark_all_articles_read">Marquer les articles comme lus</string>
+    <string name="empty_timeline_title">Votre fil est vide</string>
+    <string name="empty_timeline_message">Ajoutez un flux pour suivre les articles de vos sites préférés.</string>
+    <string name="search_articles">Rechercher des articles</string>
+    <string name="close_search">Fermer la recherche</string>
+    <string name="clear_search">Effacer la recherche</string>
+    <string name="no_search_results">Aucun article ne correspond à votre recherche</string>
     <string name="mark_all_articles_read_question">Voulez-vous vraiment marquer tous les articles comme lus ?</string>
     <string name="readrops_crashed">Droidrops a planté.</string>
     <string name="crash_message">Si vous voyez ceci, cela signifie que l\'application a rencontré une erreur inattendue. Si cela est possible, merci de bien vouloir signaler cette erreur sur GitHub.</string>

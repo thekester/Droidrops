@@ -361,6 +361,10 @@ class TimelineScreenModel(
         _timelineState.update { it.copy(isDrawerOpen = false) }
     }
 
+    fun updateSearchQuery(query: String) {
+        filters.update { it.copy(searchQuery = query) }
+    }
+
     fun updateDrawerDefaultItem(selection: MainFilter) {
         _timelineState.update {
             it.copy(

@@ -12,6 +12,7 @@ import com.readrops.db.filters.QueryFilters
 import com.readrops.db.filters.SubFilter
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
+import junit.framework.TestCase.assertEquals
 import org.junit.After
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -127,6 +128,21 @@ class ItemsQueryBuilderTest {
         with(query.sql) {
             assertTrue(contains("Item.id DESC"))
         }
+    }
+
+    @Test
+    fun searchFiltersTitleAndArticleTextUsingBoundValues() {
+        val query = ItemsQueryBuilder.buildItemsQuery(
+            QueryFilters(accountId = 1, searchQuery = "graph_ 100% ' OR 1=1 --")
+        )
+
+        assertTrue(query.sql.contains("Item.title LIKE ?"))
+        assertTrue(query.sql.contains("Item.content LIKE ?"))
+        assertTrue(query.sql.contains("Item.description LIKE ?"))
+        assertEquals(3, query.argCount)
+
+        // Malicious-looking input remains a bound value and cannot break the SQL.
+        database.query(query)
     }
 
     @Test

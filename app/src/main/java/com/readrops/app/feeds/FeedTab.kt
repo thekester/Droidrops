@@ -104,8 +104,8 @@ object FeedTab : Tab {
         LaunchedEffect(Unit) {
             addFeedDialogChannel.receiveAsFlow()
                 .collect { url ->
-                    if (url.isValidFeedUrl()) {
-                        navigator.push(NewFeedScreen(url))
+                    if (url.isBlank() || url.isValidFeedUrl()) {
+                        navigator.push(NewFeedScreen(url.takeIf { it.isNotBlank() }))
                     }
                 }
         }

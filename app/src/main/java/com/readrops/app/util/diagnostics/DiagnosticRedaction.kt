@@ -4,8 +4,8 @@ package com.readrops.app.util.diagnostics
  * Keeps what ends up in the diagnostic log safe to paste into a public GitHub issue.
  *
  * Secrets are always removed, at the moment an entry is recorded, so they never reach the disk.
- * Server addresses are only masked on export, and only if the user asks: a self hosted
- * instance often has a personal domain, yet the port and the error are what diagnose a
+ * Server addresses are masked in the on-screen log and in exports only if the user asks: a
+ * self-hosted instance often has a personal domain, yet the port and error help diagnose a
  * network that blocks the connection, so both are kept.
  */
 object DiagnosticRedaction {

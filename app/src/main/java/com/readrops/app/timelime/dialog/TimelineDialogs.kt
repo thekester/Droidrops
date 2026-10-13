@@ -25,7 +25,7 @@ fun TimelineDialogs(
                 title = stringResource(R.string.mark_all_articles_read),
                 text = stringResource(R.string.mark_all_articles_read_question),
                 icon = painterResource(id = R.drawable.ic_rss_feed_grey),
-                confirmText = stringResource(id = R.string.validate),
+                confirmText = stringResource(id = R.string.mark_all_articles_read),
                 dismissText = stringResource(id = R.string.cancel),
                 onDismiss = { screenModel.closeDialog() },
                 onConfirm = {

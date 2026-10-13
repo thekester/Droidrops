@@ -96,7 +96,7 @@
     <string name="synchronize">Synchronize</string>
     <string name="navigator_view">Navigator view</string>
     <string name="favorites">Favorites</string>
-    <string name="changelog_url" translatable="false">https://github.com/thekester/Droidrops/blob/develop/CHANGELOG.md</string>
+    <string name="changelog_url" translatable="false">https://github.com/thekester/Droidrops/blob/v%1$s/CHANGELOG.md</string>
     <string name="system">System theme</string>
     <string name="dynamic_colors">Material You</string>
     <string name="hide_feeds">Hide feeds without new items</string>
@@ -130,7 +130,7 @@
     <string name="enable_all">Enable all</string>
     <string name="disable_all">Disable all</string>
     <string name="open_source_libraries">Open source libraries</string>
-    <string name="app_changelog_url" translatable="false">https://github.com/thekester/Droidrops/blob/develop/CHANGELOG.md</string>
+    <string name="app_changelog_url" translatable="false">https://github.com/thekester/Droidrops/blob/v%1$s/CHANGELOG.md</string>
     <string name="app_issues_url" translatable="false">https://github.com/thekester/Droidrops/issues</string>
     <string name="privacy_policy_url" translatable="false">https://thekester.github.io/Droidrops/privacy/</string>
     <string name="privacy_policy">Privacy policy</string>
@@ -159,6 +159,12 @@
     <string name="show_notifications_background_sync">Show notifications after background synchronization</string>
     <string name="background_sync_new_articles">Be notified of new articles after background synchronization</string>
     <string name="no_article">No articles</string>
+    <string name="empty_timeline_title">Your timeline is empty</string>
+    <string name="empty_timeline_message">Add a feed to start following articles from your favorite sites.</string>
+    <string name="search_articles">Search articles</string>
+    <string name="close_search">Close search</string>
+    <string name="clear_search">Clear search</string>
+    <string name="no_search_results">No articles match your search</string>
     <string name="no_rss_feed_found">No RSS feed found</string>
     <string name="not_valid_rss_feed">The provided URL is not a valid RSS feed</string>
     <string name="error_occurred">An error occurred</string>

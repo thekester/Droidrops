@@ -120,7 +120,11 @@ object MoreTab : Tab, KoinComponent {
                     }
 
                     IconButton(
-                        onClick = { context.openUrl(context.getString(R.string.changelog_url)) }
+                        onClick = {
+                            context.openUrl(
+                                context.getString(R.string.changelog_url, BuildConfig.VERSION_NAME)
+                            )
+                        }
                     ) {
                         Icon(
                             painter = painterResource(id = R.drawable.ic_changelog),

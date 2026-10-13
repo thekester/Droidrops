@@ -8,6 +8,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -15,7 +16,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.DrawerValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Button
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -25,18 +29,22 @@ import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.key
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
@@ -54,6 +62,7 @@ import cafe.adriel.voyager.navigator.tab.Tab
 import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.readrops.app.MainActivity
 import com.readrops.app.R
+import com.readrops.app.home.HomeScreen
 import com.readrops.app.item.ItemScreen
 import com.readrops.app.more.diagnostics.DiagnosticLogScreen
 import com.readrops.app.timelime.components.TimelineAppBar
@@ -102,8 +111,9 @@ object TimelineTab : Tab {
         val navigator = LocalNavigator.currentOrThrow
         val context = LocalContext.current
         val isTablet = context.isTabletUi()
-        val usePermanentDrawer = isTablet &&
-                context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val isLandscape = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val usePermanentDrawer = isTablet && isLandscape
+        val useLandscapeDrawerOverlay = !isTablet && isLandscape
 
         val screenModel = koinScreenModel<TimelineScreenModel>()
         val state by screenModel.timelineState.collectAsStateWithLifecycle()
@@ -192,35 +202,49 @@ object TimelineTab : Tab {
             }
         }
 
-        val drawerState = rememberDrawerState(
-            initialValue = DrawerValue.Closed,
-            confirmStateChange = {
-                if (it == DrawerValue.Closed) {
-                    screenModel.closeDrawer()
-                } else {
-                    screenModel.openDrawer()
-                }
+        val drawerState = key(context.resources.configuration.orientation) {
+            rememberDrawerState(
+                initialValue = DrawerValue.Closed,
+                confirmStateChange = {
+                    if (it == DrawerValue.Closed) {
+                        screenModel.closeDrawer()
+                    } else {
+                        screenModel.openDrawer()
+                    }
 
-                true
-            }
-        )
+                    true
+                }
+            )
+        }
 
         BackHandler(
             enabled = state.isDrawerOpen,
             onBack = { screenModel.closeDrawer() }
         )
 
-        LaunchedEffect(state.isDrawerOpen, usePermanentDrawer) {
+        LaunchedEffect(state.isDrawerOpen, usePermanentDrawer, useLandscapeDrawerOverlay) {
             // Tablets use a permanent drawer, which may not be composed while closed. A
             // DrawerState only gets its density from ModalNavigationDrawer, so don't animate it
             // when the modal drawer isn't part of the composition.
-            if (usePermanentDrawer) return@LaunchedEffect
+            if (usePermanentDrawer || useLandscapeDrawerOverlay) return@LaunchedEffect
 
             if (state.isDrawerOpen) {
                 drawerState.open()
             } else {
                 drawerState.close()
             }
+        }
+
+        LaunchedEffect(context.resources.configuration.orientation, usePermanentDrawer) {
+            // A modal drawer can retain an intermediate offset when the phone rotates. Snap it
+            // shut after its new layout anchors are placed so the old-width drawer cannot remain
+            // as a clipped strip over the timeline.
+            withFrameNanos { }
+            drawerState.snapTo(DrawerValue.Closed)
+            withFrameNanos { }
+            drawerState.snapTo(DrawerValue.Closed)
+            screenModel.closeDrawer()
+            tabletDrawerOpen = usePermanentDrawer
         }
 
         LaunchedEffect(state.localSyncErrors) {
@@ -274,8 +298,10 @@ object TimelineTab : Tab {
             state = state,
             drawerState = drawerState,
             usePermanentDrawer = usePermanentDrawer,
+            useLandscapeOverlay = useLandscapeDrawerOverlay,
             tabletDrawerOpen = tabletDrawerOpen,
             onToggleTabletDrawer = { tabletDrawerOpen = !tabletDrawerOpen },
+            onCloseDrawer = { screenModel.closeDrawer() },
             onClickDefaultItem = { screenModel.updateDrawerDefaultItem(it) },
             onFolderClick = { screenModel.updateDrawerFolderSelection(it) },
             onFeedClick = { screenModel.updateDrawerFeedSelection(it) },
@@ -291,7 +317,8 @@ object TimelineTab : Tab {
                         tabletDrawerOpen = tabletDrawerOpen,
                         onToggleTabletDrawer = { tabletDrawerOpen = !tabletDrawerOpen },
                         onOpenFilterSheet = { screenModel.openDialog(DialogState.FilterSheet) },
-                        onRefreshTimeline = { screenModel.refreshTimeline() }
+                        onRefreshTimeline = { screenModel.refreshTimeline() },
+                        onSearchQueryChange = screenModel::updateSearchQuery
                     )
                 },
                 snackbarHost = { SnackbarHost(snackbarHostState) },
@@ -458,15 +485,66 @@ object TimelineTab : Tab {
                                         modifier = Modifier.fillMaxSize()
                                     ) {}
 
-                                    Placeholder(
-                                        text = stringResource(R.string.no_article),
-                                        painter = painterResource(R.drawable.ic_timeline),
-                                    )
+                                    when {
+                                        state.filters.searchQuery.isNotBlank() -> Placeholder(
+                                            text = stringResource(R.string.no_search_results),
+                                            painter = painterResource(R.drawable.ic_timeline)
+                                        )
+
+                                        state.filters.mainFilter == MainFilter.ALL &&
+                                                state.filters.subFilter == SubFilter.ALL -> EmptyTimeline(
+                                            onAddFeed = {
+                                                coroutineScope.launch {
+                                                    HomeScreen.openAddFeedDialog("")
+                                                }
+                                            }
+                                        )
+
+                                        else -> Placeholder(
+                                            text = stringResource(R.string.no_article),
+                                            painter = painterResource(R.drawable.ic_timeline),
+                                        )
+                                    }
                                 }
                             }
                         }
                     }
                 }
+            }
+        }
+    }
+
+    @Composable
+    private fun EmptyTimeline(onAddFeed: () -> Unit) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = MaterialTheme.spacing.largeSpacing),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Icon(
+                painter = painterResource(R.drawable.ic_timeline),
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(bottom = MaterialTheme.spacing.shortSpacing)
+            )
+            Text(
+                text = stringResource(R.string.empty_timeline_title),
+                style = MaterialTheme.typography.titleLarge
+            )
+            Text(
+                text = stringResource(R.string.empty_timeline_message),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(vertical = MaterialTheme.spacing.mediumSpacing)
+            )
+            Button(onClick = onAddFeed) {
+                Icon(Icons.Default.Add, contentDescription = null)
+                Text(
+                    text = stringResource(R.string.add_feed),
+                    modifier = Modifier.padding(start = MaterialTheme.spacing.shortSpacing)
+                )
             }
         }
     }

@@ -21,18 +21,20 @@ class DiagnosticLogScreenModel(
 
     val entries: StateFlow<List<DiagnosticEntry>> = diagnosticLog.entries
 
+    suspend fun knownHosts(hideServers: Boolean): Set<String> = withContext(Dispatchers.IO) {
+        if (!hideServers) return@withContext emptySet()
+
+        database.accountDao().selectAllAccounts().first()
+            .mapNotNull { account -> account.url?.let { runCatching { URI(it).host }.getOrNull() } }
+            .toSet()
+    }
+
     /**
      * The report as it will be sent. When servers are hidden, the account servers are masked
      * wherever they appear, including messages whose wording no pattern anticipates.
      */
     suspend fun report(hideServers: Boolean): DiagnosticReport = withContext(Dispatchers.IO) {
-        val knownHosts = if (hideServers) {
-            database.accountDao().selectAllAccounts().first()
-                .mapNotNull { account -> account.url?.let { runCatching { URI(it).host }.getOrNull() } }
-                .toSet()
-        } else {
-            emptySet()
-        }
+        val knownHosts = knownHosts(hideServers)
 
         DiagnosticReport(
             entries = entries.value,

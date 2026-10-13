@@ -40,6 +40,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -65,6 +66,7 @@ import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.readrops.app.R
 import com.readrops.app.util.components.AndroidScreen
+import com.readrops.app.util.diagnostics.DiagnosticRedaction
 import com.readrops.app.util.components.dialog.TwoChoicesDialog
 import com.readrops.app.util.diagnostics.DiagnosticEntry
 import com.readrops.app.util.diagnostics.DiagnosticLevel
@@ -101,8 +103,13 @@ class DiagnosticLogScreen : AndroidScreen() {
 
         val entries by screenModel.entries.collectAsStateWithLifecycle()
         var hideServers by rememberSaveable { mutableStateOf(true) }
+        var knownHosts by remember { mutableStateOf(emptySet<String>()) }
         var filter by rememberSaveable { mutableStateOf(LevelFilter.ALL) }
         var showClearDialog by rememberSaveable { mutableStateOf(false) }
+
+        LaunchedEffect(hideServers) {
+            knownHosts = screenModel.knownHosts(hideServers)
+        }
 
         val visibleEntries = remember(entries, filter) {
             entries.filter { it.level in filter.levels }
@@ -205,7 +212,11 @@ class DiagnosticLogScreen : AndroidScreen() {
                     }
 
                     items(visibleEntries, key = { it.id }) { entry ->
-                        DiagnosticEntryItem(entry = entry)
+                        DiagnosticEntryItem(
+                            entry = entry,
+                            hideServers = hideServers,
+                            knownHosts = knownHosts
+                        )
                     }
                 }
             }
@@ -297,7 +308,11 @@ private fun LevelFilters(
 }
 
 @Composable
-private fun DiagnosticEntryItem(entry: DiagnosticEntry) {
+private fun DiagnosticEntryItem(
+    entry: DiagnosticEntry,
+    hideServers: Boolean,
+    knownHosts: Set<String>,
+) {
     var expanded by rememberSaveable(entry.id) { mutableStateOf(false) }
     val presentation = levelPresentation(entry.level)
     val formatter = remember {
@@ -342,7 +357,7 @@ private fun DiagnosticEntryItem(entry: DiagnosticEntry) {
             ShortSpacer()
 
             Text(
-                text = entry.message,
+                text = entry.message.maskServers(hideServers, knownHosts),
                 style = MaterialTheme.typography.bodyMedium
             )
 
@@ -350,7 +365,7 @@ private fun DiagnosticEntryItem(entry: DiagnosticEntry) {
                 VeryShortSpacer()
 
                 Text(
-                    text = summary,
+                    text = summary.maskServers(hideServers, knownHosts),
                     style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 3,
@@ -381,7 +396,7 @@ private fun DiagnosticEntryItem(entry: DiagnosticEntry) {
                     ) {
                         // stack frames keep one line each, scrolled sideways rather than wrapped
                         Text(
-                            text = entry.details,
+                            text = entry.details.maskServers(hideServers, knownHosts),
                             style = MaterialTheme.typography.bodySmall.copy(fontFamily = FontFamily.Monospace),
                             softWrap = false,
                             modifier = Modifier
@@ -394,6 +409,9 @@ private fun DiagnosticEntryItem(entry: DiagnosticEntry) {
         }
     }
 }
+
+private fun String.maskServers(hideServers: Boolean, knownHosts: Set<String>): String =
+    if (hideServers) DiagnosticRedaction.maskServerAddresses(this, knownHosts) else this
 
 private class LevelPresentation(val icon: Painter, val color: Color, val label: String)
 

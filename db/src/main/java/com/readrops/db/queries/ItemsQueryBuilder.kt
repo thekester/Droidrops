@@ -80,15 +80,17 @@ object ItemsQueryBuilder {
 
             SupportSQLiteQueryBuilder.builder(selectAllJoin).run {
                 columns(columns)
-                selection(buildWhereClause(this@with, separateState), null)
+                val (whereClause, selectionArgs) = buildWhereClause(this@with, separateState)
+                selection(whereClause, selectionArgs)
                 orderBy(buildOrderByClause(orderField, orderType))
 
                 create()
             }
         }
 
-    private fun buildWhereClause(queryFilters: QueryFilters, separateState: Boolean): String =
-        buildString {
+    private fun buildWhereClause(queryFilters: QueryFilters, separateState: Boolean): Pair<String, Array<String>> {
+        val searchArgs = mutableListOf<String>()
+        val clause = buildString {
             append("Feed.account_id = ${queryFilters.accountId} ")
 
             if (!queryFilters.showReadItems) {
@@ -124,8 +126,23 @@ object ItemsQueryBuilder {
                 else -> {}
             }
 
+            queryFilters.searchQuery.trim().takeIf { it.isNotEmpty() }?.let { query ->
+                val escapedQuery = query
+                    .replace("\\", "\\\\")
+                    .replace("%", "\\%")
+                    .replace("_", "\\_")
+                val pattern = "%$escapedQuery%"
+                append("And (Item.title LIKE ? ESCAPE '\\' ")
+                append("Or Item.content LIKE ? ESCAPE '\\' ")
+                append("Or Item.description LIKE ? ESCAPE '\\') ")
+                repeat(3) { searchArgs += pattern }
+            }
+
             toString()
         }
+
+        return clause to searchArgs.toTypedArray()
+    }
 
     private fun buildOrderByClause(orderField: OrderField, orderType: OrderType): String {
         return buildString {

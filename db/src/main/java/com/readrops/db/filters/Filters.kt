@@ -35,4 +35,5 @@ data class QueryFilters(
     val subFilter: SubFilter = SubFilter.ALL,
     val orderField: OrderField = OrderField.DATE,
     val orderType: OrderType = OrderType.DESC,
+    val searchQuery: String = "",
 ) : Serializable
