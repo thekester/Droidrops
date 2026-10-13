@@ -1,0 +1,5 @@
+Search article titles and content from the timeline.
+- Add a clear next step when the timeline is empty.
+- Clarify the mark-all-as-read confirmation.
+- Hide server addresses in diagnostic logs when requested.
+- Fix the landscape timeline layout and link to the installed release notes.

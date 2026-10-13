@@ -1,3 +1,19 @@
+# v2.2.12
+
+This release improves timeline discovery, privacy, and landscape usability.
+
+## Changes
+
+- Add article search across titles and content.
+- Explain the empty timeline and provide a direct action to discover feeds.
+- Make the mark-all-as-read confirmation explicit.
+
+## Fixes
+
+- Hide server addresses throughout diagnostic logs when the privacy option is enabled.
+- Fix the clipped timeline navigation pane in landscape orientation.
+- Link the in-app changelog to the installed release version.
+
 # v2.2.11
 
 This release improves article reading, feed synchronization, and tablet navigation.
