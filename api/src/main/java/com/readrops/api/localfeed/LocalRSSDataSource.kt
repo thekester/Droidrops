@@ -181,11 +181,15 @@ class LocalRSSDataSource(private val httpClient: OkHttpClient) : KoinComponent {
 
     private fun handleSpecialCases(feed: Feed, type: LocalRSSHelper.RSSType, response: Response) =
             with(feed) {
-                if (type == LocalRSSHelper.RSSType.RSS_2 || type == LocalRSSHelper.RSSType.RSS_1) {
-                    // RSS 1.0 rdf:about identifies the channel/site, not necessarily the
-                    // subscription URL. Keep the actual URL that was requested instead.
-                    // RSS 2.0 self links can also be unreliable, so use the response URL there too.
+                if (type == LocalRSSHelper.RSSType.RSS_2) {
+                    // RSS 2.0 self links can be unreliable, so use the response URL instead.
                     url = response.request.url.toString()
+                } else if (type == LocalRSSHelper.RSSType.RSS_1) {
+                    // In RSS 1.0 rdf:about identifies the channel/site, not the subscription URL.
+                    url = response.request.url.toString()
+                    if (siteUrl == null) {
+                        siteUrl = response.request.url.scheme + "://" + response.request.url.host
+                    }
                 } else if (type == LocalRSSHelper.RSSType.ATOM) {
                     if (url == null) url = response.request.url.toString()
                     if (siteUrl == null) siteUrl = response.request.url.scheme + "://" + response.request.url.host
