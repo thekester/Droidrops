@@ -19,17 +19,18 @@ The updated English promo videos are:
 - `docs/assets/droidrops-promo-en-motion.mp4` (1920 × 1080)
 - `docs/assets/droidrops-promo-en-vertical.mp4` (1080 × 1920)
 
-The website and F-Droid listing link to the landscape version; the vertical version
-is available for mobile promotion. The YouTube landscape video is
-https://youtu.be/E_obOWTfAaU. Its URL is also in
-`fastlane/metadata/android/en-US/video.txt` for F-Droid.
+The YouTube landscape video is https://youtu.be/E_obOWTfAaU, and its URL is in
+`fastlane/metadata/android/en-US/video.txt` for F-Droid. The vertical YouTube video
+is https://youtube.com/shorts/uZRU5_neZVg.
 F-Droid reads these source metadata files from the latest release, so the listing
 will pick up the video URL when a release containing this change is published and
 processed by F-Droid.
 
-Google Play's regular preview-video field requires a YouTube video URL; the Play
-Console does not accept an MP4 file directly. Add
-`https://youtu.be/E_obOWTfAaU` in the Play Console store listing. Google requires
+Google Play's regular preview-video field accepts one YouTube URL; it does not
+accept an MP4 file directly. For the phone-first listing, use the vertical video's
+standard URL format, `https://www.youtube.com/watch?v=uZRU5_neZVg`, in the Play
+Console. Google accepts landscape or portrait video and recommends matching the
+orientation to the app experience. Google requires
 the video to be public or unlisted, embeddable, not age-restricted, and have
 monetization disabled. See [Google Play preview video requirements](https://support.google.com/googleplay/android-developer/answer/9866151).
 

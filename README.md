@@ -16,8 +16,9 @@
 
 <p align="center">
     <a href="docs/assets/droidrops-promo-en-motion.mp4">Watch the landscape video</a>
-    · <a href="https://youtu.be/E_obOWTfAaU">Watch on YouTube</a>
+    · <a href="https://youtu.be/E_obOWTfAaU">Landscape on YouTube</a>
     · <a href="docs/assets/droidrops-promo-en-vertical.mp4">Watch the vertical video</a>
+    · <a href="https://youtube.com/shorts/uZRU5_neZVg">Vertical on YouTube</a>
 </p>
 
 <p align="center">
