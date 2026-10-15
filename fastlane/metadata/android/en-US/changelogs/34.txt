@@ -1,0 +1,2 @@
+Fix RSS 1.0 subscriptions imported from OPML.
+- Keep the feed's RSS URL instead of replacing it with the site's homepage.

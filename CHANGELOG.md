@@ -1,3 +1,11 @@
+# v2.2.13
+
+This release fixes subscriptions imported from RSS 1.0 feeds.
+
+## Fixes
+
+- Preserve the requested feed URL when importing RSS 1.0 subscriptions, including feeds whose channel metadata points to the site's homepage.
+
 # v2.2.12
 
 This release improves timeline discovery, privacy, and landscape usability.
