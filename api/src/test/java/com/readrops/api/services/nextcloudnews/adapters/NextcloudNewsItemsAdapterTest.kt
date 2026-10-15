@@ -6,6 +6,7 @@ import com.readrops.db.util.DateUtils
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.Types
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNull
 import okio.Buffer
 import org.junit.Test
 
@@ -41,6 +42,27 @@ class NextcloudNewsItemsAdapterTest {
         with(items[1]) {
             assertEquals(imageLink, null)
         }
+    }
+
+    @Test
+    fun nullAuthorDoesNotPreventItemParsingTest() {
+        val json = """{"items":[{
+            "id":42,
+            "url":"https://example.org/article",
+            "title":"Article without author",
+            "author":null,
+            "pubDate":1720000000,
+            "body":"Article body",
+            "feedId":7,
+            "unread":true,
+            "starred":false
+        }]}"""
+
+        val items = adapter.fromJson(Buffer().writeUtf8(json))!!
+
+        assertEquals(1, items.size)
+        assertEquals("Article without author", items.single().title)
+        assertNull(items.single().author)
     }
 
 

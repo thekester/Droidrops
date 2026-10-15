@@ -75,7 +75,7 @@ class LocalRSSDataSource(private val httpClient: OkHttpClient) : KoinComponent {
             }
 
             if (type == LocalRSSHelper.RSSType.UNKNOWN) {
-                val konsumer = response.body!!.byteStream().konsumeXml().apply {
+                val konsumer = LenientXmlInputStream(response.body!!.byteStream()).konsumeXml().apply {
                     try {
                         val rootKonsumer = nextElement(LocalRSSHelper.RSS_ROOT_NAMES)
                         rootKonsumer?.let { type = LocalRSSHelper.guessRSSType(rootKonsumer) }
@@ -120,7 +120,7 @@ class LocalRSSDataSource(private val httpClient: OkHttpClient) : KoinComponent {
 
         var konsumer: Konsumer? = null
         if (type != LocalRSSHelper.RSSType.JSONFEED)
-            konsumer = response.body!!.byteStream().konsumeXml()
+            konsumer = LenientXmlInputStream(response.body!!.byteStream()).konsumeXml()
 
         var rootKonsumer: Konsumer? = null
         // The document root wins over the content-type header, which servers get wrong often

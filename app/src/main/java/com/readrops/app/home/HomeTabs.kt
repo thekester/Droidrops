@@ -11,8 +11,8 @@ import com.readrops.app.timelime.TimelineTab
 
 enum class HomeTabs(
     val tab: Tab,
-    @StringRes val labelRes: Int,
-    @DrawableRes val iconRes: Int,
+    @param:StringRes val labelRes: Int,
+    @param:DrawableRes val iconRes: Int,
 ) {
     TIMELINE(TimelineTab, R.string.timeline, R.drawable.ic_timeline),
     FEEDS(FeedTab, R.string.feeds, R.drawable.ic_rss_feed_grey),

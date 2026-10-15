@@ -1,7 +1,5 @@
-import com.android.build.gradle.AppPlugin
-import com.android.build.gradle.BaseExtension
-import com.android.build.gradle.LibraryExtension
-import com.android.build.gradle.LibraryPlugin
+import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.dsl.LibraryExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.dsl.KotlinAndroidProjectExtension
 
@@ -16,7 +14,6 @@ buildscript {
         classpath(libs.android.agp)
         classpath(libs.kotlin.kgp)
         classpath(libs.jacoco)
-        classpath(libs.aboutlibraries)
     }
 }
 
@@ -35,10 +32,22 @@ allprojects {
 }
 
 subprojects {
-    afterEvaluate {
-        with(extensions.getByType<KotlinAndroidProjectExtension>()) {
+    plugins.withId("com.android.application") {
+        extensions.configure<ApplicationExtension> {
+            configureAndroid(this)
+        }
+    }
+
+    plugins.withId("com.android.library") {
+        extensions.configure<LibraryExtension> {
+            configureAndroid(this)
+        }
+    }
+
+    plugins.withId("com.android.application") {
+        extensions.configure<KotlinAndroidProjectExtension> {
             compilerOptions {
-                jvmTarget = JvmTarget.JVM_17
+                jvmTarget.set(JvmTarget.JVM_17)
                 allWarningsAsErrors.set(
                     providers.gradleProperty("warningsAsErrors")
                         .map(String::toBoolean)
@@ -46,40 +55,43 @@ subprojects {
                 )
             }
         }
+    }
 
-        plugins.withType<AppPlugin> {
-            configure<BaseExtension> {
-                configure(this)
-            }
-        }
-        plugins.withType<LibraryPlugin> {
-            configure<LibraryExtension> {
-                configure(this)
+    plugins.withId("com.android.library") {
+        extensions.configure<KotlinAndroidProjectExtension> {
+            compilerOptions {
+                jvmTarget.set(JvmTarget.JVM_17)
+                allWarningsAsErrors.set(
+                    providers.gradleProperty("warningsAsErrors")
+                        .map(String::toBoolean)
+                        .orElse(false)
+                )
             }
         }
     }
-
 }
 
-fun configure(extension: BaseExtension) = with(extension) {
-    compileSdkVersion(36)
-
-    defaultConfig {
-        minSdk = 24
-        targetSdk = 36
-        buildToolsVersion = "35.0.1"
-    }
-
-    compileOptions {
+fun configureAndroid(extension: ApplicationExtension) {
+    extension.compileSdk = 36
+    extension.buildToolsVersion = "36.0.0"
+    extension.defaultConfig.minSdk = 24
+    extension.defaultConfig.targetSdk = 36
+    extension.compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
-
         isCoreLibraryDesugaringEnabled = true
     }
+}
 
-    /*dependencies {
-        add("coreLibraryDesugaring", libs.jdk.desugar)
-    }*/
+fun configureAndroid(extension: LibraryExtension) {
+    extension.compileSdk = 36
+    extension.buildToolsVersion = "36.0.0"
+    extension.defaultConfig.minSdk = 24
+    extension.compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
+    }
 }
 
 tasks.register<Delete>("clean") {

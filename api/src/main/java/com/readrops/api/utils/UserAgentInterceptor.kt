@@ -14,6 +14,6 @@ class UserAgentInterceptor : Interceptor {
     }
 
     companion object {
-        private const val USER_AGENT = "Readrops Android"
+        private const val USER_AGENT = "Droidrops Android"
     }
 }

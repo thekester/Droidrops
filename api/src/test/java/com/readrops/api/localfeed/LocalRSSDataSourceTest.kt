@@ -187,6 +187,41 @@ class LocalRSSDataSourceTest : KoinTest {
     }
 
     @Test
+    fun atomXhtmlWithHtmlBreakTagIsAcceptedTest() {
+        val xml = """<?xml version="1.0" encoding="UTF-8"?>
+            <feed xmlns="http://www.w3.org/2005/Atom">
+              <title>Test Feed</title>
+              <entry>
+                <id>tag:example.org,2026:article</id>
+                <title>Sample Title</title>
+                <updated>2026-10-15T08:00:00Z</updated>
+                <link href="https://example.org/article"/>
+                <summary type="xhtml"><div xmlns="http://www.w3.org/1999/xhtml"><p>Test<br></p></div></summary>
+              </entry>
+            </feed>""".trimIndent()
+
+        mockServer.enqueue(
+            MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_OK)
+                .addHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/atom+xml")
+                .setBody(xml)
+        )
+
+        assertTrue(localRSSDataSource.isUrlRSSResource(url.toString()))
+
+        mockServer.enqueue(
+            MockResponse()
+                .setResponseCode(HttpURLConnection.HTTP_OK)
+                .addHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/atom+xml")
+                .setBody(xml)
+        )
+
+        val result = localRSSDataSource.queryRSSResource(url.toString(), null)!!
+
+        assertEquals("Test", result.second.single().description)
+    }
+
+    @Test
     fun specialCasesRSS1Test() {
         val stream = TestUtils.loadResource("localfeed/rss1/rss1_feed_no_url_siteurl.xml")
 

@@ -20,8 +20,8 @@
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
 
-# help debug release versions
--dontobfuscate
+# Repackage optimized classes to reduce DEX package-name overhead.
+-repackageclasses
 
 -dontwarn org.xmlpull.v1.XmlPullParser
 -dontwarn org.xmlpull.v1.XmlSerializer

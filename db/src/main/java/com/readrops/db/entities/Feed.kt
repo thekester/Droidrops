@@ -37,7 +37,7 @@ data class Feed(
     @ColumnInfo("image_url") var imageUrl: String? = null,
     var siteUrl: String? = null,
     @ColumnInfo("last_updated") var lastUpdated: String? = null,
-    @ColorInt var color: Int = 0,
+    @param:ColorInt var color: Int = 0,
     @ColumnInfo(name = "icon_url") var iconUrl: String? = null,
     var etag: String? = null,
     @ColumnInfo(name = "last_modified") var lastModified: String? = null,

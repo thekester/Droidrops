@@ -1,0 +1,3 @@
+- Fix timeline search input and FreshRSS feed addition handling.
+- Improve compatibility with RSS feeds that use nonstandard XML encodings.
+- Update the app's network identity to Droidrops and optimize release builds.

@@ -1,6 +1,5 @@
 plugins {
     id("com.android.library")
-    kotlin("android")
     id("com.google.devtools.ksp")
 }
 
@@ -28,7 +27,7 @@ android {
 
     sourceSets {
         getByName("androidTest") {
-            assets.srcDirs("$projectDir/schemas")
+            assets.directories.add("$projectDir/schemas")
         }
     }
 

@@ -112,7 +112,7 @@ class GReaderRepository(
             }
         }
 
-        if (feedCreated) {
+        if (feedCreated || errors.isNotEmpty()) {
             // the subscription call returns nothing about the feed it just created, so the
             // subscription list has to be fetched again to make the new feeds locally available
             // instead of waiting for the next synchronization
@@ -125,7 +125,16 @@ class GReaderRepository(
             }
 
             try {
-                insertFeeds(dataSource.getFeeds())
+                val serverFeeds = dataSource.getFeeds()
+
+                // FreshRSS can create a subscription and then return an error (for example,
+                // when the feed URL resolves to multiple streams). Reconcile failed requests
+                // against the server's authoritative list so the UI does not report failure for
+                // a feed that is already present remotely.
+                val serverFeedUrls = serverFeeds.mapNotNull { it.url }.toSet()
+                errors.keys.filter { it.url in serverFeedUrls }.forEach(errors::remove)
+
+                insertFeeds(serverFeeds)
                     .forEach { feed -> insertNewFeedItems(feed) }
             } catch (e: Exception) {
                 Log.e(TAG, "refreshing feeds after feed creation: ${e.message}")

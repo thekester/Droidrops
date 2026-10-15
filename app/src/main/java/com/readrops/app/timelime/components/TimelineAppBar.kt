@@ -48,6 +48,9 @@ fun TimelineAppBar(
     var searchActive by rememberSaveable {
         mutableStateOf(state.filters.searchQuery.isNotBlank())
     }
+    var searchQuery by rememberSaveable {
+        mutableStateOf(state.filters.searchQuery)
+    }
     val searchFocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(searchActive) {
@@ -58,14 +61,20 @@ fun TimelineAppBar(
         title = {
             if (searchActive) {
                 TextField(
-                    value = state.filters.searchQuery,
-                    onValueChange = onSearchQueryChange,
+                    value = searchQuery,
+                    onValueChange = { query ->
+                        searchQuery = query
+                        onSearchQueryChange(query)
+                    },
                     modifier = Modifier.fillMaxWidth().focusRequester(searchFocusRequester),
                     singleLine = true,
                     placeholder = { Text(stringResource(R.string.search_articles)) },
                     trailingIcon = {
-                        if (state.filters.searchQuery.isNotEmpty()) {
-                            IconButton(onClick = { onSearchQueryChange("") }) {
+                        if (searchQuery.isNotEmpty()) {
+                            IconButton(onClick = {
+                                searchQuery = ""
+                                onSearchQueryChange("")
+                            }) {
                                 Icon(Icons.Default.Close, contentDescription = stringResource(R.string.clear_search))
                             }
                         }
@@ -117,6 +126,7 @@ fun TimelineAppBar(
             IconButton(
                 onClick = {
                     if (searchActive) {
+                        searchQuery = ""
                         onSearchQueryChange("")
                         searchActive = false
                     } else {

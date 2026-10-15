@@ -1,6 +1,5 @@
 plugins {
     id("com.android.library")
-    kotlin("android")
 }
 
 android {
@@ -20,12 +19,8 @@ android {
 
     sourceSets {
         getByName("androidTest") {
-            assets.srcDirs("$projectDir/androidTest/assets")
+            assets.directories.add("$projectDir/androidTest/assets")
         }
-    }
-
-    kotlinOptions {
-        freeCompilerArgs = listOf("-Xstring-concat=inline")
     }
 
     lint {
@@ -33,6 +28,12 @@ android {
 
         // disable lint rule which isn't supposed to be applied on a non compose module
         disable.add("CoroutineCreationDuringComposition")
+    }
+}
+
+kotlin {
+    compilerOptions {
+        freeCompilerArgs.add("-Xstring-concat=inline")
     }
 }
 

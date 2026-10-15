@@ -6,8 +6,8 @@ import com.readrops.db.R
 
 // TODO remove Feedly at some point
 enum class AccountType(
-    @DrawableRes val iconRes: Int,
-    @StringRes val nameRes: Int,
+    @param:DrawableRes val iconRes: Int,
+    @param:StringRes val nameRes: Int,
     val config: AccountConfig,
     // official documentation, shown as a help link when creating the account
     val documentationUrl: String? = null

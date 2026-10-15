@@ -3,9 +3,7 @@ import java.util.Properties
 
 plugins {
     id("com.android.application")
-    kotlin("android")
     alias(libs.plugins.compose.compiler)
-    id("com.mikepenz.aboutlibraries.plugin")
 }
 
 val props = Properties().apply {
@@ -29,7 +27,6 @@ val hasReleaseSigningConfig = listOf(
 val fdroidUnsigned = providers.gradleProperty("fdroidUnsigned").orNull == "true"
 val useReleaseSigningConfig = hasReleaseSigningConfig && !fdroidUnsigned
 
-
 android {
     namespace = "com.readrops.app"
 
@@ -47,8 +44,8 @@ android {
     defaultConfig {
         applicationId = "com.droidrops.app"
 
-        versionCode = 36
-        versionName = "2.2.15"
+        versionCode = 37
+        versionName = "2.2.16"
 
         testInstrumentationRunner = "com.readrops.app.ReadropsTestRunner"
     }
@@ -81,7 +78,7 @@ android {
             enableUnitTestCoverage = true
             enableAndroidTestCoverage = true
 
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
 
         create("beta") {
@@ -109,6 +106,16 @@ android {
     buildFeatures {
         buildConfig = true
         compose = true
+        resValues = true
+    }
+
+    packaging {
+        jniLibs {
+            keepDebugSymbols += setOf(
+                "**/libandroidx.graphics.path.so",
+                "**/libdatastore_shared_counter.so"
+            )
+        }
     }
 
     lint {

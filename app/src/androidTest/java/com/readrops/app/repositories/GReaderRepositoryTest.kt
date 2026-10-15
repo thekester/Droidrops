@@ -240,6 +240,40 @@ class GReaderRepositoryTest : KoinTest {
     }
 
     /**
+     * FreshRSS may finish creating a subscription before returning an error response. In that
+     * case its subscription list is authoritative, and adding the same URL must not be reported
+     * as a failed operation.
+     */
+    @Test
+    fun feedReportedAsErrorButPresentOnServerIsTreatedAsAddedTest() = runTest {
+        mockServer.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                with(request.path!!) {
+                    return when {
+                        contains("subscription/edit") -> MockResponse()
+                            .setResponseCode(HttpURLConnection.HTTP_BAD_REQUEST)
+                        contains("tag/list") -> ok(folders("Tech"))
+                        contains("subscription/list") -> ok(subscriptions("Tech"))
+                        contains("stream/contents/feed/1") -> ok(items("item/1"))
+                        else -> MockResponse().setResponseCode(404)
+                    }
+                }
+            }
+        }
+
+        val errors = repository().insertNewFeeds(
+            newFeeds = listOf(Feed(url = "https://news.ycombinator.com/rss")),
+            onUpdate = {}
+        )
+
+        assertTrue("the feed is already present on FreshRSS: $errors", errors.isEmpty())
+        val feeds = database.feedDao().selectFeeds(account.id)
+        assertEquals(1, feeds.size)
+        assertEquals("feed/1", feeds.single().remoteId)
+        assertEquals(1, database.itemDao().selectItems(feeds.single().id).size)
+    }
+
+    /**
      * The backlog fetched when adding the feed is returned again by the next synchronization,
      * since FreshRSS filters the main item call on the insertion time. It must not be duplicated.
      */

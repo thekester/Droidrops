@@ -13,12 +13,15 @@ import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.mikepenz.aboutlibraries.ui.compose.m3.LibrariesContainer
+import com.mikepenz.aboutlibraries.ui.compose.produceLibraries
 import com.readrops.app.R
 import com.readrops.app.util.components.AndroidScreen
 
@@ -27,6 +30,10 @@ class AboutLibrariesScreen : AndroidScreen() {
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
     override fun Content() {
+        val context = LocalContext.current
+        val libraries by produceLibraries {
+            context.resources.openRawResource(R.raw.aboutlibraries).bufferedReader().use { it.readText() }
+        }
         val navigator = LocalNavigator.currentOrThrow
         val scrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
 
@@ -49,6 +56,7 @@ class AboutLibrariesScreen : AndroidScreen() {
             }
         ) { paddingValues ->
             LibrariesContainer(
+                libraries = libraries,
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(paddingValues)

@@ -85,7 +85,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.time.format.FormatStyle
 
-private enum class LevelFilter(@StringRes val label: Int, val levels: Set<DiagnosticLevel>) {
+private enum class LevelFilter(@param:StringRes val label: Int, val levels: Set<DiagnosticLevel>) {
     ALL(R.string.filter_all, DiagnosticLevel.entries.toSet()),
     ERRORS(R.string.filter_errors, setOf(DiagnosticLevel.ERROR)),
     WARNINGS(R.string.filter_warnings, setOf(DiagnosticLevel.WARNING)),

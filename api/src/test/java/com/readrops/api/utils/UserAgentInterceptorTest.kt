@@ -33,6 +33,6 @@ class UserAgentInterceptorTest {
         okHttpClient.newCall(Request.Builder().url(mockServer.url("/url")).build()).execute()
         val request = mockServer.takeRequest()
 
-        assertEquals("Readrops Android", request.headers["User-Agent"])
+        assertEquals("Droidrops Android", request.headers["User-Agent"])
     }
 }
