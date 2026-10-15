@@ -50,6 +50,9 @@
     .service:nth-of-type(3) .service-mark { background:#dbefe6; color:#21624e; }
     .service:nth-of-type(4) .service-mark { background:#ffe5dc; color:#9b482b; }
     section.content { padding-block:92px; }
+    .promo-video { padding-top:68px; }
+    .promo-video .section-intro { margin-bottom:30px; }
+    .promo-video video { display:block; width:min(100%,960px); aspect-ratio:16/9; margin:0 auto; border-radius:22px; background:#071a32; box-shadow:0 24px 65px rgba(12,39,75,.16); }
     .section-intro { max-width:670px; margin:0 auto 58px; text-align:center; }
     .section-intro .eyebrow { color:var(--blue); }
     .section-intro h2 { margin:0; font-size:clamp(2.1rem,4vw,3.15rem); line-height:1.06; letter-spacing:-.055em; }
@@ -96,6 +99,7 @@
       <a class="brand" href="./"><img src="favicon.svg" alt="">Droidrops</a>
       <nav class="nav-links" aria-label="Main navigation">
         <a href="#features">Features</a>
+        <a href="#promo">Video</a>
         <a href="privacy/">Privacy</a>
         <a href="https://github.com/thekester/Droidrops">GitHub</a>
         <button class="theme-toggle" id="theme-toggle" type="button" aria-label="Switch to dark theme" title="Switch theme">
@@ -119,6 +123,19 @@
           <p class="hero-meta">Made for Android · GPL-3.0 · No account required for local feeds</p>
         </div>
         <img class="hero-shot" src="assets/screenshots/01-timeline-light.png" alt="Droidrops timeline with open web and open-source feed articles in the light theme">
+      </div>
+    </section>
+    <section class="content promo-video" id="promo">
+      <div class="wrap">
+        <div class="section-intro">
+          <p class="eyebrow">Watch the preview</p>
+          <h2>Meet Droidrops in motion.</h2>
+          <p>A short tour of the Android RSS reader, its reading flow, and supported services.</p>
+        </div>
+        <video controls preload="metadata" poster="assets/droidrops-promo-en-motion-poster.jpg" aria-label="Droidrops English promotional video">
+          <source src="assets/droidrops-promo-en-motion.mp4" type="video/mp4">
+          Your browser does not support HTML video. <a href="assets/droidrops-promo-en-motion.mp4">Watch the Droidrops video</a>.
+        </video>
       </div>
     </section>
     <section class="compat" aria-label="Compatible reading services">

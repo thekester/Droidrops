@@ -8,6 +8,14 @@
     <img src="fastlane/metadata/android/en-US/images/featureGraphic.jpg" alt="Droidrops RSS feed reader promotional banner" width="1024">
 </p>
 
+<h2 align="center">Watch the Droidrops promo</h2>
+
+<p align="center">
+    <a href="docs/assets/droidrops-promo-en-motion.mp4"><img src="docs/assets/droidrops-promo-en-motion-poster.jpg" alt="Watch the 76-second Droidrops app preview" width="800"></a>
+</p>
+
+<p align="center"><a href="docs/assets/droidrops-promo-en-motion.mp4">Watch the 76-second video</a></p>
+
 <p align="center">
 <a href="https://github.com/thekester/Droidrops/actions"><img src="https://github.com/thekester/Droidrops/actions/workflows/android.yml/badge.svg?branch=develop"></a>
 

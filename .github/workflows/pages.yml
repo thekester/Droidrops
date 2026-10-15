@@ -1,9 +1,9 @@
-name: Deploy privacy policy site
+name: Deploy Droidrops website
 
 on:
   push:
     branches:
-      - develop
+      - main
     paths:
       - "docs/**"
       - ".github/workflows/pages.yml"

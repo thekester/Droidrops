@@ -12,6 +12,21 @@
 - Fill in the Data Safety section accurately.
 - Make sure the store listing states that this is a fork of Readrops.
 
+### Promo video
+
+The English promo video is `docs/assets/droidrops-promo-en-motion.mp4` (76 seconds,
+1920 × 1080). The website embeds this file, and the F-Droid listing reads its video
+URL from `fastlane/metadata/android/en-US/video.txt`.
+F-Droid reads these source metadata files from the latest release, so the listing
+will pick up the video URL when a release containing this change is published and
+processed by F-Droid.
+
+Google Play's regular preview-video field requires a YouTube video URL; the Play
+Console does not accept this MP4 file directly. Upload the video to YouTube, then
+add its individual video URL in the Play Console store listing. Google requires
+the video to be public or unlisted, embeddable, not age-restricted, and have
+monetization disabled. See [Google Play preview video requirements](https://support.google.com/googleplay/android-developer/answer/9866151).
+
 ### GitLab CI
 
 The repository can publish to Google Play through GitLab CI:
