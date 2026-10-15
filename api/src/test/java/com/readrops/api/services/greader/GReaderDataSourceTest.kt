@@ -70,6 +70,10 @@ class GReaderDataSourceTest : KoinTest {
         assertEquals("application/x-www-form-urlencoded", request.getHeader("Content-Type")?.substringBefore(';'))
         assertTrue(requestBody.contains("Email=Login"))
         assertTrue(requestBody.contains("Passwd=Password"))
+        assertTrue(requestBody.contains("output=json"))
+        assertTrue(requestBody.contains("client=Droidrops"))
+        assertTrue(requestBody.contains("accountType=HOSTED_OR_GOOGLE"))
+        assertTrue(requestBody.contains("service=reader"))
     }
 
     @Test
