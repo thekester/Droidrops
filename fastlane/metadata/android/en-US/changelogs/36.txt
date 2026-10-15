@@ -1,0 +1,3 @@
+- Prevent duplicate timeline articles when accounts share item IDs.
+- Respect per-feed external browser settings.
+- Support Atom entries with an ID and content but no article link.

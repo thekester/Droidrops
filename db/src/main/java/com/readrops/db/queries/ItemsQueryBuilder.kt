@@ -46,7 +46,8 @@ object ItemsQueryBuilder {
             LEFT JOIN Folder on Feed.folder_id = Folder.id """.trimIndent()
 
     private const val SEPARATE_STATE_JOIN =
-        "LEFT JOIN ItemState On Item.remote_id = ItemState.remote_id"
+        "LEFT JOIN ItemState On Item.remote_id = ItemState.remote_id " +
+            "And ItemState.account_id = Feed.account_id"
 
     fun buildItemsQuery(queryFilters: QueryFilters, separateState: Boolean): SupportSQLiteQuery =
         buildQuery(queryFilters, separateState)

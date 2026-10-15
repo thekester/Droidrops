@@ -144,16 +144,18 @@ object TimelineTab : Tab {
             itemIndex: Int,
             openIn: OpenIn? = itemWithFeed.openIn
         ) {
-            val url = itemWithFeed.item.link!!
+            val item = itemWithFeed.item
+            when (resolveTimelineOpenAction(openIn, item.link != null, preferences.openInExternalBrowser)) {
+                TimelineOpenAction.LOCAL_ARTICLE ->
+                    navigator.push(ItemScreen(item.id, itemIndex, state.filters))
 
-            if (openIn == OpenIn.LOCAL_VIEW) {
-                navigator.push(ItemScreen(itemWithFeed.item.id, itemIndex, state.filters))
-            } else {
-                screenModel.setItemRead(itemWithFeed.item)
-
-                if (preferences.openInExternalBrowser) {
+                TimelineOpenAction.EXTERNAL_BROWSER -> item.link?.let { url ->
+                    screenModel.setItemRead(item)
                     context.openUrl(url)
-                } else {
+                }
+
+                TimelineOpenAction.CUSTOM_TAB -> item.link?.let { url ->
+                    screenModel.setItemRead(item)
                     context.openInCustomTab(url, preferences.theme, Color(itemWithFeed.color))
                 }
             }

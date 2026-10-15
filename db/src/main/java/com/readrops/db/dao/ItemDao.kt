@@ -74,8 +74,9 @@ interface ItemDao : BaseDao<Item> {
         Between DateTime(DateTime("now"), "-24 hour") And DateTime("now")""")
     fun selectUnreadNewItemsCount(accountId: Int): Flow<Int>
 
-    @Query("""Select count(*) From ItemState Inner Join Item On Item.remote_id = ItemState.remote_id 
-        Where ItemState.read = 0 and account_id = :accountId And DateTime(Round(Item.pub_date / 1000), 'unixepoch') 
+    @Query("""Select count(*) From ItemState Inner Join Item On Item.remote_id = ItemState.remote_id
+        Inner Join Feed On Feed.id = Item.feed_id And Feed.account_id = ItemState.account_id
+        Where ItemState.read = 0 And Feed.account_id = :accountId And DateTime(Round(Item.pub_date / 1000), 'unixepoch')
         Between DateTime(DateTime("now"), "-24 hour") And DateTime("now")""")
     fun selectUnreadNewItemsCountByItemState(accountId: Int): Flow<Int>
 

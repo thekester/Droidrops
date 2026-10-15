@@ -75,7 +75,7 @@ class ATOMItemAdapter : XmlAdapter<Item> {
     private fun validateItem(item: Item) = with(item) {
         when {
             title == null -> throw ParseException("Item title is required")
-            link == null -> throw ParseException("Item link is required")
+            link == null && remoteId == null -> throw ParseException("Item link or ID is required")
         }
     }
 

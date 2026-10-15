@@ -144,6 +144,19 @@ class GetFoldersWithFeedsTest : KoinTest {
         assertEquals(4, feed.unreadCount)
     }
 
+    @Test
+    fun newlyAddedFeedsRemainSortedCaseInsensitively() = runTest {
+        database.feedDao().insert(Feed(name = "zulu", accountId = account.id))
+        database.feedDao().insert(Feed(name = "alpha", accountId = account.id))
+
+        val feeds = getFoldersWithFeeds.get(
+            accountId = account.id,
+            mainFilter = MainFilter.ALL,
+            useSeparateState = false
+        ).first()[null].orEmpty()
+
+        assertEquals(listOf("alpha", "Feed 0", "Feed 1", "zulu"), feeds.map { it.name })
+    }
 
     @Test
     fun hideReadFeedsTest() = runTest {

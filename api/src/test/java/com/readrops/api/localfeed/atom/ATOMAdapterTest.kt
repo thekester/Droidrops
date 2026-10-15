@@ -62,14 +62,14 @@ class ATOMAdapterTest {
     }
 
     @Test
-    fun noLinkTest() {
+    fun entryWithIdButNoLinkTest() {
         val stream = TestUtils.loadResource("localfeed/atom/atom_items_no_link.xml")
 
-        val exception = assertThrows(ParseException::class.java) {
-            adapter.fromXml(stream.konsumeXml())
-        }
+        val item = adapter.fromXml(stream.konsumeXml()).second.single()
 
-        assertTrue(exception.stackTraceToString().contains("Item link is required"))
+        assertEquals("tag:github.com,2008:Grit::Commit/c15f093a1bc4211e85f8d1817c9073e307afe5ac", item.remoteId)
+        assertEquals(null, item.link)
+        TestCase.assertNotNull(item.content)
     }
 
     @Test

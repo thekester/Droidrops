@@ -28,7 +28,8 @@ object FoldersAndFeedsQueryBuilder {
     private val FEED_JOIN = """(Select * From Feed Where account_id = :accountId) Feed 
         Left Join Folder On Folder.id = Feed.folder_id""".trimMargin()
 
-    private const val SEPARATE_STATE = " Inner Join ItemState On ItemState.remote_id = Item.remote_id"
+    private const val SEPARATE_STATE = " Inner Join ItemState On ItemState.remote_id = Item.remote_id " +
+        "And ItemState.account_id = Feed.account_id"
 
     private const val FOLDER_JOIN = "Folder Left Join Feed On Folder.id = Feed.folder_id "
 

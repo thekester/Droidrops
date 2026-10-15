@@ -37,7 +37,8 @@ object ItemSelectionQueryBuilder {
         "Item Inner Join Feed On Item.feed_id = Feed.id Left Join Folder on Folder.id = Feed.folder_id"
 
     private const val SEPARATE_STATE_JOIN =
-        " Left Join ItemState On ItemState.remote_id = Item.remote_id"
+        " Left Join ItemState On ItemState.remote_id = Item.remote_id " +
+            "And ItemState.account_id = Feed.account_id"
 
     /**
      * @param separateState Indicates if item state must be retrieved from ItemState table
