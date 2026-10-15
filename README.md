@@ -5,6 +5,10 @@
 <h1 align="center"><b>Droidrops</b></h1>
 
 <p align="center">
+    <img src="fastlane/metadata/android/en-US/images/featureGraphic.jpg" alt="Droidrops RSS feed reader promotional banner" width="1024">
+</p>
+
+<p align="center">
 <a href="https://github.com/thekester/Droidrops/actions"><img src="https://github.com/thekester/Droidrops/actions/workflows/android.yml/badge.svg?branch=develop"></a>
 
 <h4 align="center">Droidrops is a fork of Readrops, a multi-services RSS client for Android. Its name is composed of "Read" and "drops", where drops are articles in an ocean of news.</h4>
@@ -55,6 +59,12 @@ debug.nextcloud_news.login=Test user
 debug.nextcloud_news.password=1234
 debug.nextcloud_news.url=https\://rss.example.com
 ```
+
+# Native debug symbols
+
+The Android release currently includes prebuilt native libraries from dependencies, including `libandroidx.graphics.path.so` and `libdatastore_shared_counter.so`. These libraries are distributed without their native debug symbols. Although the release build requests `debugSymbolLevel = "FULL"`, Gradle cannot recreate symbol information that is missing from the dependency binaries. As a result, the release AAB does not contain a native debug-symbol file, and there is currently no useful symbol archive to upload to Google Play Console.
+
+Google Play may show an informational warning recommending native debug symbols. This does not block publication. We can provide symbols if the dependency maintainers publish matching symbol files, or if the affected native dependencies are replaced with builds that include them.
 
 # Fork
 
