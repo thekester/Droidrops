@@ -1,0 +1,1 @@
+Fix importing RSS 1.0 feeds from OPML when the feed URL differs from the website URL.
