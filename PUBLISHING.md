@@ -14,9 +14,14 @@
 
 ### Promo video
 
-The English promo video is `docs/assets/droidrops-promo-en-motion.mp4` (76 seconds,
-1920 × 1080). The website embeds this file, and the F-Droid listing reads its video
-URL from `fastlane/metadata/android/en-US/video.txt`.
+The updated English promo videos are:
+
+- `docs/assets/droidrops-promo-en-motion.mp4` (1920 × 1080)
+- `docs/assets/droidrops-promo-en-vertical.mp4` (1080 × 1920)
+
+The website and F-Droid listing use the landscape version; the vertical version is
+available for mobile promotion. The F-Droid video URL is in
+`fastlane/metadata/android/en-US/video.txt`.
 F-Droid reads these source metadata files from the latest release, so the listing
 will pick up the video URL when a release containing this change is published and
 processed by F-Droid.
