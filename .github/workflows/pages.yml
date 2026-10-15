@@ -3,7 +3,7 @@ name: Deploy Droidrops website
 on:
   push:
     branches:
-      - main
+      - develop
     paths:
       - "docs/**"
       - ".github/workflows/pages.yml"
