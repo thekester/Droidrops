@@ -77,6 +77,17 @@ class ItemsQueryBuilderTest {
     }
 
     @Test
+    fun favoritesIncludeReadItemsWhenReadItemsAreHiddenGlobally() {
+        val query = ItemsQueryBuilder.buildItemsQuery(
+            QueryFilters(accountId = 1, mainFilter = MainFilter.STARS, showReadItems = false)
+        )
+
+        database.query(query)
+        assertTrue(query.sql.contains("starred = 1"))
+        assertFalse(query.sql.contains("read = 0"))
+    }
+
+    @Test
     fun newFilterCaseTest() {
         val queryFilters = QueryFilters(accountId = 1, mainFilter = MainFilter.NEW)
 
@@ -150,7 +161,7 @@ class ItemsQueryBuilderTest {
         val queryFilters = QueryFilters(
             accountId = 1,
             showReadItems = false,
-            mainFilter = MainFilter.STARS
+            mainFilter = MainFilter.ALL
         )
 
         val query = ItemsQueryBuilder.buildItemsQuery(queryFilters, true)
@@ -158,9 +169,20 @@ class ItemsQueryBuilderTest {
 
         with(query.sql) {
             assertFalse(contains("read, starred"))
-            assertTrue(contains("ItemState.read = 0 And "))
-            assertTrue(contains("ItemState.starred = 1"))
+            assertTrue(contains("ItemState.read = 0"))
         }
+    }
+
+    @Test
+    fun favoritesWithSeparateStateIncludeReadItemsWhenReadItemsAreHiddenGlobally() {
+        val query = ItemsQueryBuilder.buildItemsQuery(
+            QueryFilters(accountId = 1, showReadItems = false, mainFilter = MainFilter.STARS),
+            separateState = true
+        )
+
+        database.query(query)
+        assertTrue(query.sql.contains("ItemState.starred = 1"))
+        assertFalse(query.sql.contains("ItemState.read = 0"))
     }
 
     @Test(expected = IllegalArgumentException::class)

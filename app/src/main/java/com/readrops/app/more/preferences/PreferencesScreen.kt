@@ -104,6 +104,7 @@ class PreferencesScreen : AndroidScreen() {
                                 entries = mapOf(
                                     "light" to stringResource(id = R.string.light),
                                     "dark" to stringResource(id = R.string.dark),
+                                    "true_black" to stringResource(id = R.string.true_black),
                                     "system" to stringResource(id = R.string.system)
                                 ) + if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                                     mapOf("dynamic" to stringResource(id = R.string.dynamic_colors))

@@ -71,6 +71,7 @@
     <string name="theme">Thème</string>
     <string name="light">Clair</string>
     <string name="dark">Sombre</string>
+    <string name="true_black">Noir profond</string>
     <string name="new_feed">Nouveau flux</string>
     <string name="auto_synchro">Synchronisation automatique</string>
     <string name="manual">Manuel</string>

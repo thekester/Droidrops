@@ -94,7 +94,10 @@ object ItemsQueryBuilder {
         val clause = buildString {
             append("Feed.account_id = ${queryFilters.accountId} ")
 
-            if (!queryFilters.showReadItems) {
+            // The favorites view is specifically meant to expose saved articles, including
+            // articles that were marked as read. Applying the global unread-only preference
+            // here made the favorites list disappear for users who hide read articles.
+            if (!queryFilters.showReadItems && queryFilters.mainFilter != MainFilter.STARS) {
                 if (separateState) {
                     append("And ItemState.read = 0 ")
                 } else {

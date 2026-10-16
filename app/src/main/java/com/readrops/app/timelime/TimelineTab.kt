@@ -469,7 +469,10 @@ object TimelineTab : Tab {
                                                                 )
 
                                                                 if (action == SnackbarResult.ActionPerformed) {
-                                                                    screenModel.updateItemReadState(itemWithFeed.item)
+                                                                    screenModel.setItemReadState(
+                                                                        itemWithFeed.item,
+                                                                        isRead = false
+                                                                    )
                                                                 }
                                                             }
                                                         }

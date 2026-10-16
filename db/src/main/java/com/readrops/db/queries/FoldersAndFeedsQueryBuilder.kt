@@ -25,8 +25,7 @@ object FoldersAndFeedsQueryBuilder {
         "Folder.remoteId as folderRemoteId"
     )
 
-    private val FEED_JOIN = """(Select * From Feed Where account_id = :accountId) Feed 
-        Left Join Folder On Folder.id = Feed.folder_id""".trimMargin()
+    private const val FEED_JOIN = "Feed Left Join Folder On Folder.id = Feed.folder_id"
 
     private const val SEPARATE_STATE = " Inner Join ItemState On ItemState.remote_id = Item.remote_id " +
         "And ItemState.account_id = Feed.account_id"
@@ -35,7 +34,7 @@ object FoldersAndFeedsQueryBuilder {
 
     private const val ITEM_JOIN = " Inner Join Item On Item.feed_id = Feed.id "
 
-    private const val FEED_SELECTION = "Feed.folder_id is NULL OR Feed.folder_id is NOT NULL "
+    private const val FEED_SELECTION = "Feed.account_id = :accountId "
 
     private const val FOLDER_SELECTION = "Feed.id is NULL And Folder.account_id = :accountId"
 
@@ -86,9 +85,9 @@ object FoldersAndFeedsQueryBuilder {
             }
         }
 
-        return SupportSQLiteQueryBuilder.builder(tables.replace(":accountId", "$accountId")).run {
+        return SupportSQLiteQueryBuilder.builder(tables).run {
             columns(COLUMNS)
-            selection(selection, null)
+            selection(selection.replace(":accountId", "$accountId"), null)
             groupBy("Feed.id")
 
             create()

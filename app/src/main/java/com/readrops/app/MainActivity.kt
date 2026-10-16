@@ -77,7 +77,8 @@ class MainActivity : ComponentActivity(), KoinComponent {
 
                 ReadropsTheme(
                     useDarkTheme = useDarkTheme,
-                    useDynamicColor = themeMode == DYNAMIC_THEME
+                    useDynamicColor = themeMode == DYNAMIC_THEME,
+                    useTrueBlack = themeMode == TRUE_BLACK_THEME
                 ) {
                     enableEdgeToEdge(
                         statusBarStyle = SystemBarStyle.auto(
@@ -166,11 +167,13 @@ class MainActivity : ComponentActivity(), KoinComponent {
         return when (mode) {
             "light" -> false
             "dark" -> true
+            TRUE_BLACK_THEME -> true
             else -> darkFlag == Configuration.UI_MODE_NIGHT_YES
         }
     }
 
     private companion object {
         const val DYNAMIC_THEME = "dynamic"
+        const val TRUE_BLACK_THEME = "true_black"
     }
 }

@@ -9,6 +9,7 @@ import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.Color
 
 
 private val lightScheme = lightColorScheme(
@@ -87,13 +88,28 @@ private val darkScheme = darkColorScheme(
     surfaceContainerHighest = surfaceContainerHighestDark,
 )
 
+internal val trueBlackDarkScheme = darkScheme.copy(
+    background = Color.Black,
+    surface = Color.Black,
+    surfaceVariant = Color(0xFF121212),
+    surfaceDim = Color.Black,
+    surfaceBright = Color.Black,
+    surfaceContainerLowest = Color.Black,
+    surfaceContainerLow = Color.Black,
+    surfaceContainer = Color.Black,
+    surfaceContainerHigh = Color.Black,
+    surfaceContainerHighest = Color.Black,
+)
+
 @Composable
 fun ReadropsTheme(
     useDarkTheme: Boolean = isSystemInDarkTheme(),
     useDynamicColor: Boolean = false,
+    useTrueBlack: Boolean = false,
     content: @Composable () -> Unit
 ) {
     val colors = when {
+        useTrueBlack -> trueBlackDarkScheme
         useDynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             if (useDarkTheme) dynamicDarkColorScheme(LocalContext.current)
             else dynamicLightColorScheme(LocalContext.current)

@@ -1,0 +1,6 @@
+- Add a true black theme for dark-mode displays.
+- Keep read articles visible in Favorites when the unread-only filter is enabled.
+- Make the article-read Undo action restore the unread state reliably.
+- Simplify folder and feed queries and add regression coverage.
+- All 78 instrumented tests pass on the Android emulator.
+https://github.com/thekester/Droidrops/releases/tag/v2.2.18

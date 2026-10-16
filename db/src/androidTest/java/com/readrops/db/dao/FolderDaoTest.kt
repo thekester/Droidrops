@@ -5,10 +5,14 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.readrops.db.Database
+import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Folder
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
+import com.readrops.db.filters.MainFilter
+import com.readrops.db.queries.FoldersAndFeedsQueryBuilder
 import junit.framework.TestCase.assertFalse
+import junit.framework.TestCase.assertNull
 import junit.framework.TestCase.assertTrue
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
@@ -68,5 +72,32 @@ class FolderDaoTest {
 
         assertFalse(allFolders.any { it.remoteId == "folder_1" })
         assertTrue(allFolders.any { it.remoteId == "folder_2" })
+    }
+
+    @Test
+    fun deletingFolderMovesItsFeedsToTheDefaultFolder() = runTest {
+        val folder = database.folderDao().selectAllFolders(account.id).first()
+        val feed = Feed(name = "Feed", folderId = folder.id, accountId = account.id)
+        feed.id = database.feedDao().insert(feed).toInt()
+
+        database.folderDao().delete(folder)
+
+        assertTrue(database.folderDao().selectAllFolders(account.id).none { it.id == folder.id })
+        assertNull(database.feedDao().selectFeed(feed.id).folderId)
+    }
+
+    @Test
+    fun foldersAndFeedsQueryFiltersByAccountWithoutRedundantFeedSubquery() {
+        val query = FoldersAndFeedsQueryBuilder.build(
+            accountId = account.id,
+            mainFilter = MainFilter.ALL,
+            hideReadFeeds = false,
+            useSeparateState = false
+        )
+
+        assertTrue(query.sql.contains("Feed.account_id = ${account.id}"))
+        assertFalse(query.sql.contains("(Select * From Feed"))
+        assertFalse(query.sql.contains("Feed.folder_id is NULL OR Feed.folder_id is NOT NULL"))
+        database.query(query)
     }
 }
