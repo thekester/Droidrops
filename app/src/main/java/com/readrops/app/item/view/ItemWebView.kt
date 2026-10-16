@@ -84,7 +84,7 @@ class ItemWebView(
             if (type == HitTestResult.IMAGE_TYPE || type == HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
                 result.extra?.let { onImageLongPress(it) }
                 true
-            } else if (type == HitTestResult.ANCHOR_TYPE || type == HitTestResult.SRC_ANCHOR_TYPE) {
+            } else if (type == HitTestResult.SRC_ANCHOR_TYPE) {
                 result.extra?.let { onLinkLongPress(it) }
                 true
             } else {
