@@ -41,6 +41,14 @@ fun TimelineDialogs(
                 onSetShowReadItems = {
                     screenModel.setShowReadItemsState(!state.filters.showReadItems)
                 },
+                showRecentlyReadItems = state.preferences.showRecentlyReadItems,
+                onSetShowRecentlyReadItems = {
+                    screenModel.setShowRecentlyReadItemsState(!state.preferences.showRecentlyReadItems)
+                },
+                recentlyReadOnly = state.filters.recentlyReadOnly,
+                onSetRecentlyReadOnly = {
+                    screenModel.setRecentlyReadOnlyState(!state.filters.recentlyReadOnly)
+                },
                 onSetOrderField = {
                     screenModel.setOrderFieldState(
                         if (state.filters.orderField == OrderField.ID) {

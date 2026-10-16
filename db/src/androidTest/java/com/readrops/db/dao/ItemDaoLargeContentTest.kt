@@ -17,6 +17,7 @@ import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.time.LocalDateTime
 
 @RunWith(AndroidJUnit4::class)
 class ItemDaoLargeContentTest {
@@ -50,5 +51,30 @@ class ItemDaoLargeContentTest {
         assertEquals(ItemContentProjection.MAX_TEXT_LENGTH + 1, selected.content!!.length)
         assertTrue(selected.content!!.startsWith("x"))
         assertTrue(selected.content!!.endsWith("…"))
+    }
+
+    @Test
+    fun pruningKeepsNewestItemsAndAlwaysPreservesFavorites() = runTest {
+        val account = Account(type = AccountType.LOCAL)
+        account.id = database.accountDao().insert(account).toInt()
+        val feed = Feed(name = "Retention feed", accountId = account.id)
+        feed.id = database.feedDao().insert(feed).toInt()
+
+        val items = listOf(
+            Item(title = "Old favorite", remoteId = "favorite", feedId = feed.id,
+                pubDate = LocalDateTime.of(2020, 1, 1, 0, 0), isStarred = true),
+            Item(title = "Old article", remoteId = "old", feedId = feed.id,
+                pubDate = LocalDateTime.of(2020, 1, 2, 0, 0)),
+            Item(title = "New article 1", remoteId = "new-1", feedId = feed.id,
+                pubDate = LocalDateTime.of(2025, 1, 1, 0, 0)),
+            Item(title = "New article 2", remoteId = "new-2", feedId = feed.id,
+                pubDate = LocalDateTime.of(2025, 1, 2, 0, 0)),
+        )
+        database.itemDao().insert(items)
+
+        database.itemDao().pruneUnstarredItems(feed.id, keepCount = 2)
+
+        val retained = database.itemDao().selectItems(feed.id)
+        assertEquals(setOf("Old favorite", "New article 1", "New article 2"), retained.map { it.title }.toSet())
     }
 }

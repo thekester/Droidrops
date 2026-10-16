@@ -29,6 +29,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.geometry.CornerRadius
 import androidx.compose.ui.graphics.Color
@@ -88,7 +89,8 @@ fun RegularTimelineItem(
 
             TimelineItemTitle(
                 title = itemWithFeed.item.title!!,
-                isRead = itemWithFeed.isRead
+                isRead = itemWithFeed.isRead,
+                thumbnailUrl = itemWithFeed.item.imageLink
             )
 
             ShortSpacer()
@@ -148,7 +150,8 @@ fun CompactTimelineItem(
 
             TimelineItemTitle(
                 title = itemWithFeed.item.title!!,
-                isRead = itemWithFeed.isRead
+                isRead = itemWithFeed.isRead,
+                thumbnailUrl = itemWithFeed.item.imageLink
             )
 
             ShortSpacer()
@@ -412,16 +415,35 @@ fun TimelineItemHeader(
 @Composable
 fun TimelineItemTitle(
     title: String,
-    isRead: Boolean
+    isRead: Boolean,
+    thumbnailUrl: String? = null
 ) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        maxLines = 1,
-        overflow = TextOverflow.Ellipsis,
-        // unread items are emphasized by weight, not opacity, so read items keep full contrast
-        fontWeight = if (isRead) FontWeight.Normal else FontWeight.Bold,
-    )
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.shortSpacing),
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        Text(
+            text = title,
+            style = MaterialTheme.typography.titleMedium,
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f),
+            // unread items are emphasized by weight, not opacity, so read items keep full contrast
+            fontWeight = if (isRead) FontWeight.Normal else FontWeight.Bold,
+        )
+
+        if (!thumbnailUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = thumbnailUrl,
+                contentDescription = stringResource(R.string.article_thumbnail, title),
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(width = 64.dp, height = 48.dp)
+                    .clip(RoundedCornerShape(8.dp))
+            )
+        }
+    }
 }
 
 @Composable

@@ -1,0 +1,7 @@
+- Add a recently read filter and restore the timeline position per account.
+- Improve article reading with image viewing, link actions, excerpt sharing and smoother scrolling.
+- Make feed history configurable while preserving starred articles.
+- Accept more OPML exports and handle files with no subscriptions gracefully.
+- Fix blank article cards, Atom entries without links, and several sync and query edge cases.
+- Fix a crash when opening the Add Feed screen.
+https://github.com/thekester/Droidrops/releases/tag/v2.2.19

@@ -44,8 +44,8 @@ android {
     defaultConfig {
         applicationId = "com.droidrops.app"
 
-        versionCode = 39
-        versionName = "2.2.18"
+        versionCode = 40
+        versionName = "2.2.19"
 
         testInstrumentationRunner = "com.readrops.app.ReadropsTestRunner"
     }
@@ -162,7 +162,12 @@ dependencies {
     implementation(platform(libs.koin.bom))
     implementation(libs.bundles.koin)
 
-    implementation(libs.aboutlibraries.composem3)
+    implementation(libs.aboutlibraries.composem3) {
+        // AboutLibraries 14.1.0 pulls a newer Compose Multiplatform Material 3 runtime
+        // than the Android Compose BOM used by the app. That upgrades only the runtime
+        // Material 3 classes and causes NoSuchMethodError in ExposedDropdownMenuBox.
+        exclude(group = "org.jetbrains.compose.material3", module = "material3")
+    }
     implementation(libs.jsoup)
     implementation(libs.colorpicker)
 

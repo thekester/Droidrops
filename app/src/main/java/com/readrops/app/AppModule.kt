@@ -90,7 +90,7 @@ val appModule = module {
 
     factory<BaseRepository> { (account: Account) ->
         when (account.type) {
-            AccountType.LOCAL -> LocalRSSRepository(get(), get(), account)
+            AccountType.LOCAL, AccountType.FEEDLY -> LocalRSSRepository(get(), get(), account, get())
             AccountType.FRESHRSS, AccountType.GREADER -> GReaderRepository(
                 database = get(),
                 account = account,

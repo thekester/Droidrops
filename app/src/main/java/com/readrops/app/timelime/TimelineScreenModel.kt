@@ -55,6 +55,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import com.readrops.db.entities.Tag
+import java.util.Collections
+import java.util.LinkedHashSet
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class TimelineScreenModel(
@@ -74,6 +76,7 @@ class TimelineScreenModel(
     val listIndexState = _listIndexState.asStateFlow()
 
     private val filters = MutableStateFlow(_timelineState.value.filters)
+    private val recentlyReadItemIds = Collections.synchronizedSet(LinkedHashSet<Int>())
 
     private val useCustomShareIntentTpl = preferences.useCustomShareIntentTpl.flow.stateIn(
         screenModelScope, SharingStarted.Eagerly, false
@@ -100,7 +103,12 @@ class TimelineScreenModel(
                         filters = filters.copy(
                             showReadItems = timelinePreferences.showReadItems,
                             orderField = timelinePreferences.orderField,
-                            orderType = timelinePreferences.orderType
+                            orderType = timelinePreferences.orderType,
+                            recentlyReadItemIds = if (timelinePreferences.showRecentlyReadItems) {
+                                recentlyReadItemIdsSnapshot()
+                            } else {
+                                emptyList()
+                            }
                         )
                     )
                 }
@@ -200,6 +208,7 @@ class TimelineScreenModel(
             synchAtLaunch.flow,
             swipeToLeft.flow,
             swipeToRight.flow,
+            showRecentlyReadItems.flow,
             transform = {
                 TimelinePreferences(
                     itemSize = when (it[0]) {
@@ -217,7 +226,8 @@ class TimelineScreenModel(
                     openInAsk = it[8] as Boolean,
                     syncAtLaunch = it[9] as Boolean,
                     swipeToLeft = SwipeAction.valueOf(it[10] as String),
-                    swipeToRight = SwipeAction.valueOf(it[11] as String)
+                    swipeToRight = SwipeAction.valueOf(it[11] as String),
+                    showRecentlyReadItems = it[12] as Boolean
                 )
             }
         )
@@ -271,8 +281,6 @@ class TimelineScreenModel(
             _timelineState.update { it.copy(syncError = context.getString(R.string.no_network)) }
             return
         }
-
-        buildPager(empty = true)
 
         screenModelScope.launch(dispatcher) {
             val filterPair = with(_timelineState.value.filters) {
@@ -444,6 +452,7 @@ class TimelineScreenModel(
         item.isRead = true
 
         screenModelScope.launch(dispatcher) {
+            rememberRecentlyReadItem(item.id)
             repository?.setItemReadState(item)
         }
     }
@@ -452,6 +461,7 @@ class TimelineScreenModel(
         screenModelScope.launch(dispatcher) {
             with(item) {
                 isRead = !isRead
+                if (isRead) rememberRecentlyReadItem(id) else forgetRecentlyReadItem(id)
                 repository?.setItemReadState(this)
             }
         }
@@ -460,7 +470,40 @@ class TimelineScreenModel(
     fun setItemReadState(item: Item, isRead: Boolean) {
         screenModelScope.launch(dispatcher) {
             item.isRead = isRead
+            if (isRead) rememberRecentlyReadItem(item.id) else forgetRecentlyReadItem(item.id)
             repository?.setItemReadState(item)
+        }
+    }
+
+    /** Keep recently opened/read item IDs for this app session only. */
+    fun trackRecentlyReadItem(itemId: Int) {
+        screenModelScope.launch(dispatcher) { rememberRecentlyReadItem(itemId) }
+    }
+
+    private suspend fun rememberRecentlyReadItem(itemId: Int) {
+        if (itemId <= 0) return
+        synchronized(recentlyReadItemIds) {
+            recentlyReadItemIds.remove(itemId)
+            recentlyReadItemIds.add(itemId)
+            while (recentlyReadItemIds.size > MAX_RECENTLY_READ_ITEMS) {
+                recentlyReadItemIds.remove(recentlyReadItemIds.first())
+            }
+        }
+        updateRecentlyReadFilterIfEnabled()
+    }
+
+    private suspend fun forgetRecentlyReadItem(itemId: Int) {
+        synchronized(recentlyReadItemIds) { recentlyReadItemIds.remove(itemId) }
+        updateRecentlyReadFilterIfEnabled()
+    }
+
+    private fun recentlyReadItemIdsSnapshot(): List<Int> = synchronized(recentlyReadItemIds) {
+        recentlyReadItemIds.toList()
+    }
+
+    private suspend fun updateRecentlyReadFilterIfEnabled() {
+        if (preferences.showRecentlyReadItems.flow.first() || filters.value.recentlyReadOnly) {
+            filters.update { it.copy(recentlyReadItemIds = recentlyReadItemIds.toList()) }
         }
     }
 
@@ -470,6 +513,13 @@ class TimelineScreenModel(
                 isStarred = isStarred.not()
                 repository?.setItemStarState(this)
             }
+        }
+    }
+
+    fun setStarState(item: Item, isStarred: Boolean) {
+        screenModelScope.launch(dispatcher) {
+            item.isStarred = isStarred
+            repository?.setItemStarState(item)
         }
     }
 
@@ -512,6 +562,37 @@ class TimelineScreenModel(
             _timelineState.update {
                 it.copy(
                     filters = it.filters.copy(showReadItems = showReadItems)
+                )
+            }
+        }
+    }
+
+    fun setShowRecentlyReadItemsState(showRecentlyReadItems: Boolean) {
+        screenModelScope.launch {
+            preferences.showRecentlyReadItems.write(showRecentlyReadItems)
+            filters.update {
+                it.copy(
+                    recentlyReadItemIds = if (showRecentlyReadItems) {
+                        recentlyReadItemIdsSnapshot()
+                    } else {
+                        emptyList()
+                    }
+                )
+            }
+        }
+    }
+
+    fun setRecentlyReadOnlyState(recentlyReadOnly: Boolean) {
+        screenModelScope.launch(dispatcher) {
+            val keepRecentVisible = preferences.showRecentlyReadItems.flow.first()
+            filters.update {
+                it.copy(
+                    recentlyReadOnly = recentlyReadOnly,
+                    recentlyReadItemIds = if (recentlyReadOnly || keepRecentVisible) {
+                        recentlyReadItemIdsSnapshot()
+                    } else {
+                        emptyList()
+                    }
                 )
             }
         }
@@ -618,8 +699,11 @@ data class TimelinePreferences(
     val openInAsk: Boolean = true,
     val syncAtLaunch: Boolean = false,
     val swipeToLeft: SwipeAction = SwipeAction.READ,
-    val swipeToRight: SwipeAction = SwipeAction.DISABLED
+    val swipeToRight: SwipeAction = SwipeAction.DISABLED,
+    val showRecentlyReadItems: Boolean = false
 )
+
+private const val MAX_RECENTLY_READ_ITEMS = 100
 
 sealed interface DialogState {
     data object ConfirmDialog : DialogState

@@ -26,7 +26,7 @@ data class Account(
         get() = type!!.config
 
     val isLocal
-        get() = type == AccountType.LOCAL
+        get() = type?.config == AccountConfig.LOCAL
 
     fun `is`(accountType: AccountType) = this.type == accountType
 

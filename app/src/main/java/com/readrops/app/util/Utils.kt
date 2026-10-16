@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import androidx.annotation.ColorInt
+import com.readrops.app.R
 import com.readrops.db.pojo.ItemWithFeed
 import java.util.Locale
 
@@ -57,6 +58,45 @@ object Utils {
         }.also {
             context.startActivity(Intent.createChooser(it, null))
         }
+    }
+
+    fun formatSelectionWithReference(
+        selectedText: String,
+        author: String?,
+        title: String?,
+        feedName: String?,
+        url: String?
+    ): String {
+        val citation = buildList {
+            author?.takeIf(String::isNotBlank)?.let(::add)
+            title?.takeIf(String::isNotBlank)?.let { add("\"$it\"") }
+            feedName?.takeIf(String::isNotBlank)?.let(::add)
+        }.joinToString(", ")
+        return listOf(selectedText.trim(), citation, url.orEmpty())
+            .filter(String::isNotBlank)
+            .joinToString("\n\n")
+    }
+
+    fun shareSelectionWithReference(
+        selectedText: String,
+        itemWithFeed: ItemWithFeed,
+        context: Context
+    ) {
+        val item = itemWithFeed.item
+        val content = formatSelectionWithReference(
+            selectedText = selectedText,
+            author = item.author,
+            title = item.title,
+            feedName = itemWithFeed.feedName,
+            url = item.link
+        )
+        val intent = Intent(Intent.ACTION_SEND).apply {
+            type = "text/plain"
+            putExtra(Intent.EXTRA_TEXT, content)
+        }
+        context.startActivity(
+            Intent.createChooser(intent, context.getString(R.string.share_selection_with_reference))
+        )
     }
 
     fun truncateString(text: String, max: Int): String {

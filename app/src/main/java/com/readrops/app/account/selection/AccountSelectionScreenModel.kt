@@ -7,6 +7,7 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.readrops.api.opml.OPMLParser
 import com.readrops.app.R
+import com.readrops.app.account.hasImportableFeeds
 import com.readrops.app.repositories.BaseRepository
 import com.readrops.app.util.accounterror.AccountError
 import com.readrops.db.Database
@@ -86,8 +87,8 @@ class AccountSelectionScreenModel(
                 return@launch
             }
 
-            if (foldersAndFeeds.isEmpty()) {
-                mutableState.update { it.copy(error = context.getString(R.string.empty_file)) }
+            if (!foldersAndFeeds.hasImportableFeeds()) {
+                mutableState.update { it.copy(error = context.getString(R.string.opml_no_feeds)) }
                 return@launch
             }
 

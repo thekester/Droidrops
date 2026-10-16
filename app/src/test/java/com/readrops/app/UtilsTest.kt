@@ -8,6 +8,34 @@ import org.junit.Test
 class UtilsTest {
 
     @Test
+    fun formatSelectionWithReferenceIncludesSelectedTextAndSource() {
+        assertEquals(
+            "Useful excerpt\n\nJane Doe, \"Research notes\", Science Weekly\n\nhttps://example.org/article",
+            Utils.formatSelectionWithReference(
+                selectedText = " Useful excerpt ",
+                author = "Jane Doe",
+                title = "Research notes",
+                feedName = "Science Weekly",
+                url = "https://example.org/article"
+            )
+        )
+    }
+
+    @Test
+    fun formatSelectionWithReferenceOmitsMissingMetadata() {
+        assertEquals(
+            "A quote\n\n\"Untitled?\"",
+            Utils.formatSelectionWithReference(
+                selectedText = "A quote",
+                author = null,
+                title = "Untitled?",
+                feedName = null,
+                url = null
+            )
+        )
+    }
+
+    @Test
     fun truncateStringTest() {
         val result =
             Utils.truncateString("This is a very very long string with more than 30 characters", 30)

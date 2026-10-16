@@ -11,7 +11,11 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -46,6 +50,8 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -55,6 +61,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
 import androidx.paging.compose.itemKey
+import androidx.paging.LoadState
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
@@ -72,6 +79,7 @@ import com.readrops.app.timelime.dialog.TimelineDialogs
 import com.readrops.app.timelime.drawer.TimelineDrawer
 import com.readrops.app.util.components.LoadingScreen
 import com.readrops.app.util.components.Placeholder
+import com.readrops.app.util.components.RefreshBanner
 import com.readrops.app.util.components.RefreshScreen
 import com.readrops.app.util.extensions.isError
 import com.readrops.app.util.extensions.isLoading
@@ -87,6 +95,7 @@ import com.readrops.db.filters.MainFilter
 import com.readrops.db.pojo.ItemWithFeed
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.receiveAsFlow
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
@@ -128,6 +137,29 @@ object TimelineTab : Tab {
         val topAppBarState = rememberTopAppBarState()
         val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topAppBarState)
 
+        LaunchedEffect(state.filters) {
+            val filters = state.filters
+            if (!filters.isDefaultTimelinePositionScope()) {
+                lazyListState.scrollToItem(0)
+            }
+        }
+
+        LaunchedEffect(state.filters, items.loadState.refresh) {
+            val filters = state.filters
+            if (!filters.isDefaultTimelinePositionScope() ||
+                items.loadState.refresh !is LoadState.NotLoading || items.itemCount == 0
+            ) return@LaunchedEffect
+
+            val positionStore = TimelineScrollPosition(context, filters.accountId)
+            val savedPosition = positionStore.read()
+            lazyListState.scrollToItem(savedPosition.itemIndex, savedPosition.itemOffset)
+            snapshotFlow {
+                lazyListState.firstVisibleItemIndex to lazyListState.firstVisibleItemScrollOffset
+            }.distinctUntilChanged().collect { (index, offset) ->
+                positionStore.write(index, offset)
+            }
+        }
+
         val lazyColumnPadding = if (preferences.itemSize == TimelineItemSize.COMPACT) {
             0.dp
         } else {
@@ -145,6 +177,7 @@ object TimelineTab : Tab {
             openIn: OpenIn? = itemWithFeed.openIn
         ) {
             val item = itemWithFeed.item
+            screenModel.trackRecentlyReadItem(item.id)
             when (resolveTimelineOpenAction(openIn, item.link != null, preferences.openInExternalBrowser)) {
                 TimelineOpenAction.LOCAL_ARTICLE ->
                     navigator.push(ItemScreen(item.id, itemIndex, state.filters))
@@ -185,7 +218,13 @@ object TimelineTab : Tab {
 
         LaunchedEffect(state.scrollToTop) {
             if (state.scrollToTop) {
-                lazyListState.scrollToItem(0)
+                val filters = state.filters
+                if (filters.isDefaultTimelinePositionScope()) {
+                    val savedPosition = TimelineScrollPosition(context, filters.accountId).read()
+                    lazyListState.scrollToItem(savedPosition.itemIndex, savedPosition.itemOffset)
+                } else {
+                    lazyListState.scrollToItem(0)
+                }
                 screenModel.resetScrollToTop()
                 topAppBarState.contentOffset = 0f
             }
@@ -237,7 +276,21 @@ object TimelineTab : Tab {
             }
         }
 
-        LaunchedEffect(context.resources.configuration.orientation, usePermanentDrawer) {
+        LaunchedEffect(
+            context.resources.configuration.orientation,
+            usePermanentDrawer,
+            useLandscapeDrawerOverlay
+        ) {
+            // DrawerState only receives its density while attached to a Material drawer.
+            // Permanent tablet navigation and the landscape overlay do not compose
+            // ModalNavigationDrawer, so calling snapTo() in either layout can crash with
+            // "The density on DrawerState was not set" during an orientation change.
+            if (usePermanentDrawer || useLandscapeDrawerOverlay) {
+                screenModel.closeDrawer()
+                tabletDrawerOpen = usePermanentDrawer
+                return@LaunchedEffect
+            }
+
             // A modal drawer can retain an intermediate offset when the phone rotates. Snap it
             // shut after its new layout anchors are placed so the old-width drawer cannot remain
             // as a clipped strip over the timeline.
@@ -366,7 +419,7 @@ object TimelineTab : Tab {
                         )
                     ) {
                         when {
-                            state.displayRefreshScreen -> RefreshScreen(
+                            state.displayRefreshScreen && items.itemCount == 0 -> RefreshScreen(
                                 currentFeed = state.currentFeed,
                                 feedCount = state.feedCount,
                                 feedMax = state.feedMax
@@ -393,7 +446,9 @@ object TimelineTab : Tab {
                                     )
 
                                     LazyColumn(
-                                        modifier = Modifier.fillMaxSize(),
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .padding(top = if (state.displayRefreshScreen) 56.dp else 0.dp),
                                         state = lazyListState,
                                         contentPadding = PaddingValues(vertical = lazyColumnPadding),
                                         verticalArrangement = Arrangement.spacedBy(lazyColumnPadding)
@@ -427,7 +482,10 @@ object TimelineTab : Tab {
                                                         val wasStarred =
                                                             itemWithFeed.item.isStarred
 
-                                                        screenModel.updateStarState(itemWithFeed.item)
+                                                        screenModel.setStarState(
+                                                            itemWithFeed.item,
+                                                            isStarred = !wasStarred
+                                                        )
 
                                                         // only the removal is offered an undo:
                                                         // adding a favourite is visible and
@@ -446,8 +504,9 @@ object TimelineTab : Tab {
                                                                     )
 
                                                                 if (action == SnackbarResult.ActionPerformed) {
-                                                                    screenModel.updateStarState(
-                                                                        itemWithFeed.item
+                                                                    screenModel.setStarState(
+                                                                        itemWithFeed.item,
+                                                                        isStarred = wasStarred
                                                                     )
                                                                 }
                                                             }
@@ -512,6 +571,44 @@ object TimelineTab : Tab {
                                     }
                                 }
                             }
+                        }
+                    }
+
+                    if (state.displayRefreshScreen && items.itemCount > 0) {
+                        RefreshBanner(
+                            currentFeed = state.currentFeed,
+                            feedCount = state.feedCount,
+                            feedMax = state.feedMax,
+                            modifier = Modifier
+                                .align(Alignment.TopCenter)
+                                .fillMaxWidth()
+                        )
+                    }
+
+                    val totalItems = lazyListState.layoutInfo.totalItemsCount
+                    val visibleItems = lazyListState.layoutInfo.visibleItemsInfo.size
+                    val scrollbarColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
+                    if (lazyListState.isScrollInProgress && totalItems > visibleItems && visibleItems > 0) {
+                        Canvas(
+                            modifier = Modifier
+                                .align(Alignment.CenterEnd)
+                                .padding(vertical = 12.dp)
+                                .width(4.dp)
+                                .fillMaxHeight()
+                        ) {
+                            val thumbHeight = (size.height * visibleItems / totalItems)
+                                .coerceAtLeast(24.dp.toPx())
+                                .coerceAtMost(size.height)
+                            val maxScrollIndex = (totalItems - visibleItems).coerceAtLeast(1)
+                            val progress = (lazyListState.firstVisibleItemIndex.toFloat() / maxScrollIndex)
+                                .coerceIn(0f, 1f)
+                            val top = (size.height - thumbHeight) * progress
+                            drawRoundRect(
+                                color = scrollbarColor,
+                                topLeft = Offset(size.width - 3.dp.toPx(), top),
+                                size = Size(3.dp.toPx(), thumbHeight),
+                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
+                            )
                         }
                     }
                 }

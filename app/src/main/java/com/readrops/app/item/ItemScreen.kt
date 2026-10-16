@@ -2,6 +2,9 @@ package com.readrops.app.item
 
 import android.Manifest
 import android.content.pm.PackageManager
+import android.content.ClipData
+import android.content.Context
+import android.content.Intent
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -14,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
 import androidx.compose.runtime.snapshotFlow
@@ -38,6 +42,7 @@ import com.readrops.app.util.extensions.openInCustomTab
 import com.readrops.app.util.extensions.openUrl
 import com.readrops.db.filters.QueryFilters
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
 import org.koin.core.parameter.parametersOf
 
 class ItemScreen(
@@ -57,7 +62,10 @@ class ItemScreen(
         val items = screenModel.itemState.collectAsLazyPagingItems()
 
         val snackbarHostState = remember { SnackbarHostState() }
+        val coroutineScope = rememberCoroutineScope()
+        val linkAccentColor = MaterialTheme.colorScheme.primary
         var imageViewerUrl by remember { mutableStateOf<String?>(null) }
+        var linkDialogUrl by remember { mutableStateOf<String?>(null) }
         var pendingDownloadUrl by remember { mutableStateOf<String?>(null) }
         val downloadPermissionLauncher = rememberLauncherForActivityResult(
             ActivityResultContracts.RequestPermission()
@@ -85,6 +93,36 @@ class ItemScreen(
             ItemImageViewerDialog(
                 imageUrl = url,
                 onDismiss = { imageViewerUrl = null }
+            )
+        }
+
+        linkDialogUrl?.let { url ->
+            ItemLinkDialog(
+                url = url,
+                onChoice = { choice ->
+                    when (choice) {
+                        ItemLinkChoice.OPEN -> {
+                            if (state.openInExternalBrowser) context.openUrl(url)
+                            else context.openInCustomTab(url, state.theme, linkAccentColor)
+                        }
+                        ItemLinkChoice.COPY -> {
+                            val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager
+                            clipboard.setPrimaryClip(ClipData.newPlainText("URL", url))
+                            coroutineScope.launch {
+                                snackbarHostState.showSnackbar(context.getString(R.string.link_copied))
+                            }
+                        }
+                        ItemLinkChoice.SHARE -> {
+                            val shareIntent = Intent(Intent.ACTION_SEND).apply {
+                                type = "text/plain"
+                                putExtra(Intent.EXTRA_TEXT, url)
+                            }
+                            context.startActivity(Intent.createChooser(shareIntent, context.getString(R.string.share_url)))
+                        }
+                    }
+                    linkDialogUrl = null
+                },
+                onDismiss = { linkDialogUrl = null }
             )
         }
 
@@ -175,10 +213,18 @@ class ItemScreen(
                             },
                             openVideosInYoutube = state.openVideosInYoutube,
                             onShareItem = { screenModel.shareItem(itemWithFeed, context) },
+                            onShareSelectedText = { selectedText ->
+                                com.readrops.app.util.Utils.shareSelectionWithReference(
+                                    selectedText,
+                                    itemWithFeed,
+                                    context
+                                )
+                            },
                             onSetReadState = { screenModel.setItemReadState(item) },
                             onSetStarState = { screenModel.setItemStarState(item) },
                             onOpenImageViewer = { imageViewerUrl = it },
                             onOpenImageDialog = { screenModel.openImageDialog(it) },
+                            onOpenLinkDialog = { linkDialogUrl = it },
                             onPop = { navigator.pop() },
                         )
                     }

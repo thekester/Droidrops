@@ -36,4 +36,6 @@ data class QueryFilters(
     val orderField: OrderField = OrderField.DATE,
     val orderType: OrderType = OrderType.DESC,
     val searchQuery: String = "",
+    val recentlyReadItemIds: List<Int> = emptyList(),
+    val recentlyReadOnly: Boolean = false,
 ) : Serializable

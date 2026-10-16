@@ -45,6 +45,10 @@ import kotlinx.coroutines.launch
 fun FilterBottomSheet(
     filters: QueryFilters,
     onSetShowReadItems: () -> Unit,
+    showRecentlyReadItems: Boolean = false,
+    onSetShowRecentlyReadItems: () -> Unit = {},
+    recentlyReadOnly: Boolean = filters.recentlyReadOnly,
+    onSetRecentlyReadOnly: () -> Unit = {},
     onSetOrderField: () -> Unit,
     onSetOrderType: () -> Unit,
     onDismiss: () -> Unit
@@ -82,6 +86,40 @@ fun FilterBottomSheet(
                 Text(
                     text = stringResource(R.string.show_read_articles)
                 )
+            }
+
+            if (!filters.showReadItems) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = onSetShowRecentlyReadItems)
+                ) {
+                    Checkbox(
+                        checked = showRecentlyReadItems,
+                        onCheckedChange = { onSetShowRecentlyReadItems() }
+                    )
+
+                    ShortSpacer()
+
+                    Text(text = stringResource(R.string.show_recently_read_articles))
+                }
+            }
+
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable(onClick = onSetRecentlyReadOnly)
+            ) {
+                Checkbox(
+                    checked = recentlyReadOnly,
+                    onCheckedChange = { onSetRecentlyReadOnly() }
+                )
+
+                ShortSpacer()
+
+                Text(text = stringResource(R.string.recently_read_only))
             }
 
             ShortSpacer()

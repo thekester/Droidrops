@@ -1,9 +1,13 @@
 package com.readrops.app.item.view
 
 import android.annotation.SuppressLint
+import android.view.ActionMode
 import android.content.Context
+import android.view.Menu
+import android.view.MenuItem
 import android.text.SpannedString
 import android.util.AttributeSet
+import android.view.View
 import android.webkit.WebView
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
@@ -20,6 +24,7 @@ import com.readrops.db.pojo.ItemWithFeed
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Element
 import org.jsoup.parser.Parser
+import org.json.JSONTokener
 import java.util.Locale
 
 @SuppressLint("SetJavaScriptEnabled", "ViewConstructor")
@@ -28,6 +33,8 @@ class ItemWebView(
     private val onUrlClick: (String) -> Unit,
     private val onImageClick: (String) -> Unit,
     onImageLongPress: (String) -> Unit,
+    private val onLinkLongPress: (String) -> Unit,
+    private val onShareSelectedText: (String) -> Unit,
     private val onContentLoaded: () -> Unit,
     attrs: AttributeSet? = null,
 ) : WebView(context, attrs) {
@@ -44,7 +51,8 @@ class ItemWebView(
         settings.builtInZoomControls = true
         settings.displayZoomControls = false
         settings.setSupportZoom(false)
-        isVerticalScrollBarEnabled = false
+        isVerticalScrollBarEnabled = true
+        scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
 
         webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
@@ -71,13 +79,54 @@ class ItemWebView(
         }
 
         setOnLongClickListener {
-            val type = hitTestResult.type
+            val result = hitTestResult
+            val type = result.type
             if (type == HitTestResult.IMAGE_TYPE || type == HitTestResult.SRC_IMAGE_ANCHOR_TYPE) {
-                hitTestResult.extra?.let { onImageLongPress(it) }
+                result.extra?.let { onImageLongPress(it) }
+                true
+            } else if (type == HitTestResult.ANCHOR_TYPE || type == HitTestResult.SRC_ANCHOR_TYPE) {
+                result.extra?.let { onLinkLongPress(it) }
+                true
+            } else {
+                false
+            }
+        }
+    }
+
+    override fun startActionMode(callback: ActionMode.Callback, type: Int): ActionMode? {
+        if (type != ActionMode.TYPE_FLOATING) return super.startActionMode(callback, type)
+
+        val wrappedCallback = object : ActionMode.Callback {
+            override fun onCreateActionMode(mode: ActionMode, menu: Menu): Boolean {
+                if (!callback.onCreateActionMode(mode, menu)) return false
+                menu.add(Menu.NONE, SHARE_SELECTION_ACTION_ID, menu.size(),
+                    context.getString(R.string.share_selection_with_reference))
+                    .setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER)
+                return true
             }
 
-            false
+            override fun onPrepareActionMode(mode: ActionMode, menu: Menu): Boolean =
+                callback.onPrepareActionMode(mode, menu)
+
+            override fun onActionItemClicked(mode: ActionMode, item: MenuItem): Boolean {
+                if (item.itemId != SHARE_SELECTION_ACTION_ID) {
+                    return callback.onActionItemClicked(mode, item)
+                }
+
+                evaluateJavascript("window.getSelection().toString()") { encodedText ->
+                    val selectedText = runCatching {
+                        JSONTokener(encodedText).nextValue() as? String
+                    }.getOrNull()
+                    selectedText?.takeIf(String::isNotBlank)?.let(onShareSelectedText)
+                }
+                mode.finish()
+                return true
+            }
+
+            override fun onDestroyActionMode(mode: ActionMode) = callback.onDestroyActionMode(mode)
         }
+
+        return super.startActionMode(wrappedCallback, type)
     }
 
     private fun handleUrl(url: String) {
@@ -227,6 +276,7 @@ class ItemWebView(
         private const val IMAGE_VIEWER_SCHEME = "droidrops-image"
         private const val IMAGE_VIEWER_HOST = "open"
         private const val IMAGE_VIEWER_QUERY = "url"
+        private const val SHARE_SELECTION_ACTION_ID = 0xD701
         private const val IMAGE_VIEWER_URI = "$IMAGE_VIEWER_SCHEME://$IMAGE_VIEWER_HOST"
 
         private val YOUTUBE_EMBED =

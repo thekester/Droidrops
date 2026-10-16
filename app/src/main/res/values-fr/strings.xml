@@ -15,6 +15,8 @@
     <string name="read_time_lower_than_1">&lt; 1 min de lecture</string>
     <string name="read_time_one_minute">1 min de lecture</string>
     <string name="share_article">Partager l\'article</string>
+    <string name="article_thumbnail">Miniature de l’article : %1$s</string>
+    <string name="share_selection_with_reference">Partager l’extrait avec sa source</string>
     <string name="open_url">Ouvrir le lien</string>
     <string name="add_folder">Ajouter un dossier</string>
     <string name="feed_name">Nom du flux</string>
@@ -29,6 +31,8 @@
     <string name="feed_insertion_unknown_error">Erreur inconnue pour le flux %1$s</string>
     <string name="articles">Articles</string>
     <string name="show_read_articles">Afficher les articles lus</string>
+    <string name="show_recently_read_articles">Garder visibles les articles récemment lus</string>
+    <string name="recently_read_only">Articles récemment lus uniquement (session en cours)</string>
     <string name="mark_unread">Marquer comme non lu</string>
     <string name="mark_read">Marquer comme lu</string>
     <string name="account_url">URL du compte</string>
@@ -62,6 +66,9 @@
     <string name="open_items_in">Ouvrir les articles avec</string>
     <string name="external_navigator">Navigateur externe</string>
     <string name="share_url">Partager le lien</string>
+    <string name="link_options">Options du lien</string>
+    <string name="copy_url">Copier le lien</string>
+    <string name="link_copied">Lien copié</string>
     <string name="opml_import_export">Import/Export OPML</string>
     <string name="opml_import">Import OPML</string>
     <string name="opml_export">Export OPML</string>
@@ -140,6 +147,8 @@
     <string name="regular">Normal</string>
     <string name="large">Large</string>
     <string name="item_size">Taille des items</string>
+    <string name="max_items_per_feed">Nombre maximal d’articles par flux</string>
+    <string name="unlimited">Illimité</string>
     <string name="background_sync_already_running">Une synchronisation en arrière-plan est déjà en cours</string>
     <string name="disable_battery_optimization">Désactiver l\'optimisation de la batterie</string>
     <string name="disable_battery_optimization_subtitle">Peut aider à éviter que le système n\'empêche la synchronisation d\'arrière-plan</string>
@@ -238,6 +247,7 @@
     <string name="freshrss_delete_folder_question">Voulez-vous supprimer le dossier %1$s ? Tous les flux associés seront déplacés vers le dossier par défaut.</string>
     <string name="no_network">Aucune connexion internet disponible</string>
     <string name="empty_file">Le fichier est vide</string>
+    <string name="opml_no_feeds">Aucun flux n’a été trouvé dans ce fichier OPML.</string>
     <string name="color_contrast_too_low">Le contraste avec l\'arrière-plan est trop faible. La couleur par défaut sera utilisée à la place avec ce thème.</string>
     <string name="last_24_hours">Dernières 24 h</string>
     <string name="network_timeout">Le serveur n\'a pas répondu à temps.</string>

@@ -19,14 +19,31 @@ class ItemNestedScrollView(
     onUrlClick: (String) -> Unit,
     onImageClick: (String) -> Unit,
     onImageLongPress: (String) -> Unit,
+    onLinkLongPress: (String) -> Unit,
+    onShareSelectedText: (String) -> Unit,
     composeViewContent: @Composable () -> Unit
 ) : NestedScrollView(context) {
 
     private val scrollPositions = ArticleScrollPositions(context)
     private val scrollSaveHandler = Handler(Looper.getMainLooper())
     private var restorePending = true
+    private var restoreAttempts = 0
     private val saveScrollPosition = Runnable {
         scrollPositions.save(articleId, scrollY)
+    }
+    private val restoreScrollPosition = object : Runnable {
+        override fun run() {
+            val target = scrollPositions.get(articleId)
+            val maxScrollY = (getChildAt(0).height - height).coerceAtLeast(0)
+
+            if (maxScrollY >= target || restoreAttempts >= MAX_RESTORE_ATTEMPTS) {
+                scrollTo(0, target.coerceAtMost(maxScrollY))
+                restorePending = false
+            } else {
+                restoreAttempts++
+                scrollSaveHandler.postDelayed(this, RESTORE_RETRY_DELAY_MS)
+            }
+        }
     }
 
     init {
@@ -55,6 +72,8 @@ class ItemNestedScrollView(
                     onUrlClick = onUrlClick,
                     onImageClick = onImageClick,
                     onImageLongPress = onImageLongPress,
+                    onLinkLongPress = onLinkLongPress,
+                    onShareSelectedText = onShareSelectedText,
                     onContentLoaded = { restoreArticlePosition() }
                 ).apply {
                     id = 2
@@ -98,6 +117,7 @@ class ItemNestedScrollView(
 
     override fun onDetachedFromWindow() {
         scrollSaveHandler.removeCallbacks(saveScrollPosition)
+        scrollSaveHandler.removeCallbacks(restoreScrollPosition)
         if (!restorePending) {
             scrollPositions.save(articleId, scrollY)
         }
@@ -106,14 +126,13 @@ class ItemNestedScrollView(
 
     private fun restoreArticlePosition() {
         if (!restorePending) return
-
-        restorePending = false
-        post {
-            scrollTo(0, scrollPositions.get(articleId))
-        }
+        scrollSaveHandler.removeCallbacks(restoreScrollPosition)
+        scrollSaveHandler.post(restoreScrollPosition)
     }
 
     private companion object {
         const val SCROLL_SAVE_DELAY_MS = 250L
+        const val RESTORE_RETRY_DELAY_MS = 100L
+        const val MAX_RESTORE_ATTEMPTS = 50
     }
 }

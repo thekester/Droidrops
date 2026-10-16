@@ -41,6 +41,10 @@ interface ItemDao : BaseDao<Item> {
     @Query("Delete From Item Where id In (:itemIds)")
     suspend fun deleteByIds(itemIds: List<Int>)
 
+    @Query("""Delete From Item Where feed_id = :feedId And starred = 0 And id Not In
+        (Select id From Item Where feed_id = :feedId Order By pub_date Desc, id Desc Limit :keepCount)""")
+    suspend fun pruneUnstarredItems(feedId: Int, keepCount: Int)
+
     @Query("Update Item Set starred = :starred Where id = :itemId")
     suspend fun updateStarState(itemId: Int, starred: Boolean)
 

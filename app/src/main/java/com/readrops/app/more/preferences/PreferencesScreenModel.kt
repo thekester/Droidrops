@@ -46,6 +46,7 @@ class PreferencesScreenModel(
                     swipeToRight.flow,
                     openVideosInYoutube.flow,
                     swipeBetweenArticles.flow,
+                    maxItemsPerFeed.flow,
                 )
 
                 combine(
@@ -66,6 +67,7 @@ class PreferencesScreenModel(
                         swipeToRight = (list[11] as String) to swipeToRight,
                         openVideosInYoutube = (list[12] as Boolean) to openVideosInYoutube,
                         swipeBetweenArticles = (list[13] as Boolean) to swipeBetweenArticles,
+                        maxItemsPerFeed = (list[14] as Int) to maxItemsPerFeed,
                         exampleItem = ItemWithFeed(
                             item = Item(
                                 title = context.getString(R.string.example_item_title),
@@ -119,6 +121,7 @@ sealed class PreferencesScreenState {
         val syncAtLaunchPref: PreferenceState<Boolean>,
         val openVideosInYoutube: PreferenceState<Boolean>,
         val swipeBetweenArticles: PreferenceState<Boolean>,
+        val maxItemsPerFeed: PreferenceState<Int>,
         val useCustomShareIntentTpl: PreferenceState<Boolean>,
         val customShareIntentTpl: PreferenceState<String>,
         val swipeToLeft: PreferenceState<String>,

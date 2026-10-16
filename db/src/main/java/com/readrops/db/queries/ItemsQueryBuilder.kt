@@ -97,11 +97,32 @@ object ItemsQueryBuilder {
             // The favorites view is specifically meant to expose saved articles, including
             // articles that were marked as read. Applying the global unread-only preference
             // here made the favorites list disappear for users who hide read articles.
-            if (!queryFilters.showReadItems && queryFilters.mainFilter != MainFilter.STARS) {
-                if (separateState) {
-                    append("And ItemState.read = 0 ")
+            if (queryFilters.recentlyReadOnly) {
+                val recentlyReadIds = queryFilters.recentlyReadItemIds
+                    .asSequence()
+                    .filter { it > 0 }
+                    .distinct()
+                    .joinToString(",")
+                append(
+                    if (recentlyReadIds.isEmpty()) "And 1 = 0 "
+                    else "And Item.id In ($recentlyReadIds) "
+                )
+            } else if (!queryFilters.showReadItems && queryFilters.mainFilter != MainFilter.STARS) {
+                val recentlyReadIds = queryFilters.recentlyReadItemIds
+                    .asSequence()
+                    .filter { it > 0 }
+                    .distinct()
+                    .joinToString(",")
+                val readFilter = if (recentlyReadIds.isEmpty()) {
+                    if (separateState) "ItemState.read = 0" else "Item.read = 0"
                 } else {
-                    append("And Item.read = 0 ")
+                    val unread = if (separateState) "ItemState.read = 0" else "Item.read = 0"
+                    "($unread Or Item.id In ($recentlyReadIds))"
+                }
+                if (separateState) {
+                    append("And $readFilter ")
+                } else {
+                    append("And $readFilter ")
                 }
             }
 

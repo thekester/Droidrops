@@ -80,6 +80,20 @@ class Preferences(
         default = true
     )
 
+    val showRecentlyReadItems = Preference(
+        dataStore = dataStore,
+        key = booleanPreferencesKey("show_recently_read_items"),
+        default = false
+    )
+
+    // Retain the newest items per local feed; starred items are exempt from pruning.
+    // Zero disables the limit.
+    val maxItemsPerFeed = Preference(
+        dataStore = dataStore,
+        key = intPreferencesKey("max_items_per_feed"),
+        default = 1000
+    )
+
     val orderField = Preference(
         dataStore = dataStore,
         key = stringPreferencesKey("order_field"),

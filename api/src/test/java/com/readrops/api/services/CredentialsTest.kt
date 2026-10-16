@@ -42,4 +42,16 @@ class CredentialsTest {
 
         assertEquals("https://freshrss.example/nested/api/greader.php/", credentials.url)
     }
+
+    @Test
+    fun freshRssReaderApiUrlIsNormalizedToRetrofitBaseTest() {
+        val credentials = Credentials.toCredentials(
+            Account(
+                url = " https://freshrss.example/nested/api/greader.php/reader/api/0/ ",
+                type = AccountType.FRESHRSS
+            )
+        )
+
+        assertEquals("https://freshrss.example/nested/api/greader.php/", credentials.url)
+    }
 }

@@ -205,6 +205,21 @@ class PreferencesScreen : AndroidScreen() {
                                 onValueChange = {}
                             )
 
+                            ListPreferenceWidget(
+                                preference = loadedState.maxItemsPerFeed.second,
+                                selectedKey = loadedState.maxItemsPerFeed.first,
+                                entries = mapOf(
+                                    250 to "250",
+                                    500 to "500",
+                                    1000 to "1,000",
+                                    2500 to "2,500",
+                                    5000 to "5,000",
+                                    0 to stringResource(R.string.unlimited)
+                                ),
+                                title = stringResource(R.string.max_items_per_feed),
+                                onValueChange = {}
+                            )
+
                             SwitchPreferenceWidget(
                                 preference = loadedState.hideReadFeeds.second,
                                 isChecked = loadedState.hideReadFeeds.first,

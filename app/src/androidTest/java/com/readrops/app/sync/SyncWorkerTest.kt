@@ -165,6 +165,24 @@ class SyncWorkerTest : KoinTest {
     }
 
     @Test
+    fun legacyFeedlyAccountDoesNotCrashSynchronization() = runTest {
+        val legacyAccount = Account(
+            name = "Legacy Feedly account",
+            type = AccountType.FEEDLY
+        )
+        legacyAccount.id = database.accountDao().insert(legacyAccount).toInt()
+
+        val result = TestListenableWorkerBuilder.from<SyncWorker>(context, SyncWorker::class.java)
+            .setTags(listOf(SyncWorker.WORK_MANUAL))
+            .setInputData(workDataOf(SyncWorker.ACCOUNT_ID_KEY to legacyAccount.id))
+            .build()
+            .doWork()
+
+        assertTrue(result is ListenableWorker.Result.Success)
+        assertTrue(result.outputData.getBoolean(SyncWorker.END_SYNC_KEY, false))
+    }
+
+    @Test
     fun autoWorkerWithNotificationsTest() = runBlocking {
         val worker = TestListenableWorkerBuilder.from<SyncWorker>(context, SyncWorker::class.java)
             .setTags(listOf(SyncWorker.WORK_AUTO))

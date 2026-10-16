@@ -1,9 +1,11 @@
 package com.readrops.app.repositories
 
+import android.content.SharedPreferences
 import androidx.paging.PagingSource
 import com.readrops.api.utils.ApiUtils
 import com.readrops.app.testutil.ReadropsTestRule
 import com.readrops.app.testutil.TestUtils
+import com.readrops.app.util.Preferences
 import com.readrops.db.Database
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Item
@@ -34,6 +36,7 @@ class LocalRSSRepositoryTest : KoinTest {
 
     private val mockServer = MockWebServer()
     private val database: Database by inject()
+    private val preferences: Preferences by inject()
 
     private val account = Account(type = AccountType.LOCAL)
     private lateinit var repository: LocalRSSRepository
@@ -106,6 +109,101 @@ class LocalRSSRepositoryTest : KoinTest {
         assertTrue {
             database.itemDao().itemExists(result.first.items.first().remoteId!!, account.id)
         }
+    }
+
+    @Test
+    fun atomEntryWithoutLinkIsStoredAndMarkupOnlyDescriptionIsOmitted() = runTest {
+        mockServer.enqueue(
+            MockResponse().setResponseCode(HttpURLConnection.HTTP_OK)
+                .addHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/atom+xml")
+                .setBody("""
+                    <?xml version="1.0" encoding="UTF-8"?>
+                    <feed xmlns="http://www.w3.org/2005/Atom">
+                      <id>https://example.org/feed</id><title>Example</title>
+                      <entry><id>tag:example.org,2026:item-1</id><title>Image only</title>
+                        <summary type="html">&lt;img src="https://example.org/chart.png"/&gt;</summary>
+                      </entry>
+                    </feed>
+                """.trimIndent())
+        )
+
+        val result = repository.synchronize(feeds) { }
+        val item = result.first.items.single()
+
+        assertEquals("tag:example.org,2026:item-1", item.remoteId)
+        assertTrue(item.link == null)
+        assertTrue(item.cleanDescription == null)
+        assertTrue(item.readTime == 0.0)
+        assertTrue(item.content == null)
+    }
+
+    @Test
+    fun authenticatedLocalHttpFeedSendsBasicAuthorizationHeader() = runTest {
+        val feed = feeds.first()
+        val encryptedPreferences = get<SharedPreferences>()
+        encryptedPreferences.edit()
+            .putString(feed.loginKey, "feed-user")
+            .putString(feed.passwordKey, "feed-password")
+            .apply()
+
+        try {
+            mockServer.enqueue(
+                MockResponse().setResponseCode(HttpURLConnection.HTTP_OK)
+                    .addHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/rss+xml")
+                    .setBody("""
+                        <rss version="2.0"><channel><title>Authenticated feed</title>
+                        <link>https://example.org</link>
+                        <item><title>Protected story</title><link>https://example.org/story</link>
+                        <guid>protected-story</guid></item></channel></rss>
+                    """.trimIndent())
+            )
+
+            val result = repository.synchronize(listOf(feed)) { }
+            val request = mockServer.takeRequest()
+
+            assertEquals("Basic ZmVlZC11c2VyOmZlZWQtcGFzc3dvcmQ=", request.getHeader("Authorization"))
+            assertTrue(result.first.items.any { it.remoteId == "protected-story" })
+        } finally {
+            encryptedPreferences.edit()
+                .remove(feed.loginKey)
+                .remove(feed.passwordKey)
+                .apply()
+        }
+    }
+
+    @Test
+    fun synchronizationAppliesConfiguredLocalFeedLimitAndKeepsStarredHistory() = runTest {
+        preferences.maxItemsPerFeed.write(2)
+
+        val starred = Item(
+            title = "Saved favorite",
+            link = "https://example.org/favorite",
+            remoteId = "favorite",
+            feedId = feeds.first().id,
+            pubDate = java.time.LocalDateTime.of(2020, 1, 1, 0, 0),
+            isStarred = true
+        )
+        database.itemDao().insert(starred)
+
+        mockServer.enqueue(
+            MockResponse().setResponseCode(HttpURLConnection.HTTP_OK)
+                .addHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/rss+xml")
+                .setBody("""
+                    <rss version="2.0"><channel><title>Retention</title><link>https://example.org</link>
+                    <item><title>Old incoming</title><link>https://example.org/old</link><guid>old</guid><pubDate>Wed, 01 Jan 2020 00:00:00 GMT</pubDate></item>
+                    <item><title>Latest one</title><link>https://example.org/new-1</link><guid>new-1</guid><pubDate>Wed, 01 Jan 2025 00:00:00 GMT</pubDate></item>
+                    <item><title>Latest two</title><link>https://example.org/new-2</link><guid>new-2</guid><pubDate>Thu, 02 Jan 2025 00:00:00 GMT</pubDate></item>
+                    </channel></rss>
+                """.trimIndent())
+        )
+
+        repository.synchronize(feeds) { }
+
+        val retained = database.itemDao().selectItems(feeds.first().id)
+        assertEquals(
+            setOf("Saved favorite", "Latest one", "Latest two"),
+            retained.map { it.title }.toSet()
+        )
     }
 
     @Test

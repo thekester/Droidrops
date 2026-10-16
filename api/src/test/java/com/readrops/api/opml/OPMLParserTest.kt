@@ -69,6 +69,19 @@ class OPMLParserTest {
     }
 
     @Test
+    fun readFeederOpmlVersion1_1WithNamespacedMetadataTest() = runTest {
+        val stream = TestUtils.loadResource("opml/version_1_1_feeder.opml")
+        val foldersAndFeeds = OPMLParser.read(stream)
+
+        val feeds = foldersAndFeeds[Folder(name = "Open source")]
+        assertEquals(1, feeds?.size)
+        assertEquals("F-Droid News", feeds?.first()?.name)
+        assertEquals("https://f-droid.org/feed.xml", feeds?.first()?.url)
+        assertEquals("https://f-droid.org/", feeds?.first()?.siteUrl)
+        stream.close()
+    }
+
+    @Test
     fun writeOpmlTest() = runTest {
         val file = File("subscriptions.opml")
         val outputStream = FileOutputStream(file)

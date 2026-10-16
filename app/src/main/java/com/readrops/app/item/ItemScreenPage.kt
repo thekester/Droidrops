@@ -2,6 +2,7 @@ package com.readrops.app.item
 
 import android.widget.RelativeLayout
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.offset
@@ -25,6 +26,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.children
 import com.readrops.app.item.components.BackgroundTitle
@@ -45,10 +48,12 @@ fun ItemScreenPage(
     snackbarHostState: SnackbarHostState,
     onOpenUrl: (String) -> Unit,
     onShareItem: () -> Unit,
+    onShareSelectedText: (String) -> Unit,
     onSetReadState: (Boolean) -> Unit,
     onSetStarState: (Boolean) -> Unit,
     onOpenImageViewer: (String) -> Unit,
     onOpenImageDialog: (String) -> Unit,
+    onOpenLinkDialog: (String) -> Unit,
     onPop: () -> Unit,
     openVideosInYoutube: Boolean,
     modifier: Modifier = Modifier
@@ -61,6 +66,7 @@ fun ItemScreenPage(
     val accentColor = itemWithFeed.displayColor(MaterialTheme.colorScheme.background.toArgb())
 
     val nestedScrollConnection = rememberBottomBarNestedScrollConnection()
+    val density = LocalDensity.current
     var refreshAndroidView by remember { mutableStateOf(true) }
     var isScrollable by remember { mutableStateOf(true) }
 
@@ -69,31 +75,43 @@ fun ItemScreenPage(
             .navigationBarsPadding(),
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            ItemScreenBottomBar(
-                state = BottomBarState(
-                    isRead = itemWithFeed.isRead,
-                    isStarred = itemWithFeed.isStarred,
-                    isOpenUrlVisible = !item.link.isNullOrEmpty()
-                ),
-                accentColor = accentColor,
-                modifier = Modifier
-                    .navigationBarsPadding()
-                    .height(nestedScrollConnection.bottomBarHeight)
-                    .offset {
-                        if (isScrollable) {
-                            IntOffset(
-                                x = 0,
-                                y = -nestedScrollConnection.bottomBarOffset
-                            )
-                        } else {
-                            IntOffset(0, 0)
-                        }
-                    },
-                onShare = onShareItem,
-                onOpenUrl = { onOpenUrl(item.link!!) },
-                onChangeReadState = onSetReadState,
-                onChangeStarState = onSetStarState
-            )
+            val hiddenHeight = if (isScrollable) {
+                with(density) { nestedScrollConnection.bottomBarOffset.toDp() }
+            } else {
+                0.dp
+            }
+            val visibleHeight = (nestedScrollConnection.bottomBarHeight + hiddenHeight)
+                .coerceIn(0.dp, nestedScrollConnection.bottomBarHeight)
+
+            // Shrink the Scaffold slot as the bar moves off-screen. Otherwise Scaffold keeps
+            // reserving the full bar height and the article view cannot receive gestures there.
+            Box(Modifier.fillMaxWidth().height(visibleHeight)) {
+                ItemScreenBottomBar(
+                    state = BottomBarState(
+                        isRead = itemWithFeed.isRead,
+                        isStarred = itemWithFeed.isStarred,
+                        isOpenUrlVisible = !item.link.isNullOrEmpty()
+                    ),
+                    accentColor = accentColor,
+                    modifier = Modifier
+                        .navigationBarsPadding()
+                        .height(nestedScrollConnection.bottomBarHeight)
+                        .offset {
+                            if (isScrollable) {
+                                IntOffset(
+                                    x = 0,
+                                    y = -nestedScrollConnection.bottomBarOffset
+                                )
+                            } else {
+                                IntOffset(0, 0)
+                            }
+                        },
+                    onShare = onShareItem,
+                    onOpenUrl = { onOpenUrl(item.link!!) },
+                    onChangeReadState = onSetReadState,
+                    onChangeStarState = onSetStarState
+                )
+            }
         }
     ) { paddingValues ->
         Box(
@@ -110,7 +128,9 @@ fun ItemScreenPage(
                         },
                         onUrlClick = { url -> onOpenUrl(url) },
                         onImageClick = { url -> onOpenImageViewer(url) },
-                        onImageLongPress = { url -> onOpenImageDialog(url) }
+                        onImageLongPress = { url -> onOpenImageDialog(url) },
+                        onLinkLongPress = { url -> onOpenLinkDialog(url) },
+                        onShareSelectedText = onShareSelectedText
                     ) {
                         if (item.imageLink != null) {
                             BackgroundTitle(

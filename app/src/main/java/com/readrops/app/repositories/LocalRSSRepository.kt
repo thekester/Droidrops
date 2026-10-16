@@ -5,6 +5,7 @@ import com.readrops.api.localfeed.LocalRSSDataSource
 import com.readrops.api.utils.ApiUtils
 import com.readrops.api.utils.HtmlParser
 import com.readrops.app.util.FeedColors
+import com.readrops.app.util.Preferences
 import com.readrops.app.util.Utils
 import com.readrops.db.Database
 import com.readrops.db.entities.Feed
@@ -18,10 +19,11 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.flow.first
 import okhttp3.Headers
-import org.jsoup.Jsoup
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
+import org.jsoup.Jsoup
 import android.content.SharedPreferences
 
 class FeedExistException : Exception()
@@ -30,6 +32,7 @@ class LocalRSSRepository(
     private val dataSource: LocalRSSDataSource,
     database: Database,
     account: Account,
+    private val preferences: Preferences,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : BaseRepository(database, account), KoinComponent {
 
@@ -72,7 +75,20 @@ class LocalRSSRepository(
                                     .distinct()
                                 val allTags = insertTags(itemsTags)
 
-                                val pairNewItems = insertNewItems(pairItems, feed)
+                                val maxItemsPerFeed = preferences.maxItemsPerFeed.flow.first()
+                                val newestItems = if (maxItemsPerFeed > 0) {
+                                    pairItems.sortedWith(
+                                        compareByDescending<Item> { it.pubDate }
+                                            .thenByDescending { it.remoteId }
+                                    ).take(maxItemsPerFeed)
+                                } else {
+                                    pairItems
+                                }
+                                val pairNewItems = insertNewItems(newestItems, feed)
+
+                                if (maxItemsPerFeed > 0) {
+                                    database.itemDao().pruneUnstarredItems(feed.id, maxItemsPerFeed)
+                                }
 
                                 if (itemsTags.isNotEmpty()) {
                                     insertItemsTags(pairNewItems, allTags)

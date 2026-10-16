@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<opml version="1.1" xmlns:feeder="https://nononsenseapps.com/feeder">
+  <head><title>Feeder</title></head>
+  <body>
+    <outline title="Open source" text="Open source">
+      <outline title="F-Droid News" text="F-Droid News" type="rss"
+        xmlUrl="https://f-droid.org/feed.xml" htmlUrl="https://f-droid.org/"
+        feeder:notify="false" feeder:fullTextByDefault="true" />
+    </outline>
+  </body>
+</opml>

@@ -5,6 +5,12 @@ import androidx.room.Room
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.readrops.db.Database
+import com.readrops.db.entities.Feed
+import com.readrops.db.entities.Item
+import com.readrops.db.entities.Tag
+import com.readrops.db.entities.TagJoin
+import com.readrops.db.entities.account.Account
+import com.readrops.db.entities.account.AccountType
 import com.readrops.db.filters.MainFilter
 import com.readrops.db.filters.OrderField
 import com.readrops.db.filters.OrderType
@@ -18,6 +24,8 @@ import org.junit.Assert.assertThrows
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import kotlinx.coroutines.runBlocking
+import androidx.paging.PagingSource
 
 @RunWith(AndroidJUnit4::class)
 class ItemsQueryBuilderTest {
@@ -64,6 +72,40 @@ class ItemsQueryBuilderTest {
         database.query(query)
 
         assertTrue(query.sql.contains("feed_id = 15"))
+    }
+
+    @Test
+    fun tagFilterReturnsOnlyArticlesAssignedToSelectedTag() = runBlocking {
+        val accountId = database.accountDao().insert(Account(type = AccountType.LOCAL)).toInt()
+        val feedId = database.feedDao().insert(
+            Feed(name = "Tag test", url = "https://example.org/feed", accountId = accountId)
+        ).toInt()
+        val taggedItemId = database.itemDao().insert(
+            Item(title = "Tagged article", link = "https://example.org/tagged", remoteId = "tagged", feedId = feedId)
+        ).toInt()
+        database.itemDao().insert(
+            Item(title = "Other article", link = "https://example.org/other", remoteId = "other", feedId = feedId)
+        )
+        val tagId = database.tagDao().insert(Tag(name = "Research", accountId = accountId)).toInt()
+        database.tagJoinDao().insert(TagJoin(tagId = tagId, itemId = taggedItemId))
+
+        val result = database.itemDao().selectAll(
+            ItemsQueryBuilder.buildItemsQuery(
+                QueryFilters(accountId = accountId, subFilter = SubFilter.TAG, tagId = tagId)
+            )
+        ).load(
+            PagingSource.LoadParams.Refresh(
+                key = null,
+                loadSize = 10,
+                placeholdersEnabled = false
+            )
+        )
+
+        assertTrue(result is PagingSource.LoadResult.Page)
+        assertEquals(
+            listOf("Tagged article"),
+            (result as PagingSource.LoadResult.Page).data.map { it.item.title }
+        )
     }
 
     @Test
@@ -123,6 +165,60 @@ class ItemsQueryBuilderTest {
             assertTrue(contains("read = 0"))
             assertTrue(contains("pub_date ASC"))
         }
+    }
+
+    @Test
+    fun unreadFilterKeepsRecentlyReadItemsVisible() {
+        val query = ItemsQueryBuilder.buildItemsQuery(
+            QueryFilters(
+                accountId = 1,
+                showReadItems = false,
+                recentlyReadItemIds = listOf(12, 34)
+            )
+        )
+
+        assertTrue(query.sql.contains("(Item.read = 0 Or Item.id In (12,34))"))
+        database.query(query)
+    }
+
+    @Test
+    fun recentlyReadOnlyLimitsTimelineToSessionArticleIds() {
+        val query = ItemsQueryBuilder.buildItemsQuery(
+            QueryFilters(
+                accountId = 1,
+                recentlyReadOnly = true,
+                recentlyReadItemIds = listOf(12, 34)
+            )
+        )
+
+        assertTrue(query.sql.contains("Item.id In (12,34)"))
+        assertFalse(query.sql.contains("Item.read = 0"))
+        database.query(query)
+    }
+
+    @Test
+    fun recentlyReadOnlyWithNoSessionItemsReturnsNoArticles() {
+        val query = ItemsQueryBuilder.buildItemsQuery(
+            QueryFilters(accountId = 1, recentlyReadOnly = true)
+        )
+
+        assertTrue(query.sql.contains("And 1 = 0"))
+        database.query(query)
+    }
+
+    @Test
+    fun separateStateUnreadFilterKeepsRecentlyReadItemsVisible() {
+        val query = ItemsQueryBuilder.buildItemsQuery(
+            QueryFilters(
+                accountId = 1,
+                showReadItems = false,
+                recentlyReadItemIds = listOf(12)
+            ),
+            separateState = true
+        )
+
+        assertTrue(query.sql.contains("(ItemState.read = 0 Or Item.id In (12))"))
+        database.query(query)
     }
 
     @Test

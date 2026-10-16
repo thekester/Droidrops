@@ -27,11 +27,15 @@ abstract class Credentials(val authorization: String?, val url: String) {
         }
 
         private fun freshRssApiUrl(serverUrl: String): String {
-            val normalizedUrl = serverUrl.trimEnd('/')
-            return if (normalizedUrl.endsWith("/api/greader.php", ignoreCase = true)) {
-                "$normalizedUrl/"
-            } else {
-                "$normalizedUrl/api/greader.php/"
+            val normalizedUrl = serverUrl.trim().trimEnd('/')
+            val apiPath = "/api/greader.php"
+            val readerApiPath = "$apiPath/reader/api/0"
+
+            return when {
+                normalizedUrl.endsWith(readerApiPath, ignoreCase = true) ->
+                    "${normalizedUrl.dropLast("/reader/api/0".length)}/"
+                normalizedUrl.endsWith(apiPath, ignoreCase = true) -> "$normalizedUrl/"
+                else -> "$normalizedUrl$apiPath/"
             }
         }
 

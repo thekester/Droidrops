@@ -17,4 +17,13 @@ class ContextExtensionsTest {
             context.openInCustomTab("data:text/html,<script>alert(1)</script>", theme = null, color = Color.Black)
         }
     }
+
+    @Test
+    fun openUrlRejectsDataUrisWithoutCrashing() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+
+        InstrumentationRegistry.getInstrumentation().runOnMainSync {
+            context.openUrl("data:text/html,<script>alert(1)</script>")
+        }
+    }
 }
