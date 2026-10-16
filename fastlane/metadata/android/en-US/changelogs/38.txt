@@ -1,0 +1,6 @@
+- Reveal image title text below article images, using alt text when needed.
+- Fix pull-to-refresh gestures when the feed list is shorter than the screen.
+- Add a monochrome adaptive launcher icon for themed icons.
+- Fix an app startup crash caused by a missing Compose icons dependency.
+- All 47 instrumented tests pass on the Android emulator.
+https://github.com/thekester/Droidrops/releases/tag/v2.2.17

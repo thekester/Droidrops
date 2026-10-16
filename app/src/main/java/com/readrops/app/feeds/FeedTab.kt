@@ -193,7 +193,13 @@ object FeedTab : Tab {
                             (state.foldersAndFeeds as FolderAndFeedsState.LoadedState).values
 
                         if (foldersAndFeeds.isNotEmpty()) {
-                            LazyColumn(state = feedListState) {
+                            // Keep the scroll container as tall as the pull-to-refresh area.
+                            // Without this, a short feed list leaves dead space below its last
+                            // row where a pull gesture cannot reach PullToRefreshBox.
+                            LazyColumn(
+                                modifier = Modifier.fillMaxSize(),
+                                state = feedListState
+                            ) {
                                 items(
                                     items = foldersAndFeeds.toList()
                                 ) { folderWithFeeds ->

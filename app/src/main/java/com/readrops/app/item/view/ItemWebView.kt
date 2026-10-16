@@ -133,22 +133,7 @@ class ItemWebView(
      * punchline. A touch screen has no hover, so it was simply unreachable. It is surfaced
      * as a caption under the image, styled apart from the body text.
      */
-    private fun revealImageHoverText(body: Element) {
-        body.select("img[title]").forEach { image ->
-            val hoverText = image.attr("title").trim()
-
-            // alt is deliberately not compared: a browser only shows it when the image
-            // fails to load, so there is nothing to duplicate. xkcd, the very case this
-            // targets, ships the same string in both attributes.
-            if (hoverText.isEmpty()) return@forEach
-
-            // webcomics wrap the image in a link, and inserting inside the anchor would
-            // make the caption part of the clickable area: place it after the outermost link
-            val anchor = image.parents().firstOrNull { it.tagName() == "a" } ?: image
-
-            anchor.after("<p class=\"hover-text\"><em>$hoverText</em></p>")
-        }
-    }
+    private fun revealImageHoverText(body: Element) = body.revealImageHoverText()
 
     /**
      * Swaps the embedded player for a thumbnail linking to YouTube. Readers with the app
