@@ -29,7 +29,10 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
       - name: Build app
-        run: ./gradlew clean build -PwarningsAsErrors=true
+        # Lint analysis and R8 can each use a large amount of heap. Running
+        # every project task concurrently exhausted the 2 GB Gradle heap on
+        # GitHub's runner, so keep CI task execution serial and predictable.
+        run: ./gradlew --no-parallel --max-workers=1 clean build -PwarningsAsErrors=true
       - name: Run instrumented tests in emulator
         uses: ReactiveCircus/android-emulator-runner@v2.38.0
         with:
