@@ -1,0 +1,4 @@
+- Enable pinch-to-zoom while reading articles.
+- Improve feed color contrast and TLS login error guidance.
+- Fix GitHub branding in crash messages.
+- Add regression coverage for these fixes.

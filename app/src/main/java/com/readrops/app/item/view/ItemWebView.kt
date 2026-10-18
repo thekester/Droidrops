@@ -50,7 +50,7 @@ class ItemWebView(
         settings.javaScriptEnabled = true
         settings.builtInZoomControls = true
         settings.displayZoomControls = false
-        settings.setSupportZoom(false)
+        settings.setSupportZoom(true)
         isVerticalScrollBarEnabled = true
         scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
 
