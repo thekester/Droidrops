@@ -44,8 +44,8 @@ android {
     defaultConfig {
         applicationId = "com.droidrops.app"
 
-        versionCode = 42
-        versionName = "2.2.21"
+        versionCode = 43
+        versionName = "2.2.22"
 
         testInstrumentationRunner = "com.readrops.app.ReadropsTestRunner"
     }
@@ -169,6 +169,8 @@ dependencies {
         exclude(group = "org.jetbrains.compose.material3", module = "material3")
     }
     implementation(libs.jsoup)
+    // already part of the build through :api; used directly for the streamed account backups
+    implementation(libs.moshi)
     implementation(libs.colorpicker)
 
     implementation(libs.autofill)

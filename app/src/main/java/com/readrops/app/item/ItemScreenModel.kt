@@ -23,6 +23,7 @@ import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
 import com.readrops.app.R
+import com.readrops.app.item.fullcontent.FullArticleFetcher
 import com.readrops.app.repositories.BaseRepository
 import com.readrops.app.util.PAGING_PAGE_SIZE
 import com.readrops.app.util.PAGING_PREFETCH_DISTANCE
@@ -64,7 +65,8 @@ class ItemScreenModel(
     private val queryFilters: QueryFilters,
     private val database: Database,
     private val preferences: Preferences,
-    private val dispatcher: CoroutineDispatcher = Dispatchers.IO
+    private val dispatcher: CoroutineDispatcher = Dispatchers.IO,
+    private val fullArticleFetcher: FullArticleFetcher = FullArticleFetcher()
 ) : StateScreenModel<ItemState>(ItemState()), KoinComponent {
 
     //TODO Is <lateinit var> really the best solution?
@@ -130,6 +132,14 @@ class ItemScreenModel(
                             }
                     }
                 }
+        }
+
+        screenModelScope.launch(dispatcher) {
+            preferences.fullContentFeeds.flow.collect { ids ->
+                mutableState.update {
+                    it.copy(fullContentFeedIds = ids.mapNotNull(String::toIntOrNull).toSet())
+                }
+            }
         }
 
         screenModelScope.launch(dispatcher) {
@@ -306,6 +316,70 @@ class ItemScreenModel(
         }
     }
 
+    /**
+     * Shows the full web article instead of the feed entry, or back. The extracted page is
+     * kept for this reader session only: the stored entry is never overwritten, so a poor
+     * extraction can always be dismissed and the next sync is unaffected.
+     */
+    fun toggleFullContent(item: Item, context: Context) {
+        val current = state.value.fullContents[item.id]
+
+        when (current) {
+            is FullContentState.Loading -> return
+            is FullContentState.Loaded -> {
+                updateFullContent(item.id, current.copy(isShown = !current.isShown))
+                return
+            }
+
+            null -> Unit
+        }
+
+        loadFullContent(item, context, reportErrors = true)
+    }
+
+    /**
+     * Called for articles of feeds set to always show the full article. A failure is silent:
+     * the feed content simply stays, and the reader bar still allows a manual retry.
+     */
+    fun loadFullContentAutomatically(item: Item, context: Context) {
+        if (state.value.fullContents[item.id] == null) {
+            loadFullContent(item, context, reportErrors = false)
+        }
+    }
+
+    private fun loadFullContent(item: Item, context: Context, reportErrors: Boolean) {
+        val link = item.link ?: return
+        updateFullContent(item.id, FullContentState.Loading)
+        if (reportErrors) mutableState.update { it.copy(error = null) }
+
+        screenModelScope.launch(dispatcher) {
+            val error = when (val result = fullArticleFetcher.fetch(link)) {
+                is FullArticleFetcher.Result.Success -> {
+                    updateFullContent(item.id, FullContentState.Loaded(result.html, isShown = true))
+                    null
+                }
+
+                FullArticleFetcher.Result.NoContentFound -> R.string.full_article_not_found
+                FullArticleFetcher.Result.Failed -> R.string.full_article_failed
+            }
+
+            if (error != null) {
+                updateFullContent(item.id, null)
+                if (reportErrors) mutableState.update { it.copy(error = context.getString(error)) }
+            }
+        }
+    }
+
+    private fun updateFullContent(itemId: Int, fullContent: FullContentState?) = mutableState.update {
+        it.copy(
+            fullContents = if (fullContent == null) {
+                it.fullContents - itemId
+            } else {
+                it.fullContents + (itemId to fullContent)
+            }
+        )
+    }
+
     fun openImageDialog(url: String) = mutableState.update { it.copy(imageDialogUrl = url) }
 
     fun closeImageDialog() = mutableState.update { it.copy(imageDialogUrl = null) }
@@ -436,8 +510,20 @@ data class ItemState(
     val swipeBetweenArticles: Boolean = true,
     val error: String? = null,
     val initialPage: Int = 0,
-    val stateChanges: List<StateChange> = listOf()
+    val stateChanges: List<StateChange> = listOf(),
+    val fullContents: Map<Int, FullContentState> = mapOf(),
+    val fullContentFeedIds: Set<Int> = emptySet()
 )
+
+@Stable
+sealed interface FullContentState {
+    data object Loading : FullContentState
+    data class Loaded(val html: String, val isShown: Boolean) : FullContentState
+}
+
+/** The HTML that replaces the feed entry in the reader, when the full article is shown. */
+val FullContentState?.shownHtml: String?
+    get() = (this as? FullContentState.Loaded)?.takeIf { it.isShown }?.html
 
 @Stable
 data class StateChange(

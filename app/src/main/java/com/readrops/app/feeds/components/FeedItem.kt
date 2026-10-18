@@ -27,7 +27,8 @@ fun FeedItem(
     feed: Feed,
     onClick: () -> Unit,
     onLongClick: () -> Unit,
-    displayDivider: Boolean = true
+    displayDivider: Boolean = true,
+    compact: Boolean = false
 ) {
     Row(
         modifier = Modifier
@@ -55,8 +56,8 @@ fun FeedItem(
                 .fillMaxWidth()
                 .height(IntrinsicSize.Min)
                 .padding(
-                    top = MaterialTheme.spacing.shortSpacing,
-                    bottom = MaterialTheme.spacing.shortSpacing,
+                    top = if (compact) 4.dp else MaterialTheme.spacing.shortSpacing,
+                    bottom = if (compact) 4.dp else MaterialTheme.spacing.shortSpacing,
                     end = MaterialTheme.spacing.mediumSpacing
                 )
         ) {
@@ -65,7 +66,7 @@ fun FeedItem(
             FeedIcon(
                 iconUrl = feed.iconUrl,
                 name = feed.name.orEmpty(),
-                size = 16.dp
+                size = if (compact) 14.dp else 16.dp
             )
 
             ShortSpacer()

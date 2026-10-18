@@ -40,7 +40,8 @@ fun FolderExpandableItem(
     onDeleteFolder: () -> Unit,
     displayThreeDotsMenu: Boolean,
     modifier: Modifier = Modifier,
-    isExpanded: Boolean = false
+    isExpanded: Boolean = false,
+    compact: Boolean = false
 ) {
     var isFolderExpanded by remember { mutableStateOf(false) }
 
@@ -62,8 +63,8 @@ fun FolderExpandableItem(
                 .clickable { isFolderExpanded = isFolderExpanded.not() }
                 .padding(
                     start = MaterialTheme.spacing.mediumSpacing,
-                    top = if (displayThreeDotsMenu) MaterialTheme.spacing.veryShortSpacing else MaterialTheme.spacing.mediumSpacing,
-                    bottom = if (displayThreeDotsMenu) MaterialTheme.spacing.veryShortSpacing else MaterialTheme.spacing.mediumSpacing
+                    top = if (compact || displayThreeDotsMenu) MaterialTheme.spacing.veryShortSpacing else MaterialTheme.spacing.mediumSpacing,
+                    bottom = if (compact || displayThreeDotsMenu) MaterialTheme.spacing.veryShortSpacing else MaterialTheme.spacing.mediumSpacing
                 )
         ) {
             Row(
@@ -115,6 +116,7 @@ fun FolderExpandableItem(
                         feed = feed,
                         onClick = { onFeedClick(feed) },
                         onLongClick = { onFeedLongClick(feed) },
+                        compact = compact,
                     )
                 }
             }

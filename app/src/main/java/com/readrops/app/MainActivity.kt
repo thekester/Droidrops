@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
+import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
 import androidx.activity.compose.setContent
@@ -36,6 +37,7 @@ import com.readrops.app.item.ReaderSession
 import com.readrops.app.repositories.BaseRepository
 import com.readrops.app.sync.SyncWorker
 import com.readrops.app.timelime.TimelineTab
+import com.readrops.app.util.KeyboardShortcuts
 import com.readrops.app.util.Preferences
 import com.readrops.app.util.theme.ReadropsTheme
 import com.readrops.db.Database
@@ -136,6 +138,10 @@ class MainActivity : ComponentActivity(), KoinComponent {
             }
         }
     }
+
+    // hardware keyboard shortcuts only see the keys no view or text field consumed
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean =
+        super.dispatchKeyEvent(event) || KeyboardShortcuts.dispatch(event)
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)

@@ -42,11 +42,14 @@ import com.readrops.app.MainActivity
 import com.readrops.app.R
 import com.readrops.app.account.credentials.AccountCredentialsScreen
 import com.readrops.app.account.credentials.AccountCredentialsScreenMode
+import com.readrops.app.account.backup.LocalAccountBackupFormat
 import com.readrops.app.account.dialog.AccountWarningDialog
+import com.readrops.app.account.dialog.BackupProgressDialog
 import com.readrops.app.account.dialog.OPMLImportProgressDialog
 import com.readrops.app.home.HomeScreen
 import com.readrops.app.util.components.AndroidScreen
 import com.readrops.app.util.components.SelectableImageText
+import com.readrops.app.util.components.dialog.TwoChoicesDialog
 import com.readrops.app.util.theme.LargeSpacer
 import com.readrops.app.util.theme.MediumSpacer
 import com.readrops.app.util.theme.ShortSpacer
@@ -68,6 +71,11 @@ class AccountSelectionScreen : AndroidScreen() {
         val opmlImportLauncher =
             rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
                 uri?.let { screenModel.parseOPMLFile(uri, context) }
+            }
+
+        val backupRestoreLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                uri?.let { screenModel.restoreBackup(uri, context) }
             }
 
         val snackbarHostState = remember { SnackbarHostState() }
@@ -115,6 +123,20 @@ class AccountSelectionScreen : AndroidScreen() {
                         screenModel.closeDialog()
                     },
                     onDismiss = { screenModel.closeDialog() }
+                )
+            }
+
+            is DialogState.BackupInProgress -> BackupProgressDialog()
+
+            is DialogState.RestorePreferences -> {
+                TwoChoicesDialog(
+                    title = stringResource(R.string.backup_restore_settings_title),
+                    text = stringResource(R.string.backup_restore_settings_question),
+                    icon = painterResource(id = R.drawable.ic_settings),
+                    confirmText = stringResource(R.string.backup_restore_settings_confirm),
+                    dismissText = stringResource(R.string.backup_restore_settings_keep),
+                    onDismiss = { screenModel.finishRestore(dialog.preferences, restore = false) },
+                    onConfirm = { screenModel.finishRestore(dialog.preferences, restore = true) }
                 )
             }
 
@@ -197,6 +219,21 @@ class AccountSelectionScreen : AndroidScreen() {
                                 padding = MaterialTheme.spacing.mediumSpacing,
                                 imageSize = 24.dp,
                                 onClick = { opmlImportLauncher.launch(ApiUtils.OPML_MIMETYPES.toTypedArray()) }
+                            )
+
+                            SelectableImageText(
+                                image = painterResource(id = R.drawable.ic_backup),
+                                text = stringResource(id = R.string.restore_backup),
+                                style = MaterialTheme.typography.bodyLarge,
+                                spacing = MaterialTheme.spacing.mediumSpacing,
+                                padding = MaterialTheme.spacing.mediumSpacing,
+                                imageSize = 24.dp,
+                                imageTint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                onClick = {
+                                    backupRestoreLauncher.launch(
+                                        arrayOf(LocalAccountBackupFormat.MIME_TYPE, "text/plain", "application/octet-stream")
+                                    )
+                                }
                             )
 
                             MediumSpacer()

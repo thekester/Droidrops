@@ -2,11 +2,16 @@ package com.readrops.app.account
 
 import android.content.Context
 import android.net.Uri
+import android.provider.DocumentsContract
 import androidx.compose.runtime.Stable
 import androidx.core.net.toFile
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.readrops.api.opml.OPMLParser
 import com.readrops.app.R
+import com.readrops.app.account.backup.LocalAccountBackupFormat.InvalidBackupException
+import com.readrops.app.account.backup.AccountBackupManager
+import com.readrops.app.account.backup.BackupPreference
+import com.readrops.app.account.backup.describe
 import com.readrops.app.account.hasImportableFeeds
 import com.readrops.app.home.TabScreenModel
 import com.readrops.app.repositories.ErrorResult
@@ -19,6 +24,9 @@ import com.readrops.db.entities.Folder
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
 import com.readrops.db.filters.MainFilter
+import com.squareup.moshi.JsonDataException
+import com.squareup.moshi.JsonEncodingException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -180,6 +188,76 @@ class AccountScreenModel(
         }
     }
 
+    fun exportBackup(uri: Uri, context: Context) {
+        val account = currentAccount ?: return
+        openDialog(DialogState.BackupInProgress)
+
+        screenModelScope.launch(dispatcher) {
+            try {
+                val stream = context.contentResolver.openOutputStream(uri, "wt")
+                    ?: throw NoSuchFileException(uri.toFile())
+                val summary = get<AccountBackupManager>().export(account, stream)
+
+                _accountState.update {
+                    it.copy(
+                        dialog = null,
+                        backupMessage = summary.describe(context, R.string.backup_export_success)
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                // never leave a truncated file that looks like a valid backup
+                runCatching { DocumentsContract.deleteDocument(context.contentResolver, uri) }
+                _accountState.update { it.copy(dialog = null, error = accountError?.genericMessage(e)) }
+            }
+        }
+    }
+
+    fun restoreBackup(uri: Uri, context: Context) {
+        openDialog(DialogState.BackupInProgress)
+
+        screenModelScope.launch(dispatcher) {
+            try {
+                val stream = context.contentResolver.openInputStream(uri)
+                    ?: throw NoSuchFileException(uri.toFile())
+                val result = get<AccountBackupManager>().restore(stream, context)
+
+                _accountState.update {
+                    it.copy(
+                        // the app settings of the backup replace the current ones only on request
+                        dialog = if (result.preferences.isNotEmpty()) {
+                            DialogState.RestorePreferences(result.preferences)
+                        } else {
+                            null
+                        },
+                        backupMessage = result.summary.describe(context, R.string.backup_restore_success)
+                    )
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                _accountState.update { it.copy(dialog = null, error = backupErrorMessage(e, context)) }
+            }
+        }
+    }
+
+    fun restorePreferences(preferences: List<BackupPreference>) {
+        closeDialog()
+        screenModelScope.launch(dispatcher) {
+            get<AccountBackupManager>().applyPreferences(preferences)
+        }
+    }
+
+    private fun backupErrorMessage(e: Exception, context: Context): String? =
+        if (e is InvalidBackupException || e is JsonDataException || e is JsonEncodingException) {
+            context.getString(R.string.backup_invalid_file)
+        } else {
+            accountError?.genericMessage(e)
+        }
+
+    fun resetBackupMessage() = _accountState.update { it.copy(backupMessage = null) }
+
     fun resetOPMLState() =
         _accountState.update { it.copy(opmlExportUri = null, opmlExportSuccess = false) }
 
@@ -234,6 +312,7 @@ data class AccountState(
     val error: String? = null,
     val opmlExportSuccess: Boolean = false,
     val opmlExportUri: Uri? = null,
+    val backupMessage: String? = null,
     val accounts: List<Account> = emptyList(),
     val renameAccountState: TextFieldDialogState = TextFieldDialogState()
 )
@@ -249,6 +328,12 @@ sealed interface DialogState {
     data class Error(val error: String) : DialogState
 
     data object OPMLChoice : DialogState
+
+    data object BackupChoice : DialogState
+
+    data object BackupInProgress : DialogState
+
+    data class RestorePreferences(val preferences: List<BackupPreference>) : DialogState
 
     data class RenameAccount(val name: String) : DialogState
 }

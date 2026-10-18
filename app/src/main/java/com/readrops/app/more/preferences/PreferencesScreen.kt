@@ -181,6 +181,13 @@ class PreferencesScreen : AndroidScreen() {
                                 subtitle = stringResource(R.string.swipe_between_articles_subtitle)
                             )
 
+                            SwitchPreferenceWidget(
+                                preference = loadedState.twoPaneReader.second,
+                                isChecked = loadedState.twoPaneReader.first,
+                                title = stringResource(R.string.two_pane_reader),
+                                subtitle = stringResource(R.string.two_pane_reader_subtitle)
+                            )
+
                             ListPreferenceWidget(
                                 preference = loadedState.mainFilterPref.second,
                                 selectedKey = loadedState.mainFilterPref.first,
@@ -213,6 +220,13 @@ class PreferencesScreen : AndroidScreen() {
                             )
 
                             SwitchPreferenceWidget(
+                                preference = loadedState.showTimelinePreview.second,
+                                isChecked = loadedState.showTimelinePreview.first,
+                                title = stringResource(R.string.show_timeline_preview),
+                                subtitle = stringResource(R.string.show_timeline_preview_subtitle)
+                            )
+
+                            SwitchPreferenceWidget(
                                 preference = loadedState.showTimelineSource.second,
                                 isChecked = loadedState.showTimelineSource.first,
                                 title = stringResource(R.string.show_timeline_source),
@@ -241,6 +255,17 @@ class PreferencesScreen : AndroidScreen() {
                                     "extra_large" to stringResource(R.string.article_font_extra_large)
                                 ),
                                 title = stringResource(R.string.article_font_size),
+                                onValueChange = {}
+                            )
+
+                            ListPreferenceWidget(
+                                preference = loadedState.feedListDensity.second,
+                                selectedKey = loadedState.feedListDensity.first,
+                                entries = mapOf(
+                                    "comfortable" to stringResource(R.string.feed_list_comfortable),
+                                    "compact" to stringResource(R.string.feed_list_compact)
+                                ),
+                                title = stringResource(R.string.feed_list_density),
                                 onValueChange = {}
                             )
 

@@ -3,6 +3,7 @@ package com.readrops.app.item.view
 import android.annotation.SuppressLint
 import android.content.Context
 import android.widget.RelativeLayout
+import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import androidx.compose.runtime.Composable
@@ -47,6 +48,9 @@ class ItemNestedScrollView(
     }
 
     init {
+        // a hardware key press would otherwise grey out the whole article as "focused"
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) defaultFocusHighlightEnabled = false
+
         addView(
             RelativeLayout(context).apply {
                 ViewCompat.setNestedScrollingEnabled(this, true)

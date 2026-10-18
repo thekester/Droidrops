@@ -29,6 +29,11 @@
     <string name="article_font_normal">Normal</string>
     <string name="article_font_large">Large</string>
     <string name="article_font_extra_large">Extra large</string>
+    <string name="feed_list_density">Feed list spacing</string>
+    <string name="feed_list_comfortable">Comfortable</string>
+    <string name="feed_list_compact">Compact</string>
+    <string name="show_timeline_preview">Show article previews</string>
+    <string name="show_timeline_preview_subtitle">Hide excerpts on large cards to shorten the timeline</string>
     <string name="share_selection_with_reference">Share selection with reference</string>
     <string name="open_url">Open url</string>
     <string name="add_folder">Add folder</string>
@@ -345,4 +350,35 @@
     <string name="level_info">Info</string>
     <string name="log_copied_for_github">The log was copied: paste it into the issue if the page shows only part of it.</string>
     <string name="view_log">View log</string>
+    <string name="backup_and_restore">Back up and restore</string>
+    <string name="backup_explanation">A backup contains this account\'s folders, feeds and their settings, articles with their read and favorite state, and the app settings. Passwords are not included. Restoring always creates a new local account and leaves existing accounts untouched.</string>
+    <string name="backup_restore_settings_title">Restore app settings?</string>
+    <string name="backup_restore_settings_question">This backup also contains app settings (theme, timeline, reader…). Replace your current settings with them?</string>
+    <string name="backup_restore_settings_confirm">Replace</string>
+    <string name="backup_restore_settings_keep">Keep mine</string>
+    <string name="restore_backup">Restore a backup</string>
+    <string name="backup_export">Back up this account</string>
+    <string name="backup_restore">Restore a backup as a new account</string>
+    <string name="backup_export_success">Backup saved: %1$s, %2$s</string>
+    <string name="backup_restore_success">Backup restored: %1$s, %2$s</string>
+    <plurals name="backup_feed_count">
+        <item quantity="one">%d feed</item>
+        <item quantity="other">%d feeds</item>
+    </plurals>
+    <plurals name="backup_article_count">
+        <item quantity="one">%d article</item>
+        <item quantity="other">%d articles</item>
+    </plurals>
+    <string name="always_load_full_article">Always load the full article</string>
+    <string name="always_load_full_article_subtitle">For feeds that only provide a summary</string>
+    <string name="backup_restored_account_name">%1$s (restored)</string>
+    <string name="backup_invalid_file">This file is not a valid Droidrops backup. Nothing was imported.</string>
+    <string name="two_pane_reader">Two-pane reading on large screens</string>
+    <string name="two_pane_reader_subtitle">On tablets and wide windows, open articles next to the timeline</string>
+    <string name="select_an_article">Select an article to read it here</string>
+    <string name="close_article">Close article</string>
+    <string name="load_full_article">Load full article</string>
+    <string name="show_feed_content">Show feed content</string>
+    <string name="full_article_not_found">No article text could be found on this page</string>
+    <string name="full_article_failed">The full article could not be loaded</string>
 </resources>

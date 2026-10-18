@@ -82,6 +82,7 @@ object FeedTab : Tab {
 
         val screenModel = koinScreenModel<FeedScreenModel>()
         val state by screenModel.feedsState.collectAsStateWithLifecycle()
+        val compactFeedList = state.feedListDensity == "compact"
 
         val snackbarHostState = remember { SnackbarHostState() }
         val feedListState = rememberLazyListState()
@@ -237,7 +238,8 @@ object FeedTab : Tab {
                                                     DialogState.DeleteFolder(folder)
                                                 )
                                             },
-                                            displayThreeDotsMenu = state.displayThreeDotsMenu
+                                            displayThreeDotsMenu = state.displayThreeDotsMenu,
+                                            compact = compactFeedList
                                         )
                                     } else {
                                         val feeds = folderWithFeeds.second
@@ -247,7 +249,8 @@ object FeedTab : Tab {
                                                 feed = feed,
                                                 onClick = { onFeedClick(feed) },
                                                 onLongClick = { onFeedLongClick(feed, null) },
-                                                displayDivider = false
+                                                displayDivider = false,
+                                                compact = compactFeedList
                                             )
                                         }
                                     }

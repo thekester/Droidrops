@@ -44,7 +44,9 @@ fun FeedModalBottomSheet(
     onDelete: () -> Unit,
     accountNotificationsEnabled: Boolean,
     canUpdateFeed: Boolean,
-    canDeleteFeed: Boolean
+    canDeleteFeed: Boolean,
+    isFullContentEnabled: Boolean = false,
+    onUpdateFullContent: (Boolean) -> Unit = {}
 ) {
     ModalBottomSheet(
         sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
@@ -61,6 +63,13 @@ fun FeedModalBottomSheet(
                 } else null,
                 isChecked = feed.isNotificationEnabled,
                 onCheckedChange = onUpdateNotifications
+            )
+
+            SwitchText(
+                title = stringResource(R.string.always_load_full_article),
+                subtitle = stringResource(R.string.always_load_full_article_subtitle),
+                isChecked = isFullContentEnabled,
+                onCheckedChange = onUpdateFullContent
             )
 
             BasePreference(

@@ -33,6 +33,8 @@ import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.readrops.app.R
+import com.readrops.app.util.KeyboardShortcutHandler
+import com.readrops.app.util.Shortcut
 import com.readrops.app.util.components.AndroidScreen
 import com.readrops.app.util.components.CenteredProgressIndicator
 import com.readrops.app.util.components.Placeholder
@@ -56,15 +58,18 @@ class ItemScreen(
     override fun Content() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
-
-        LaunchedEffect(itemId) {
-            ReaderSession.save(context, itemId)
-        }
-
-        BackHandler {
+        val closePane = LocalItemPaneClose.current
+        val close: () -> Unit = closePane ?: {
             ReaderSession.clear(context)
             navigator.pop()
         }
+
+        LaunchedEffect(itemId) {
+            // the side pane is part of the timeline, it is not a reader to restore on launch
+            if (closePane == null) ReaderSession.save(context, itemId)
+        }
+
+        BackHandler(onBack = close)
 
         val screenModel =
             koinScreenModel<ItemScreenModel>(parameters = { parametersOf(itemId, itemIndex, queryFilters) })
@@ -194,6 +199,40 @@ class ItemScreen(
                         }
                 }
 
+                KeyboardShortcutHandler { shortcut ->
+                    val page = pagerState.currentPage
+                    val itemWithFeed = (if (page < items.itemCount) items.peek(page) else null)
+                        ?: return@KeyboardShortcutHandler false
+                    val item = itemWithFeed.item
+
+                    when (shortcut) {
+                        // in the side pane there is a single article: the timeline moves instead
+                        Shortcut.NEXT_ARTICLE -> (page + 1 < pagerState.pageCount).also { canMove ->
+                            if (canMove) coroutineScope.launch { pagerState.animateScrollToPage(page + 1) }
+                        }
+
+                        Shortcut.PREVIOUS_ARTICLE -> (page > 0).also { canMove ->
+                            if (canMove) coroutineScope.launch { pagerState.animateScrollToPage(page - 1) }
+                        }
+
+                        Shortcut.TOGGLE_READ -> true.also { screenModel.setItemReadState(item) }
+                        Shortcut.TOGGLE_STAR -> true.also { screenModel.setItemStarState(item) }
+                        Shortcut.FULL_ARTICLE -> (item.link != null).also { hasLink ->
+                            if (hasLink) screenModel.toggleFullContent(item, context)
+                        }
+
+                        Shortcut.OPEN_IN_BROWSER -> (item.link != null).also { hasLink ->
+                            if (hasLink) {
+                                if (state.openInExternalBrowser) {
+                                    context.openUrl(item.link!!)
+                                } else {
+                                    context.openInCustomTab(item.link!!, state.theme, linkAccentColor)
+                                }
+                            }
+                        }
+                    }
+                }
+
                 HorizontalPager(
                     state = pagerState,
                     userScrollEnabled = state.swipeBetweenArticles,
@@ -210,6 +249,11 @@ class ItemScreen(
                         }
 
                         val item = itemWithFeed.item
+
+                        val alwaysFullContent = itemWithFeed.feedId in state.fullContentFeedIds
+                        LaunchedEffect(item.id, alwaysFullContent) {
+                            if (alwaysFullContent) screenModel.loadFullContentAutomatically(item, context)
+                        }
 
                         ItemScreenPage(
                             itemWithFeed = itemWithFeed,
@@ -233,13 +277,12 @@ class ItemScreen(
                             },
                             onSetReadState = { screenModel.setItemReadState(item) },
                             onSetStarState = { screenModel.setItemStarState(item) },
+                            fullContent = state.fullContents[item.id],
+                            onToggleFullContent = { screenModel.toggleFullContent(item, context) },
                             onOpenImageViewer = { imageViewerUrl = it },
                             onOpenImageDialog = { screenModel.openImageDialog(it) },
                             onOpenLinkDialog = { linkDialogUrl = it },
-                            onPop = {
-                                ReaderSession.clear(context)
-                                navigator.pop()
-                            },
+                            onPop = close,
                         )
                     }
                 }

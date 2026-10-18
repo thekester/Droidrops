@@ -7,6 +7,9 @@ import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.readrops.api.opml.OPMLParser
 import com.readrops.app.R
+import com.readrops.app.account.backup.AccountBackupManager
+import com.readrops.app.account.backup.BackupPreference
+import com.readrops.app.account.backup.LocalAccountBackupFormat.InvalidBackupException
 import com.readrops.app.account.hasImportableFeeds
 import com.readrops.app.repositories.BaseRepository
 import com.readrops.app.util.accounterror.AccountError
@@ -15,6 +18,9 @@ import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Folder
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
+import com.squareup.moshi.JsonDataException
+import com.squareup.moshi.JsonEncodingException
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.update
@@ -125,6 +131,44 @@ class AccountSelectionScreenModel(
         }
     }
 
+    /** Restores a backup as a new local account, typically when setting up a new device. */
+    fun restoreBackup(uri: Uri, context: Context) {
+        mutableState.update { it.copy(dialog = DialogState.BackupInProgress) }
+
+        screenModelScope.launch(dispatcher) {
+            try {
+                val stream = context.contentResolver.openInputStream(uri)
+                    ?: throw NoSuchFileException(uri.toFile())
+                val result = get<AccountBackupManager>().restore(stream, context)
+
+                mutableState.update {
+                    if (result.preferences.isNotEmpty()) {
+                        it.copy(dialog = DialogState.RestorePreferences(result.preferences))
+                    } else {
+                        it.copy(dialog = null, navigation = Navigation.HomeScreen)
+                    }
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: Exception) {
+                val message = if (e is InvalidBackupException || e is JsonDataException || e is JsonEncodingException) {
+                    context.getString(R.string.backup_invalid_file)
+                } else {
+                    accountError.genericMessage(e)
+                }
+                mutableState.update { it.copy(dialog = null, error = message) }
+            }
+        }
+    }
+
+    /** Ends the restore, applying the app settings of the backup if [restore] is true. */
+    fun finishRestore(preferences: List<BackupPreference>, restore: Boolean) {
+        screenModelScope.launch(dispatcher) {
+            if (restore) get<AccountBackupManager>().applyPreferences(preferences)
+            mutableState.update { it.copy(dialog = null, navigation = Navigation.HomeScreen) }
+        }
+    }
+
     fun resetException() = mutableState.update { it.copy(error = null) }
 
     fun openDialog(dialog: DialogState) = mutableState.update { it.copy(dialog = dialog) }
@@ -149,4 +193,6 @@ sealed class Navigation {
 sealed interface DialogState {
     data object OPMLImport : DialogState
     data class AccountWarning(val type: AccountType) : DialogState
+    data object BackupInProgress : DialogState
+    data class RestorePreferences(val preferences: List<BackupPreference>) : DialogState
 }

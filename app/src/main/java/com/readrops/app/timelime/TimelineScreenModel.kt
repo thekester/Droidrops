@@ -5,6 +5,8 @@ import androidx.compose.runtime.Stable
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
+import androidx.paging.PagingSource
+import androidx.sqlite.db.SupportSQLiteQuery
 import androidx.paging.cachedIn
 import androidx.paging.map
 import androidx.work.workDataOf
@@ -78,6 +80,12 @@ class TimelineScreenModel(
     private val filters = MutableStateFlow(_timelineState.value.filters)
     private val recentlyReadItemIds = Collections.synchronizedSet(LinkedHashSet<Int>())
 
+    // what the current pager was built for, see buildPager
+    @Volatile private var pagerFilters: QueryFilters? = null
+    @Volatile private var pagerAccountId: Int? = null
+    @Volatile private var pagerQuery: SupportSQLiteQuery? = null
+    @Volatile private var pagingSource: PagingSource<Int, ItemWithFeed>? = null
+
     private val useCustomShareIntentTpl = preferences.useCustomShareIntentTpl.flow.stateIn(
         screenModelScope, SharingStarted.Eagerly, false
     )
@@ -117,7 +125,7 @@ class TimelineScreenModel(
                     refreshTimeline()
                     syncAtLaunch = false
                 } else {
-                    buildPager()
+                    buildPager(reuseForRecentlyRead = true)
                 }
 
                 preferences.hideReadFeeds.flow
@@ -213,6 +221,8 @@ class TimelineScreenModel(
             swipeToLeft.flow,
             swipeToRight.flow,
             showRecentlyReadItems.flow,
+            showTimelinePreview.flow,
+            twoPaneReader.flow,
             transform = {
                 TimelinePreferences(
                     itemSize = when (it[0]) {
@@ -235,17 +245,39 @@ class TimelineScreenModel(
                     syncAtLaunch = it[13] as Boolean,
                     swipeToLeft = SwipeAction.valueOf(it[14] as String),
                     swipeToRight = SwipeAction.valueOf(it[15] as String),
-                    showRecentlyReadItems = it[16] as Boolean
+                    showRecentlyReadItems = it[16] as Boolean,
+                    showPreview = it[17] as Boolean,
+                    twoPaneReader = it[18] as Boolean
                 )
             }
         )
     }
 
-    private fun buildPager(empty: Boolean = false) {
+    private fun buildPager(empty: Boolean = false, reuseForRecentlyRead: Boolean = false) {
+        val filters = _timelineState.value.filters
         val query = ItemsQueryBuilder.buildItemsQuery(
-            queryFilters = _timelineState.value.filters,
+            queryFilters = filters,
             separateState = currentAccount!!.config.useSeparateState
         )
+
+        // Opening an article only adds it to the recently read ids that keep it visible.
+        // Rebuilding the pager for that emptied the list and scrolled it, which shows in the
+        // two-pane reader: reload the same pager instead, which keeps the items on screen.
+        val previousFilters = pagerFilters
+        if (reuseForRecentlyRead && !empty && previousFilters != null && pagerAccountId == currentAccount!!.id &&
+            previousFilters.copy(recentlyReadItemIds = filters.recentlyReadItemIds) == filters
+        ) {
+            if (previousFilters != filters) {
+                pagerFilters = filters
+                pagerQuery = query
+                pagingSource?.invalidate()
+            }
+            return
+        }
+
+        pagerFilters = if (empty) null else filters
+        pagerAccountId = currentAccount!!.id
+        pagerQuery = query
 
         val pager = Pager(
             config = PagingConfig(
@@ -254,7 +286,7 @@ class TimelineScreenModel(
                 prefetchDistance = PAGING_PREFETCH_DISTANCE
             ),
             pagingSourceFactory = {
-                database.itemDao().selectAll(query)
+                database.itemDao().selectAll(pagerQuery!!).also { pagingSource = it }
             },
         )
             .flow
@@ -712,7 +744,9 @@ data class TimelinePreferences(
     val syncAtLaunch: Boolean = false,
     val swipeToLeft: SwipeAction = SwipeAction.READ,
     val swipeToRight: SwipeAction = SwipeAction.DISABLED,
-    val showRecentlyReadItems: Boolean = false
+    val showRecentlyReadItems: Boolean = false,
+    val showPreview: Boolean = true,
+    val twoPaneReader: Boolean = false
 )
 
 private const val MAX_RECENTLY_READ_ITEMS = 100

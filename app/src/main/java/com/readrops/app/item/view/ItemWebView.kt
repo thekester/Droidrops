@@ -2,6 +2,7 @@ package com.readrops.app.item.view
 
 import android.annotation.SuppressLint
 import android.view.ActionMode
+import android.view.KeyEvent
 import android.content.Context
 import android.view.Menu
 import android.view.MenuItem
@@ -12,6 +13,7 @@ import android.webkit.WebView
 import android.webkit.WebResourceRequest
 import android.webkit.WebResourceResponse
 import android.net.Uri
+import android.os.Build
 import androidx.webkit.WebViewAssetLoader
 import android.webkit.WebViewClient
 import androidx.compose.ui.graphics.Color
@@ -19,6 +21,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.core.text.HtmlCompat
 import androidx.core.text.layoutDirection
 import com.readrops.app.R
+import com.readrops.app.util.KeyboardShortcuts
 import com.readrops.app.util.Utils
 import com.readrops.db.pojo.ItemWithFeed
 import org.jsoup.Jsoup
@@ -52,6 +55,7 @@ class ItemWebView(
         settings.displayZoomControls = false
         settings.setSupportZoom(true)
         isVerticalScrollBarEnabled = true
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) defaultFocusHighlightEnabled = false
         scrollBarStyle = View.SCROLLBARS_INSIDE_OVERLAY
 
         webViewClient = object : WebViewClient() {
@@ -70,6 +74,13 @@ class ItemWebView(
             ): Boolean {
                 request?.url?.toString()?.let(::handleUrl)
                 return true
+            }
+
+            // the WebView takes every key while focused; those the page ignored come back here
+            override fun onUnhandledKeyEvent(view: WebView?, event: KeyEvent?) {
+                if (event == null || !KeyboardShortcuts.dispatch(event)) {
+                    super.onUnhandledKeyEvent(view, event)
+                }
             }
 
             override fun shouldInterceptRequest(
@@ -147,7 +158,8 @@ class ItemWebView(
         backgroundColor: Color,
         onBackgroundColor: Color,
         openVideosInYoutube: Boolean = false,
-        articleFontSize: String = "normal"
+        articleFontSize: String = "normal",
+        fullContentHtml: String? = null
     ) {
         val direction = if (Locale.getDefault().layoutDirection == LAYOUT_DIRECTION_LTR) {
             "ltr"
@@ -161,7 +173,7 @@ class ItemWebView(
             Utils.getCssColor(onBackgroundColor.toArgb()),
             Utils.getCssColor(backgroundColor.toArgb()),
             direction,
-            formatText(itemWithFeed, openVideosInYoutube),
+            formatText(itemWithFeed, openVideosInYoutube, fullContentHtml),
             articleFontCssSize(articleFontSize)
         )
 
@@ -231,9 +243,14 @@ class ItemWebView(
         }
     }
 
-    private fun formatText(itemWithFeed: ItemWithFeed, openVideosInYoutube: Boolean): String {
-        val text = itemWithFeed.item.text ?: return emptyContentNotice(itemWithFeed)
-        val unescapedText = Parser.unescapeEntities(text, false)
+    private fun formatText(
+        itemWithFeed: ItemWithFeed,
+        openVideosInYoutube: Boolean,
+        fullContentHtml: String? = null
+    ): String {
+        val text = fullContentHtml ?: itemWithFeed.item.text ?: return emptyContentNotice(itemWithFeed)
+        // extracted web pages are already well-formed HTML, unlike some feed entries
+        val unescapedText = if (fullContentHtml != null) text else Parser.unescapeEntities(text, false)
         val document = if (itemWithFeed.websiteUrl != null) {
             Jsoup.parse(unescapedText, itemWithFeed.websiteUrl!!)
         } else {

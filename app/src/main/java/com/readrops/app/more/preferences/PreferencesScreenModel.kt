@@ -52,6 +52,9 @@ class PreferencesScreenModel(
                     showTimelineDate.flow,
                     showTimelineReadTime.flow,
                     articleFontSize.flow,
+                    feedListDensity.flow,
+                    showTimelinePreview.flow,
+                    twoPaneReader.flow,
                 )
 
                 combine(
@@ -78,6 +81,9 @@ class PreferencesScreenModel(
                         showTimelineDate = (list[17] as Boolean) to showTimelineDate,
                         showTimelineReadTime = (list[18] as Boolean) to showTimelineReadTime,
                         articleFontSize = (list[19] as String) to articleFontSize,
+                        feedListDensity = (list[20] as String) to feedListDensity,
+                        showTimelinePreview = (list[21] as Boolean) to showTimelinePreview,
+                        twoPaneReader = (list[22] as Boolean) to twoPaneReader,
                         exampleItem = ItemWithFeed(
                             item = Item(
                                 title = context.getString(R.string.example_item_title),
@@ -137,6 +143,9 @@ sealed class PreferencesScreenState {
         val showTimelineDate: PreferenceState<Boolean>,
         val showTimelineReadTime: PreferenceState<Boolean>,
         val articleFontSize: PreferenceState<String>,
+        val feedListDensity: PreferenceState<String>,
+        val showTimelinePreview: PreferenceState<Boolean>,
+        val twoPaneReader: PreferenceState<Boolean>,
         val useCustomShareIntentTpl: PreferenceState<Boolean>,
         val customShareIntentTpl: PreferenceState<String>,
         val swipeToLeft: PreferenceState<String>,

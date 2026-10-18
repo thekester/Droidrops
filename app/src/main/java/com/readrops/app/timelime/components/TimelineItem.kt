@@ -69,7 +69,8 @@ fun TimelineItem(
     showImages: Boolean = true,
     showSource: Boolean = true,
     showDate: Boolean = true,
-    showReadTime: Boolean = true
+    showReadTime: Boolean = true,
+    showPreview: Boolean = true
 ) {
 
     fun handleSwipeAction(swipeAction: SwipeAction) {
@@ -221,7 +222,8 @@ fun TimelineItem(
                     showImages = showImages,
                     showSource = showSource,
                     showDate = showDate,
-                    showReadTime = showReadTime
+                    showReadTime = showReadTime,
+                    showPreview = showPreview
                 )
             }
         }

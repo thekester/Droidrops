@@ -9,6 +9,11 @@
     <string name="article_font_normal">Normale</string>
     <string name="article_font_large">Grande</string>
     <string name="article_font_extra_large">Très grande</string>
+    <string name="feed_list_density">Espacement de la liste des flux</string>
+    <string name="feed_list_comfortable">Aéré</string>
+    <string name="feed_list_compact">Compact</string>
+    <string name="show_timeline_preview">Afficher les aperçus d’articles</string>
+    <string name="show_timeline_preview_subtitle">Masquer les extraits des grandes cartes pour raccourcir la liste</string>
     <string name="article_image">Image de l’article</string>
     <string name="close_image_viewer">Fermer la visionneuse d’images</string>
     <string name="add_feed">Ajouter un flux</string>
@@ -285,4 +290,37 @@
     <string name="level_info">Info</string>
     <string name="log_copied_for_github">Le journal a été copié : collez-le dans l\'issue si la page n\'en affiche qu\'une partie.</string>
     <string name="view_log">Voir le journal</string>
+    <string name="backup_and_restore">Sauvegarder et restaurer</string>
+    <string name="backup_explanation">Une sauvegarde contient les dossiers de ce compte, ses flux et leurs réglages, les articles avec leur état lu et favori, ainsi que les réglages de l\'application. Les mots de passe ne sont pas inclus. La restauration crée toujours un nouveau compte local et ne modifie pas les comptes existants.</string>
+    <string name="backup_restore_settings_title">Restaurer les réglages ?</string>
+    <string name="backup_restore_settings_question">Cette sauvegarde contient aussi les réglages de l\'application (thème, timeline, lecteur…). Remplacer vos réglages actuels par ceux-ci ?</string>
+    <string name="backup_restore_settings_confirm">Remplacer</string>
+    <string name="backup_restore_settings_keep">Garder les miens</string>
+    <string name="restore_backup">Restaurer une sauvegarde</string>
+    <string name="backup_export">Sauvegarder ce compte</string>
+    <string name="backup_restore">Restaurer une sauvegarde dans un nouveau compte</string>
+    <string name="backup_export_success">Sauvegarde enregistrée : %1$s, %2$s</string>
+    <string name="backup_restore_success">Sauvegarde restaurée : %1$s, %2$s</string>
+    <plurals name="backup_feed_count">
+        <item quantity="one">%d flux</item>
+        <item quantity="many">%d flux</item>
+        <item quantity="other">%d flux</item>
+    </plurals>
+    <plurals name="backup_article_count">
+        <item quantity="one">%d article</item>
+        <item quantity="many">%d articles</item>
+        <item quantity="other">%d articles</item>
+    </plurals>
+    <string name="always_load_full_article">Toujours charger l\'article complet</string>
+    <string name="always_load_full_article_subtitle">Pour les flux qui ne fournissent qu\'un résumé</string>
+    <string name="backup_restored_account_name">%1$s (restauré)</string>
+    <string name="backup_invalid_file">Ce fichier n\'est pas une sauvegarde Droidrops valide. Rien n\'a été importé.</string>
+    <string name="two_pane_reader">Lecture en deux volets sur grand écran</string>
+    <string name="two_pane_reader_subtitle">Sur tablette et fenêtre large, ouvre les articles à côté de la timeline</string>
+    <string name="select_an_article">Sélectionnez un article pour le lire ici</string>
+    <string name="close_article">Fermer l\'article</string>
+    <string name="load_full_article">Charger l\'article complet</string>
+    <string name="show_feed_content">Afficher le contenu du flux</string>
+    <string name="full_article_not_found">Aucun texte d\'article n\'a été trouvé sur cette page</string>
+    <string name="full_article_failed">Impossible de charger l\'article complet</string>
 </resources>

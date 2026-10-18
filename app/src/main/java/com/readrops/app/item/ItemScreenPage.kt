@@ -57,7 +57,9 @@ fun ItemScreenPage(
     onPop: () -> Unit,
     openVideosInYoutube: Boolean,
     articleFontSize: String = "normal",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    fullContent: FullContentState? = null,
+    onToggleFullContent: () -> Unit = {}
 ) {
     val item = itemWithFeed.item
 
@@ -70,6 +72,8 @@ fun ItemScreenPage(
     val density = LocalDensity.current
     var refreshAndroidView by remember { mutableStateOf(true) }
     var isScrollable by remember { mutableStateOf(true) }
+    val fullContentHtml = fullContent.shownHtml
+    var displayedFullContentHtml by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         modifier = modifier.nestedScroll(nestedScrollConnection)
@@ -94,8 +98,11 @@ fun ItemScreenPage(
                     state = BottomBarState(
                         isRead = itemWithFeed.isRead,
                         isStarred = itemWithFeed.isStarred,
-                        isOpenUrlVisible = !item.link.isNullOrEmpty()
+                        isOpenUrlVisible = !item.link.isNullOrEmpty(),
+                        isFullContentShown = fullContentHtml != null,
+                        isFullContentLoading = fullContent is FullContentState.Loading
                     ),
+                    onToggleFullContent = onToggleFullContent,
                     accentColor = accentColor,
                     modifier = Modifier
                         .navigationBarsPadding()
@@ -166,7 +173,7 @@ fun ItemScreenPage(
                     }
                 },
                 update = { nestedScrollView ->
-                    if (refreshAndroidView) {
+                    if (refreshAndroidView || displayedFullContentHtml != fullContentHtml) {
                         val relativeLayout =
                             (nestedScrollView.children.toList().first() as RelativeLayout)
                         val webView = relativeLayout.children.toList()[1] as ItemWebView
@@ -177,9 +184,11 @@ fun ItemScreenPage(
                             backgroundColor = backgroundColor,
                             onBackgroundColor = onBackgroundColor,
                             openVideosInYoutube = openVideosInYoutube,
-                            articleFontSize = articleFontSize
+                            articleFontSize = articleFontSize,
+                            fullContentHtml = fullContentHtml
                         )
 
+                        displayedFullContentHtml = fullContentHtml
                         refreshAndroidView = false
                     }
                 }

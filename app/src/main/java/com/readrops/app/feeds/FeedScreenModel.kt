@@ -27,6 +27,7 @@ import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import androidx.work.workDataOf
 import com.readrops.app.sync.SyncWorker
+import com.readrops.app.util.Preferences
 import com.readrops.app.util.extensions.isValidFeedUrl
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -34,6 +35,7 @@ class FeedScreenModel(
     private val database: Database,
     private val getFoldersWithFeeds: GetFoldersWithFeeds,
     private val context: Context,
+    private val preferences: Preferences,
     private val dispatcher: CoroutineDispatcher = Dispatchers.IO
 ) : TabScreenModel(database, context), KoinComponent {
 
@@ -74,6 +76,20 @@ class FeedScreenModel(
     val folderState = _folderState.asStateFlow()
 
     init {
+        screenModelScope.launch {
+            preferences.feedListDensity.flow.collect { density ->
+                _feedState.update { it.copy(feedListDensity = density) }
+            }
+        }
+
+        screenModelScope.launch(dispatcher) {
+            preferences.fullContentFeeds.flow.collect { ids ->
+                _feedState.update {
+                    it.copy(fullContentFeedIds = ids.mapNotNull(String::toIntOrNull).toSet())
+                }
+            }
+        }
+
         screenModelScope.launch(dispatcher) {
             accountEvent.flatMapLatest { account ->
                 _feedState.update {
@@ -529,6 +545,12 @@ class FeedScreenModel(
     fun updateFeedNotifications(feedId: Int, isEnabled: Boolean) {
         screenModelScope.launch(dispatcher) {
             database.feedDao().updateFeedNotificationState(feedId, isEnabled)
+        }
+    }
+
+    fun updateFeedFullContent(feedId: Int, isEnabled: Boolean) {
+        screenModelScope.launch(dispatcher) {
+            preferences.setFullContentFeed(feedId, isEnabled)
         }
     }
 

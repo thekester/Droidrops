@@ -57,4 +57,26 @@ class TimelineSourcePreferenceTest : KoinTest {
         preference.write("normal")
         assertTrue(preference.flow.first() == "normal")
     }
+
+    @Test
+    fun feedListDensityDefaultsToComfortableAndPersistsCompactSelection() = runBlocking {
+        val preference = get<Preferences>().feedListDensity
+
+        assertTrue(preference.flow.first() == "comfortable")
+        preference.write("compact")
+        assertTrue(preference.flow.first() == "compact")
+        preference.write("comfortable")
+        assertTrue(preference.flow.first() == "comfortable")
+    }
+
+    @Test
+    fun timelinePreviewVisibilityDefaultsOnAndCanBeDisabled() = runBlocking {
+        val preference = get<Preferences>().showTimelinePreview
+
+        assertTrue(preference.flow.first())
+        preference.write(false)
+        assertFalse(preference.flow.first())
+        preference.write(true)
+        assertTrue(preference.flow.first())
+    }
 }

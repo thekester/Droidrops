@@ -12,7 +12,9 @@ data class FeedState(
     val error: String? = null,
     val config: AccountConfig? = null,
     val isAccountNotificationsEnabled: Boolean = false,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
+    val feedListDensity: String = "comfortable",
+    val fullContentFeedIds: Set<Int> = emptySet()
 ) {
 
     val displayThreeDotsMenu

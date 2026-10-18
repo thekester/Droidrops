@@ -61,6 +61,10 @@ fun FeedDialogs(state: FeedState, screenModel: FeedScreenModel) {
                 onUpdateNotifications = {
                     screenModel.updateFeedNotifications(dialog.feed.id, it)
                 },
+                isFullContentEnabled = dialog.feed.id in state.fullContentFeedIds,
+                onUpdateFullContent = {
+                    screenModel.updateFeedFullContent(dialog.feed.id, it)
+                },
                 onOpenInClick = {
                     screenModel.openDialog(DialogState.UpdateFeedOpenInSetting(dialog.feed))
                 },

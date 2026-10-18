@@ -51,7 +51,11 @@ import com.readrops.api.utils.ApiUtils
 import com.readrops.app.R
 import com.readrops.app.account.credentials.AccountCredentialsScreen
 import com.readrops.app.account.credentials.AccountCredentialsScreenMode
+import com.readrops.app.account.backup.LocalAccountBackupFormat
 import com.readrops.app.account.dialog.AccountSelectionDialog
+import com.readrops.app.account.dialog.Backup
+import com.readrops.app.account.dialog.BackupChoiceDialog
+import com.readrops.app.account.dialog.BackupProgressDialog
 import com.readrops.app.account.dialog.AccountWarningDialog
 import com.readrops.app.account.dialog.OPML
 import com.readrops.app.account.dialog.OPMLChoiceDialog
@@ -74,6 +78,7 @@ import com.readrops.app.util.theme.spacing
 import com.readrops.db.entities.account.ACCOUNT_APIS
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
+import java.time.LocalDate
 
 object AccountTab : Tab {
 
@@ -161,6 +166,14 @@ object AccountTab : Tab {
                 } else {
                     screenModel.resetOPMLState()
                 }
+            }
+        }
+
+        LaunchedEffect(state.backupMessage) {
+            state.backupMessage?.let { message ->
+                // reset only once shown: changing the key earlier would cancel this effect
+                snackbarHostState.showSnackbar(message = message, duration = SnackbarDuration.Long)
+                screenModel.resetBackupMessage()
             }
         }
 
@@ -290,6 +303,18 @@ object AccountTab : Tab {
                     )
                 }
 
+                // server accounts too: their backup is restored as a local account
+                SelectableIconText(
+                    icon = painterResource(id = R.drawable.ic_backup),
+                    text = stringResource(R.string.backup_and_restore),
+                    style = MaterialTheme.typography.titleMedium.copy(fontWeight = FontWeight.Normal),
+                    spacing = MaterialTheme.spacing.largeSpacing,
+                    padding = MaterialTheme.spacing.mediumSpacing,
+                    tint = MaterialTheme.colorScheme.primary,
+                    iconSize = 24.dp,
+                    onClick = { screenModel.openDialog(DialogState.BackupChoice) }
+                )
+
                 SelectableIconText(
                     icon = rememberVectorPainter(image = Icons.Default.AccountCircle),
                     text = stringResource(R.string.delete_account),
@@ -349,7 +374,52 @@ object AccountTab : Tab {
                 uri?.let { screenModel.exportOPMLFile(uri, context) }
             }
 
+        val backupExportLauncher = rememberLauncherForActivityResult(
+            ActivityResultContracts.CreateDocument(LocalAccountBackupFormat.MIME_TYPE)
+        ) { uri ->
+            uri?.let { screenModel.exportBackup(uri, context) }
+        }
+
+        val backupRestoreLauncher =
+            rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+                uri?.let { screenModel.restoreBackup(uri, context) }
+            }
+
         when (val dialog = state.dialog) {
+            is DialogState.BackupChoice -> {
+                BackupChoiceDialog(
+                    onChoice = {
+                        if (it == Backup.EXPORT) {
+                            backupExportLauncher.launch(
+                                "droidrops-backup-${LocalDate.now()}.json"
+                            )
+                        } else {
+                            // some file managers report JSON as plain text or binary
+                            backupRestoreLauncher.launch(
+                                arrayOf(LocalAccountBackupFormat.MIME_TYPE, "text/plain", "application/octet-stream")
+                            )
+                        }
+
+                        screenModel.closeDialog()
+                    },
+                    onDismiss = { screenModel.closeDialog() }
+                )
+            }
+
+            is DialogState.BackupInProgress -> BackupProgressDialog()
+
+            is DialogState.RestorePreferences -> {
+                TwoChoicesDialog(
+                    title = stringResource(R.string.backup_restore_settings_title),
+                    text = stringResource(R.string.backup_restore_settings_question),
+                    icon = painterResource(id = R.drawable.ic_settings),
+                    confirmText = stringResource(R.string.backup_restore_settings_confirm),
+                    dismissText = stringResource(R.string.backup_restore_settings_keep),
+                    onDismiss = { screenModel.closeDialog() },
+                    onConfirm = { screenModel.restorePreferences(dialog.preferences) }
+                )
+            }
+
             is DialogState.DeleteAccount -> {
                 TwoChoicesDialog(
                     title = stringResource(R.string.delete_account),

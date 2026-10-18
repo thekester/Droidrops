@@ -14,6 +14,9 @@ interface ItemStateDao : BaseDao<ItemState> {
     @Query("Delete From ItemState Where account_id = :accountId")
     suspend fun deleteItemStates(accountId: Int)
 
+    @Query("Select * From ItemState Where account_id = :accountId")
+    suspend fun selectAllItemStates(accountId: Int): List<ItemState>
+
     @Query("Update ItemState set read = :read Where remote_id = :remoteId And account_id = :accountId")
     suspend fun updateItemReadState(read: Boolean, remoteId: String, accountId: Int)
 

@@ -16,6 +16,7 @@ import android.security.keystore.KeyPermanentlyInvalidatedException
 import com.readrops.api.services.Credentials
 import com.readrops.api.utils.NetworkFailureListener
 import com.readrops.app.account.AccountScreenModel
+import com.readrops.app.account.backup.AccountBackupManager
 import com.readrops.app.account.credentials.AccountCredentialsScreenMode
 import com.readrops.app.account.credentials.AccountCredentialsScreenModel
 import com.readrops.app.account.selection.AccountSelectionScreenModel
@@ -58,7 +59,7 @@ val appModule = module {
 
     factory { TimelineScreenModel(get(), get(), get(), androidContext()) }
 
-    factory { FeedScreenModel(get(), get(), androidContext()) }
+    factory { FeedScreenModel(get(), get(), androidContext(), get()) }
 
     factory { (url: String?) -> NewFeedScreenModel(get(), get(), androidContext(), url) }
 
@@ -87,6 +88,8 @@ val appModule = module {
     factory { (feed: Feed) -> FeedColorScreenModel(feed, get()) }
 
     single { GetFoldersWithFeeds(get()) }
+
+    factory { AccountBackupManager(get(), get(), get()) }
 
     factory<BaseRepository> { (account: Account) ->
         when (account.type) {

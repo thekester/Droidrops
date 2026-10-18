@@ -189,7 +189,8 @@ fun LargeTimelineItem(
     showImages: Boolean = true,
     showSource: Boolean = true,
     showDate: Boolean = true,
-    showReadTime: Boolean = true
+    showReadTime: Boolean = true,
+    showPreview: Boolean = true
 ) {
     val displayColor = itemWithFeed.displayColor(CardDefaults.cardColors().containerColor.toArgb())
     var imageLoadFailed by remember(itemWithFeed.item.imageLink) { mutableStateOf(false) }
@@ -248,7 +249,7 @@ fun LargeTimelineItem(
                         isRead = itemWithFeed.isRead
                     )
 
-                    if (!itemWithFeed.item.cleanDescription.isNullOrBlank()) {
+                    if (showPreview && !itemWithFeed.item.cleanDescription.isNullOrBlank()) {
                         ShortSpacer()
 
                         Text(

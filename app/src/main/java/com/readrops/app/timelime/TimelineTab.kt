@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -53,6 +54,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -70,7 +72,11 @@ import cafe.adriel.voyager.navigator.tab.TabOptions
 import com.readrops.app.MainActivity
 import com.readrops.app.R
 import com.readrops.app.home.HomeScreen
+import com.readrops.app.item.ItemPane
 import com.readrops.app.item.ItemScreen
+import com.readrops.app.item.TwoPaneContainer
+import com.readrops.app.item.TwoPaneLayout
+import com.readrops.app.item.twoPaneLayout
 import com.readrops.app.more.diagnostics.DiagnosticLogScreen
 import com.readrops.app.timelime.components.TimelineAppBar
 import com.readrops.app.timelime.components.TimelineItem
@@ -78,6 +84,8 @@ import com.readrops.app.timelime.withoutSelectedFolderLabel
 import com.readrops.app.timelime.components.TimelineItemSize
 import com.readrops.app.timelime.dialog.TimelineDialogs
 import com.readrops.app.timelime.drawer.TimelineDrawer
+import com.readrops.app.util.KeyboardShortcutHandler
+import com.readrops.app.util.Shortcut
 import com.readrops.app.util.components.LoadingScreen
 import com.readrops.app.util.components.Placeholder
 import com.readrops.app.util.components.RefreshBanner
@@ -131,6 +139,25 @@ object TimelineTab : Tab {
         val preferences = state.preferences
         val mouseWheelRefreshDetector = remember { MouseWheelRefreshDetector() }
         val items = state.itemState.collectAsLazyPagingItems()
+        val configuration = LocalConfiguration.current
+        val paneLayout = twoPaneLayout(
+            enabled = preferences.twoPaneReader,
+            screenWidthDp = configuration.screenWidthDp,
+            screenHeightDp = configuration.screenHeightDp,
+            smallestScreenWidthDp = configuration.smallestScreenWidthDp
+        )
+        val useTwoPane = paneLayout != TwoPaneLayout.NONE
+        var paneItemId by rememberSaveable { mutableStateOf<Int?>(null) }
+
+        // the window became too narrow (rotation, split screen) or the option was turned off:
+        // keep the article open as a regular reader screen instead of dropping it
+        LaunchedEffect(useTwoPane) {
+            val itemId = paneItemId
+            if (!useTwoPane && itemId != null) {
+                paneItemId = null
+                navigator.push(ItemScreen(itemId, -1, state.filters))
+            }
+        }
 
         val lazyListState = rememberLazyListState()
         val snackbarHostState = remember { SnackbarHostState() }
@@ -180,8 +207,11 @@ object TimelineTab : Tab {
             val item = itemWithFeed.item
             screenModel.trackRecentlyReadItem(item.id)
             when (resolveTimelineOpenAction(openIn, item.link != null, preferences.openInExternalBrowser)) {
-                TimelineOpenAction.LOCAL_ARTICLE ->
+                TimelineOpenAction.LOCAL_ARTICLE -> if (useTwoPane) {
+                    paneItemId = item.id
+                } else {
                     navigator.push(ItemScreen(item.id, itemIndex, state.filters))
+                }
 
                 TimelineOpenAction.EXTERNAL_BROWSER -> item.link?.let { url ->
                     screenModel.setItemRead(item)
@@ -193,6 +223,28 @@ object TimelineTab : Tab {
                     context.openInCustomTab(url, preferences.theme, Color(itemWithFeed.color))
                 }
             }
+        }
+
+        // with the side pane, J/K walk the timeline itself; the pane's reader handles the rest
+        KeyboardShortcutHandler(enabled = useTwoPane) { shortcut ->
+            val step = when (shortcut) {
+                Shortcut.NEXT_ARTICLE -> 1
+                Shortcut.PREVIOUS_ARTICLE -> -1
+                else -> return@KeyboardShortcutHandler false
+            }
+
+            val count = items.itemCount
+            // items not loaded yet peek as null: never match them against "no open article"
+            val current = paneItemId?.let { openId ->
+                (0 until count).firstOrNull { items.peek(it)?.item?.id == openId }
+            } ?: -1
+            val target = if (current == -1) 0 else current + step
+            if (target !in 0 until count) return@KeyboardShortcutHandler false
+            val itemWithFeed = items[target] ?: return@KeyboardShortcutHandler false
+
+            openItem(itemWithFeed, target)
+            coroutineScope.launch { lazyListState.animateScrollToItem(target) }
+            true
         }
 
         LaunchedEffect(Unit) {
@@ -363,260 +415,274 @@ object TimelineTab : Tab {
             onFeedClick = { screenModel.updateDrawerFeedSelection(it) },
             onTagClick = { screenModel.updateDrawerTagSelection(it) }
         ) {
-            Scaffold(
-                topBar = {
-                    TimelineAppBar(
-                        state = state,
-                        topAppBarScrollBehavior = topAppBarScrollBehavior,
-                        onOpenDrawer = { screenModel.openDrawer() },
-                        usePermanentDrawer = usePermanentDrawer,
-                        tabletDrawerOpen = tabletDrawerOpen,
-                        onToggleTabletDrawer = { tabletDrawerOpen = !tabletDrawerOpen },
-                        onOpenFilterSheet = { screenModel.openDialog(DialogState.FilterSheet) },
-                        onRefreshTimeline = { screenModel.refreshTimeline() },
-                        onSearchQueryChange = screenModel::updateSearchQuery
+            TwoPaneContainer(
+                layout = paneLayout,
+                pane = { paneModifier ->
+                    ItemPane(
+                        itemId = paneItemId,
+                        queryFilters = state.filters,
+                        onClose = { paneItemId = null },
+                        modifier = paneModifier
                     )
-                },
-                snackbarHost = { SnackbarHost(snackbarHostState) },
-                floatingActionButton = {
-                    // marking everything read is scoped to the active filter, and no per tag
-                    // variant exists yet. Rather than silently emptying the whole account, the
-                    // action is withdrawn while a tag filter is on.
-                    if (!state.hideReadAllFAB && state.filters.subFilter != SubFilter.TAG) {
-                        FloatingActionButton(
-                            onClick = {
-                                if (state.filters.mainFilter == MainFilter.ALL) {
-                                    screenModel.openDialog(DialogState.ConfirmDialog)
-                                } else {
-                                    screenModel.setAllItemsRead()
-                                }
-                            }
-                        ) {
-                            Icon(
-                                painter = painterResource(id = R.drawable.ic_done_all),
-                                contentDescription = stringResource(R.string.mark_all_articles_read)
-                            )
-                        }
-                    }
-                },
-            ) { paddingValues ->
-                Box(
-                    modifier = Modifier
-                        .padding(paddingValues)
-                        .fillMaxSize()
-                        .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
-                ) {
-                    // PullToRefreshBox must stay in composition whatever the state: leaving it
-                    // while its indicator animation runs detaches the node, and animateToThreshold
-                    // then crashes reading a CompositionLocal.
-                    PullToRefreshBox(
-                        isRefreshing = state.isRefreshing,
-                        onRefresh = { screenModel.refreshTimeline() },
-                        modifier = Modifier.mouseWheelPullToRefresh(
-                            canScrollBackward = lazyListState.canScrollBackward,
-                            isRefreshing = state.isRefreshing,
-                            detector = mouseWheelRefreshDetector,
-                            onRefresh = { screenModel.refreshTimeline() }
+                }
+            ) { listModifier ->
+                Scaffold(
+                    modifier = listModifier,
+                    topBar = {
+                        TimelineAppBar(
+                            state = state,
+                            topAppBarScrollBehavior = topAppBarScrollBehavior,
+                            onOpenDrawer = { screenModel.openDrawer() },
+                            usePermanentDrawer = usePermanentDrawer,
+                            tabletDrawerOpen = tabletDrawerOpen,
+                            onToggleTabletDrawer = { tabletDrawerOpen = !tabletDrawerOpen },
+                            onOpenFilterSheet = { screenModel.openDialog(DialogState.FilterSheet) },
+                            onRefreshTimeline = { screenModel.refreshTimeline() },
+                            onSearchQueryChange = screenModel::updateSearchQuery
                         )
-                    ) {
-                        when {
-                            state.displayRefreshScreen && items.itemCount == 0 -> RefreshScreen(
-                                currentFeed = state.currentFeed,
-                                feedCount = state.feedCount,
-                                feedMax = state.feedMax
-                            )
-
-                            items.isLoading() -> {
-                                LoadingScreen(isRefreshing = state.isRefreshing)
-                            }
-
-                            items.isError() -> {
-                                Placeholder(
-                                    text = stringResource(R.string.error_occured),
-                                    painter = painterResource(id = R.drawable.ic_error)
+                    },
+                    snackbarHost = { SnackbarHost(snackbarHostState) },
+                    floatingActionButton = {
+                        // marking everything read is scoped to the active filter, and no per tag
+                        // variant exists yet. Rather than silently emptying the whole account, the
+                        // action is withdrawn while a tag filter is on.
+                        if (!state.hideReadAllFAB && state.filters.subFilter != SubFilter.TAG) {
+                            FloatingActionButton(
+                                onClick = {
+                                    if (state.filters.mainFilter == MainFilter.ALL) {
+                                        screenModel.openDialog(DialogState.ConfirmDialog)
+                                    } else {
+                                        screenModel.setAllItemsRead()
+                                    }
+                                }
+                            ) {
+                                Icon(
+                                    painter = painterResource(id = R.drawable.ic_done_all),
+                                    contentDescription = stringResource(R.string.mark_all_articles_read)
                                 )
                             }
+                        }
+                    },
+                ) { paddingValues ->
+                    Box(
+                        modifier = Modifier
+                            .padding(paddingValues)
+                            .fillMaxSize()
+                            .nestedScroll(topAppBarScrollBehavior.nestedScrollConnection)
+                    ) {
+                        // PullToRefreshBox must stay in composition whatever the state: leaving it
+                        // while its indicator animation runs detaches the node, and animateToThreshold
+                        // then crashes reading a CompositionLocal.
+                        PullToRefreshBox(
+                            isRefreshing = state.isRefreshing,
+                            onRefresh = { screenModel.refreshTimeline() },
+                            modifier = Modifier.mouseWheelPullToRefresh(
+                                canScrollBackward = lazyListState.canScrollBackward,
+                                isRefreshing = state.isRefreshing,
+                                detector = mouseWheelRefreshDetector,
+                                onRefresh = { screenModel.refreshTimeline() }
+                            )
+                        ) {
+                            when {
+                                state.displayRefreshScreen && items.itemCount == 0 -> RefreshScreen(
+                                    currentFeed = state.currentFeed,
+                                    feedCount = state.feedCount,
+                                    feedMax = state.feedMax
+                                )
 
-                            else -> {
-                                if (items.isNotEmpty()) {
-                                    MarkItemsRead(
-                                        lazyListState = lazyListState,
-                                        items = items,
-                                        markReadOnScroll = preferences.markReadOnScroll,
-                                        screenModel = screenModel
+                                items.isLoading() -> {
+                                    LoadingScreen(isRefreshing = state.isRefreshing)
+                                }
+
+                                items.isError() -> {
+                                    Placeholder(
+                                        text = stringResource(R.string.error_occured),
+                                        painter = painterResource(id = R.drawable.ic_error)
                                     )
+                                }
 
-                                    LazyColumn(
-                                        modifier = Modifier
-                                            .fillMaxSize()
-                                            .padding(top = if (state.displayRefreshScreen) 56.dp else 0.dp),
-                                        state = lazyListState,
-                                        contentPadding = PaddingValues(vertical = lazyColumnPadding),
-                                        verticalArrangement = Arrangement.spacedBy(lazyColumnPadding)
-                                    ) {
-                                        items(
-                                            count = items.itemCount,
-                                            key = items.itemKey { it.item.id },
-                                        ) { index ->
-                                            val itemWithFeed = items[index]
+                                else -> {
+                                    if (items.isNotEmpty()) {
+                                        MarkItemsRead(
+                                            lazyListState = lazyListState,
+                                            items = items,
+                                            markReadOnScroll = preferences.markReadOnScroll,
+                                            screenModel = screenModel
+                                        )
 
-                                            if (itemWithFeed != null) {
-                                                val itemForDisplay = itemWithFeed
-                                                    .withoutSelectedFolderLabel(state.filterFolderName)
+                                        LazyColumn(
+                                            modifier = Modifier
+                                                .fillMaxSize()
+                                                .padding(top = if (state.displayRefreshScreen) 56.dp else 0.dp),
+                                            state = lazyListState,
+                                            contentPadding = PaddingValues(vertical = lazyColumnPadding),
+                                            verticalArrangement = Arrangement.spacedBy(lazyColumnPadding)
+                                        ) {
+                                            items(
+                                                count = items.itemCount,
+                                                key = items.itemKey { it.item.id },
+                                            ) { index ->
+                                                val itemWithFeed = items[index]
 
-                                                TimelineItem(
-                                                    itemWithFeed = itemForDisplay,
-                                                    swipeToLeft = state.preferences.swipeToLeft,
-                                                    swipeToRight = state.preferences.swipeToRight,
-                                                    onClick = {
-                                                        if (itemWithFeed.openInAsk && preferences.openInAsk) {
-                                                            screenModel.openDialog(
-                                                                DialogState.OpenIn(
-                                                                    itemWithFeed
+                                                if (itemWithFeed != null) {
+                                                    val itemForDisplay = itemWithFeed
+                                                        .withoutSelectedFolderLabel(state.filterFolderName)
+
+                                                    TimelineItem(
+                                                        itemWithFeed = itemForDisplay,
+                                                        swipeToLeft = state.preferences.swipeToLeft,
+                                                        swipeToRight = state.preferences.swipeToRight,
+                                                        onClick = {
+                                                            if (itemWithFeed.openInAsk && preferences.openInAsk) {
+                                                                screenModel.openDialog(
+                                                                    DialogState.OpenIn(
+                                                                        itemWithFeed
+                                                                    )
                                                                 )
-                                                            )
-                                                        } else {
-                                                            openItem(
-                                                                itemWithFeed = itemWithFeed,
-                                                                itemIndex = index,
-                                                            )
-                                                        }
-                                                    },
-                                                    onFavorite = {
-                                                        val wasStarred =
-                                                            itemWithFeed.item.isStarred
+                                                            } else {
+                                                                openItem(
+                                                                    itemWithFeed = itemWithFeed,
+                                                                    itemIndex = index,
+                                                                )
+                                                            }
+                                                        },
+                                                        onFavorite = {
+                                                            val wasStarred =
+                                                                itemWithFeed.item.isStarred
 
-                                                        screenModel.setStarState(
-                                                            itemWithFeed.item,
-                                                            isStarred = !wasStarred
-                                                        )
+                                                            screenModel.setStarState(
+                                                                itemWithFeed.item,
+                                                                isStarred = !wasStarred
+                                                            )
 
-                                                        // only the removal is offered an undo:
-                                                        // adding a favourite is visible and
-                                                        // trivially reversible, losing one is not
-                                                        if (wasStarred) {
-                                                            coroutineScope.launch {
-                                                                val action =
-                                                                    snackbarHostState.showSnackbar(
-                                                                        message = context.getString(
-                                                                            R.string.removed_from_favorites
-                                                                        ),
-                                                                        actionLabel = context.getString(
-                                                                            R.string.undo
-                                                                        ),
+                                                            // only the removal is offered an undo:
+                                                            // adding a favourite is visible and
+                                                            // trivially reversible, losing one is not
+                                                            if (wasStarred) {
+                                                                coroutineScope.launch {
+                                                                    val action =
+                                                                        snackbarHostState.showSnackbar(
+                                                                            message = context.getString(
+                                                                                R.string.removed_from_favorites
+                                                                            ),
+                                                                            actionLabel = context.getString(
+                                                                                R.string.undo
+                                                                            ),
+                                                                            duration = SnackbarDuration.Short
+                                                                        )
+
+                                                                    if (action == SnackbarResult.ActionPerformed) {
+                                                                        screenModel.setStarState(
+                                                                            itemWithFeed.item,
+                                                                            isStarred = wasStarred
+                                                                        )
+                                                                    }
+                                                                }
+                                                            }
+                                                        },
+                                                        onShare = {
+                                                            screenModel.shareItem(itemWithFeed, context)
+                                                        },
+                                                        onSetReadState = {
+                                                            val wasRead = itemWithFeed.item.isRead
+                                                            screenModel.updateItemReadState(itemWithFeed.item)
+
+                                                            if (!wasRead) {
+                                                                coroutineScope.launch {
+                                                                    val action = snackbarHostState.showSnackbar(
+                                                                        message = context.getString(R.string.marked_as_read),
+                                                                        actionLabel = context.getString(R.string.undo),
                                                                         duration = SnackbarDuration.Short
                                                                     )
 
-                                                                if (action == SnackbarResult.ActionPerformed) {
-                                                                    screenModel.setStarState(
-                                                                        itemWithFeed.item,
-                                                                        isStarred = wasStarred
-                                                                    )
+                                                                    if (action == SnackbarResult.ActionPerformed) {
+                                                                        screenModel.setItemReadState(
+                                                                            itemWithFeed.item,
+                                                                            isRead = false
+                                                                        )
+                                                                    }
                                                                 }
                                                             }
-                                                        }
-                                                    },
-                                                    onShare = {
-                                                        screenModel.shareItem(itemWithFeed, context)
-                                                    },
-                                                    onSetReadState = {
-                                                        val wasRead = itemWithFeed.item.isRead
-                                                        screenModel.updateItemReadState(itemWithFeed.item)
-
-                                                        if (!wasRead) {
-                                                            coroutineScope.launch {
-                                                                val action = snackbarHostState.showSnackbar(
-                                                                    message = context.getString(R.string.marked_as_read),
-                                                                    actionLabel = context.getString(R.string.undo),
-                                                                    duration = SnackbarDuration.Short
-                                                                )
-
-                                                                if (action == SnackbarResult.ActionPerformed) {
-                                                                    screenModel.setItemReadState(
-                                                                        itemWithFeed.item,
-                                                                        isRead = false
-                                                                    )
-                                                                }
-                                                            }
-                                                        }
-                                                    },
-                                                    size = preferences.itemSize,
-                                                    showImages = preferences.showImages,
-                                                    showSource = preferences.showSource,
-                                                    showDate = preferences.showDate,
-                                                    showReadTime = preferences.showReadTime,
-                                                    modifier = Modifier.animateItem()
-                                                )
-                                            }
-                                        }
-                                    }
-                                } else {
-                                    // Empty lazyColumn to let the pull to refresh be usable
-                                    // when no items are displayed
-                                    LazyColumn(
-                                        modifier = Modifier.fillMaxSize()
-                                    ) {}
-
-                                    when {
-                                        state.filters.searchQuery.isNotBlank() -> Placeholder(
-                                            text = stringResource(R.string.no_search_results),
-                                            painter = painterResource(R.drawable.ic_timeline)
-                                        )
-
-                                        state.filters.mainFilter == MainFilter.ALL &&
-                                                state.filters.subFilter == SubFilter.ALL -> EmptyTimeline(
-                                            onAddFeed = {
-                                                coroutineScope.launch {
-                                                    HomeScreen.openAddFeedDialog("")
+                                                        },
+                                                        size = preferences.itemSize,
+                                                        showImages = preferences.showImages,
+                                                        showSource = preferences.showSource,
+                                                        showDate = preferences.showDate,
+                                                        showReadTime = preferences.showReadTime,
+                                                        showPreview = preferences.showPreview,
+                                                        modifier = Modifier.animateItem()
+                                                    )
                                                 }
                                             }
-                                        )
+                                        }
+                                    } else {
+                                        // Empty lazyColumn to let the pull to refresh be usable
+                                        // when no items are displayed
+                                        LazyColumn(
+                                            modifier = Modifier.fillMaxSize()
+                                        ) {}
 
-                                        else -> Placeholder(
-                                            text = stringResource(R.string.no_article),
-                                            painter = painterResource(R.drawable.ic_timeline),
-                                        )
+                                        when {
+                                            state.filters.searchQuery.isNotBlank() -> Placeholder(
+                                                text = stringResource(R.string.no_search_results),
+                                                painter = painterResource(R.drawable.ic_timeline)
+                                            )
+
+                                            state.filters.mainFilter == MainFilter.ALL &&
+                                                    state.filters.subFilter == SubFilter.ALL -> EmptyTimeline(
+                                                onAddFeed = {
+                                                    coroutineScope.launch {
+                                                        HomeScreen.openAddFeedDialog("")
+                                                    }
+                                                }
+                                            )
+
+                                            else -> Placeholder(
+                                                text = stringResource(R.string.no_article),
+                                                painter = painterResource(R.drawable.ic_timeline),
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    if (state.displayRefreshScreen && items.itemCount > 0) {
-                        RefreshBanner(
-                            currentFeed = state.currentFeed,
-                            feedCount = state.feedCount,
-                            feedMax = state.feedMax,
-                            modifier = Modifier
-                                .align(Alignment.TopCenter)
-                                .fillMaxWidth()
-                        )
-                    }
-
-                    val totalItems = lazyListState.layoutInfo.totalItemsCount
-                    val visibleItems = lazyListState.layoutInfo.visibleItemsInfo.size
-                    val scrollbarColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
-                    if (lazyListState.isScrollInProgress && totalItems > visibleItems && visibleItems > 0) {
-                        Canvas(
-                            modifier = Modifier
-                                .align(Alignment.CenterEnd)
-                                .padding(vertical = 12.dp)
-                                .width(4.dp)
-                                .fillMaxHeight()
-                        ) {
-                            val thumbHeight = (size.height * visibleItems / totalItems)
-                                .coerceAtLeast(24.dp.toPx())
-                                .coerceAtMost(size.height)
-                            val maxScrollIndex = (totalItems - visibleItems).coerceAtLeast(1)
-                            val progress = (lazyListState.firstVisibleItemIndex.toFloat() / maxScrollIndex)
-                                .coerceIn(0f, 1f)
-                            val top = (size.height - thumbHeight) * progress
-                            drawRoundRect(
-                                color = scrollbarColor,
-                                topLeft = Offset(size.width - 3.dp.toPx(), top),
-                                size = Size(3.dp.toPx(), thumbHeight),
-                                cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
+                        if (state.displayRefreshScreen && items.itemCount > 0) {
+                            RefreshBanner(
+                                currentFeed = state.currentFeed,
+                                feedCount = state.feedCount,
+                                feedMax = state.feedMax,
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .fillMaxWidth()
                             )
+                        }
+
+                        val totalItems = lazyListState.layoutInfo.totalItemsCount
+                        val visibleItems = lazyListState.layoutInfo.visibleItemsInfo.size
+                        val scrollbarColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.72f)
+                        if (lazyListState.isScrollInProgress && totalItems > visibleItems && visibleItems > 0) {
+                            Canvas(
+                                modifier = Modifier
+                                    .align(Alignment.CenterEnd)
+                                    .padding(vertical = 12.dp)
+                                    .width(4.dp)
+                                    .fillMaxHeight()
+                            ) {
+                                val thumbHeight = (size.height * visibleItems / totalItems)
+                                    .coerceAtLeast(24.dp.toPx())
+                                    .coerceAtMost(size.height)
+                                val maxScrollIndex = (totalItems - visibleItems).coerceAtLeast(1)
+                                val progress = (lazyListState.firstVisibleItemIndex.toFloat() / maxScrollIndex)
+                                    .coerceIn(0f, 1f)
+                                val top = (size.height - thumbHeight) * progress
+                                drawRoundRect(
+                                    color = scrollbarColor,
+                                    topLeft = Offset(size.width - 3.dp.toPx(), top),
+                                    size = Size(3.dp.toPx(), thumbHeight),
+                                    cornerRadius = androidx.compose.ui.geometry.CornerRadius(2.dp.toPx())
+                                )
+                            }
                         }
                     }
                 }

@@ -35,6 +35,11 @@ interface ItemDao : BaseDao<Item> {
     @Query("Select ${ItemContentProjection.ITEM_COLUMNS} From Item Where feed_id = :feedId")
     suspend fun selectItems(feedId: Int): List<Item>
 
+    /** Keyset pagination, so that a whole feed history is never loaded in memory at once. */
+    @Query("""Select ${ItemContentProjection.ITEM_COLUMNS} From Item Where feed_id = :feedId
+        And id > :afterId Order By id Limit :limit""")
+    suspend fun selectItemsPage(feedId: Int, afterId: Int, limit: Int): List<Item>
+
     @RawQuery(observedEntities = [Item::class, Feed::class, Folder::class, ItemState::class])
     fun selectAll(query: SupportSQLiteQuery): PagingSource<Int, ItemWithFeed>
 

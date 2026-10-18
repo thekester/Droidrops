@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
@@ -92,6 +93,18 @@ class Preferences(
         default = "normal"
     )
 
+    val feedListDensity = Preference(
+        dataStore = dataStore,
+        key = stringPreferencesKey("feed_list_density"),
+        default = "comfortable"
+    )
+
+    val showTimelinePreview = Preference(
+        dataStore = dataStore,
+        key = booleanPreferencesKey("show_timeline_preview"),
+        default = true
+    )
+
     val displayNotificationsPermission = Preference(
         dataStore = dataStore,
         key = booleanPreferencesKey("display_notification_permission"),
@@ -158,6 +171,25 @@ class Preferences(
         default = true
     )
 
+    // opt-in: on wide windows, the timeline stays on the left and articles open beside it
+    val twoPaneReader = Preference(
+        dataStore = dataStore,
+        key = booleanPreferencesKey("two_pane_reader"),
+        default = false
+    )
+
+    // ids of the feeds whose articles are always shown as the full web page extraction
+    val fullContentFeeds = Preference(
+        dataStore = dataStore,
+        key = stringSetPreferencesKey("full_content_feeds"),
+        default = emptySet()
+    )
+
+    suspend fun setFullContentFeed(feedId: Int, enabled: Boolean) =
+        fullContentFeeds.dataStore.update(fullContentFeeds.key, emptySet()) { ids ->
+            if (enabled) ids + feedId.toString() else ids - feedId.toString()
+        }
+
     val mainFilter = Preference(
         dataStore = dataStore,
         key = stringPreferencesKey("main_filter"),
@@ -207,6 +239,13 @@ class DataStorePreferences(private val dataStore: DataStore<Preferences>) {
     suspend fun <T> write(key: Preferences.Key<T>, value: T) {
         dataStore.edit { settings ->
             settings[key] = value
+        }
+    }
+
+    /** Read-modify-write in a single DataStore transaction, so concurrent updates are not lost. */
+    suspend fun <T> update(key: Preferences.Key<T>, default: T, transform: (T) -> T) {
+        dataStore.edit { settings ->
+            settings[key] = transform(settings[key] ?: default)
         }
     }
 }

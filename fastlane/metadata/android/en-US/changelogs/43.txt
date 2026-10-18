@@ -1,0 +1,6 @@
+- Back up and restore accounts, feeds, article history, and app settings.
+- Load full article text for feeds that only provide summaries.
+- Read articles beside the timeline on tablets and large screens.
+- Add optional hardware keyboard shortcuts for common reading actions.
+- Improve feed-list density and customize article previews and metadata.
+- Fix tablet navigation, reader state, and image-only article handling.
