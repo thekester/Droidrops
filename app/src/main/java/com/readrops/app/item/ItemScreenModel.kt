@@ -115,7 +115,9 @@ class ItemScreenModel(
                     repository = get { parametersOf(account) }
 
                     if (itemIndex > -1) {
-                        itemState = buildPager()
+                        val currentItemIndex = findCurrentItemIndex(account.config.useSeparateState)
+                        mutableState.update { it.copy(initialPage = currentItemIndex) }
+                        itemState = buildPager(currentItemIndex)
                     } else {
                         val query = ItemSelectionQueryBuilder.buildQuery(
                             itemId = itemId,
@@ -135,9 +137,10 @@ class ItemScreenModel(
                 preferences.openLinksWith.flow,
                 preferences.theme.flow,
                 preferences.openVideosInYoutube.flow,
-                preferences.swipeBetweenArticles.flow
-            ) { openLinksWith, theme, openVideosInYoutube, swipeBetweenArticles ->
-                ItemDisplayPreferences(openLinksWith, theme, openVideosInYoutube, swipeBetweenArticles)
+                preferences.swipeBetweenArticles.flow,
+                preferences.articleFontSize.flow
+            ) { openLinksWith, theme, openVideosInYoutube, swipeBetweenArticles, articleFontSize ->
+                ItemDisplayPreferences(openLinksWith, theme, openVideosInYoutube, swipeBetweenArticles, articleFontSize)
             }.collect { displayPreferences ->
                 mutableState.update {
                     it.copy(
@@ -147,7 +150,8 @@ class ItemScreenModel(
                         },
                         theme = displayPreferences.theme,
                         openVideosInYoutube = displayPreferences.openVideosInYoutube,
-                        swipeBetweenArticles = displayPreferences.swipeBetweenArticles
+                        swipeBetweenArticles = displayPreferences.swipeBetweenArticles,
+                        articleFontSize = displayPreferences.articleFontSize
                     )
                 }
             }
@@ -169,19 +173,33 @@ class ItemScreenModel(
         val openLinksWith: String,
         val theme: String,
         val openVideosInYoutube: Boolean,
-        val swipeBetweenArticles: Boolean
+        val swipeBetweenArticles: Boolean,
+        val articleFontSize: String
     )
 
-    private fun buildPager(): Flow<PagingData<ItemWithFeed>> {
-        val pageNb = (((itemIndex + PAGING_PAGE_SIZE - 1) / PAGING_PAGE_SIZE) + 1)
-            .coerceAtLeast(1)
+    private suspend fun findCurrentItemIndex(separateState: Boolean): Int {
+        // The selected item can move when a sync inserts newer articles while the app is in the
+        // background. Include it in the unread session filter, then resolve its current position
+        // from IDs only so large article bodies are never read just to find the pager anchor.
+        val anchoredFilters = queryFilters.copy(
+            recentlyReadItemIds = (queryFilters.recentlyReadItemIds + itemId).distinct()
+        )
+        val ids = database.itemDao().selectItemIds(
+            ItemsQueryBuilder.buildItemIdsQuery(anchoredFilters, separateState)
+        )
+        return ids.indexOf(itemId).takeIf { it >= 0 } ?: itemIndex
+    }
+
+    private fun buildPager(initialIndex: Int): Flow<PagingData<ItemWithFeed>> {
+        val anchor = itemPagerAnchor(initialIndex)
 
         return Pager(
             config = PagingConfig(
-                initialLoadSize = PAGING_PAGE_SIZE * pageNb,
+                initialLoadSize = PAGING_PAGE_SIZE,
                 pageSize = PAGING_PAGE_SIZE,
                 prefetchDistance = PAGING_PREFETCH_DISTANCE
             ),
+            initialKey = anchor.initialKey,
             pagingSourceFactory = { createPagingSource() }
         )
             .flow
@@ -414,8 +432,10 @@ data class ItemState(
     val openInExternalBrowser: Boolean = false,
     val theme: String? = "",
     val openVideosInYoutube: Boolean = false,
+    val articleFontSize: String = "normal",
     val swipeBetweenArticles: Boolean = true,
     val error: String? = null,
+    val initialPage: Int = 0,
     val stateChanges: List<StateChange> = listOf()
 )
 

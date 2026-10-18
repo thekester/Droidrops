@@ -18,6 +18,17 @@
     <string name="interpoint" translatable="false">·</string>
     <string name="share_article">Share Article</string>
     <string name="article_thumbnail">Article thumbnail: %1$s</string>
+    <string name="show_timeline_images">Show article images in timeline</string>
+    <string name="show_timeline_images_subtitle">Hide preview images to make the article list more compact</string>
+    <string name="show_timeline_source">Show feed source</string>
+    <string name="show_timeline_source_subtitle">Show or hide the feed name and folder in article cards</string>
+    <string name="show_timeline_date">Show publication date</string>
+    <string name="show_timeline_read_time">Show estimated reading time</string>
+    <string name="article_font_size">Article text size</string>
+    <string name="article_font_small">Small</string>
+    <string name="article_font_normal">Normal</string>
+    <string name="article_font_large">Large</string>
+    <string name="article_font_extra_large">Extra large</string>
     <string name="share_selection_with_reference">Share selection with reference</string>
     <string name="open_url">Open url</string>
     <string name="add_folder">Add folder</string>
@@ -228,7 +239,12 @@
     <string name="use_default_color">Use default color</string>
     <string name="warning">Warning</string>
     <string name="understand">I understand</string>
-    <string name="greader_warning">Google Reader is a very old API and lack documentation. It may not be implemented in every aggregator the same way and thus might not work well.\n\nIf you encounter any synchronization problem, please report them to the Droidrops GitHub repository.</string>
+    <string name="greader_warning">Google Reader is a very old API and lacks documentation. Aggregators implement it differently, so compatibility may vary.\n\nMiniflux: enable its Google Reader API in Settings > Integrations, then use the credentials configured there.\n\nTiny Tiny RSS: enable its Google Reader API compatibility plugin before adding the account. Droidrops currently connects through this compatibility API; it does not use the native Miniflux or Tiny Tiny RSS API.\n\nIf synchronization fails, report the server type and error to the Droidrops GitHub repository.</string>
+    <string name="widget_title">Droidrops</string>
+    <string name="widget_description">Your latest unread articles</string>
+    <string name="widget_refresh">Refresh articles</string>
+    <string name="widget_no_unread">No unread articles</string>
+    <string name="widget_untitled">Untitled article</string>
     <string name="fever_warning">Fever is a very old, limited and depreciated API. It doesn\'t support feed and folder management. It is also poorly documented, may not be implemented in every aggregator the same way and thus might not work well.\n\nIf you encounter any synchronization problem, please report them to the Droidrops GitHub repository.</string>
     <string name="api">API</string>
 

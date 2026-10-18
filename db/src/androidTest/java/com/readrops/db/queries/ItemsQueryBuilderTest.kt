@@ -26,6 +26,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import kotlinx.coroutines.runBlocking
 import androidx.paging.PagingSource
+import java.time.LocalDateTime
 
 @RunWith(AndroidJUnit4::class)
 class ItemsQueryBuilderTest {
@@ -106,6 +107,43 @@ class ItemsQueryBuilderTest {
             listOf("Tagged article"),
             (result as PagingSource.LoadResult.Page).data.map { it.item.title }
         )
+    }
+
+    @Test
+    fun itemIdsQueryKeepsSelectedReadItemInUnreadSessionOrder() = runBlocking {
+        val accountId = database.accountDao().insert(Account(type = AccountType.LOCAL)).toInt()
+        val feedId = database.feedDao().insert(
+            Feed(name = "Pager anchor", url = "https://example.org/pager", accountId = accountId)
+        ).toInt()
+        val newestId = database.itemDao().insert(
+            Item(title = "Newest", remoteId = "newest", feedId = feedId,
+                pubDate = LocalDateTime.parse("2026-10-17T12:00:00"))
+        ).toInt()
+        val selectedReadId = database.itemDao().insert(
+            Item(title = "Selected", remoteId = "selected", feedId = feedId, isRead = true,
+                pubDate = LocalDateTime.parse("2026-10-17T11:00:00"))
+        ).toInt()
+        val olderId = database.itemDao().insert(
+            Item(title = "Older", remoteId = "older", feedId = feedId,
+                pubDate = LocalDateTime.parse("2026-10-17T10:00:00"))
+        ).toInt()
+        database.itemDao().insert(
+            Item(title = "Other read", remoteId = "other-read", feedId = feedId, isRead = true,
+                pubDate = LocalDateTime.parse("2026-10-17T09:00:00"))
+        )
+
+        val ids = database.itemDao().selectItemIds(
+            ItemsQueryBuilder.buildItemIdsQuery(
+                QueryFilters(
+                    accountId = accountId,
+                    showReadItems = false,
+                    recentlyReadItemIds = listOf(selectedReadId)
+                ),
+                separateState = false
+            )
+        )
+
+        assertEquals(listOf(newestId, selectedReadId, olderId), ids)
     }
 
     @Test

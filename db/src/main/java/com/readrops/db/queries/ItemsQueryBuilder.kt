@@ -55,7 +55,14 @@ object ItemsQueryBuilder {
     fun buildItemsQuery(queryFilters: QueryFilters): SupportSQLiteQuery =
         buildQuery(queryFilters, false)
 
-    private fun buildQuery(queryFilters: QueryFilters, separateState: Boolean): SupportSQLiteQuery =
+    fun buildItemIdsQuery(queryFilters: QueryFilters, separateState: Boolean): SupportSQLiteQuery =
+        buildQuery(queryFilters, separateState, itemIdsOnly = true)
+
+    private fun buildQuery(
+        queryFilters: QueryFilters,
+        separateState: Boolean,
+        itemIdsOnly: Boolean = false
+    ): SupportSQLiteQuery =
         with(queryFilters) {
             require(accountId != 0) { "AccountId must be greater than 0" }
 
@@ -67,7 +74,9 @@ object ItemsQueryBuilder {
                 throw IllegalArgumentException("TagId must be greater than 0 if subFilter is TAG")
             }
 
-            val columns = if (separateState) {
+            val columns = if (itemIdsOnly) {
+                arrayOf("Item.id")
+            } else if (separateState) {
                 COLUMNS.plus(SEPARATE_STATE_COLUMNS)
             } else {
                 COLUMNS.plus(OTHER_COLUMNS)

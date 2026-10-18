@@ -47,6 +47,11 @@ class PreferencesScreenModel(
                     openVideosInYoutube.flow,
                     swipeBetweenArticles.flow,
                     maxItemsPerFeed.flow,
+                    showTimelineImages.flow,
+                    showTimelineSource.flow,
+                    showTimelineDate.flow,
+                    showTimelineReadTime.flow,
+                    articleFontSize.flow,
                 )
 
                 combine(
@@ -68,6 +73,11 @@ class PreferencesScreenModel(
                         openVideosInYoutube = (list[12] as Boolean) to openVideosInYoutube,
                         swipeBetweenArticles = (list[13] as Boolean) to swipeBetweenArticles,
                         maxItemsPerFeed = (list[14] as Int) to maxItemsPerFeed,
+                        showTimelineImages = (list[15] as Boolean) to showTimelineImages,
+                        showTimelineSource = (list[16] as Boolean) to showTimelineSource,
+                        showTimelineDate = (list[17] as Boolean) to showTimelineDate,
+                        showTimelineReadTime = (list[18] as Boolean) to showTimelineReadTime,
+                        articleFontSize = (list[19] as String) to articleFontSize,
                         exampleItem = ItemWithFeed(
                             item = Item(
                                 title = context.getString(R.string.example_item_title),
@@ -122,6 +132,11 @@ sealed class PreferencesScreenState {
         val openVideosInYoutube: PreferenceState<Boolean>,
         val swipeBetweenArticles: PreferenceState<Boolean>,
         val maxItemsPerFeed: PreferenceState<Int>,
+        val showTimelineImages: PreferenceState<Boolean>,
+        val showTimelineSource: PreferenceState<Boolean>,
+        val showTimelineDate: PreferenceState<Boolean>,
+        val showTimelineReadTime: PreferenceState<Boolean>,
+        val articleFontSize: PreferenceState<String>,
         val useCustomShareIntentTpl: PreferenceState<Boolean>,
         val customShareIntentTpl: PreferenceState<String>,
         val swipeToLeft: PreferenceState<String>,

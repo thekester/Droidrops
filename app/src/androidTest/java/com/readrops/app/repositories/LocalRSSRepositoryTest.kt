@@ -172,6 +172,37 @@ class LocalRSSRepositoryTest : KoinTest {
     }
 
     @Test
+    fun publicLocalFeedDoesNotSendAnAuthorizationHeader() = runTest {
+        val feed = feeds.first()
+        val encryptedPreferences = get<SharedPreferences>()
+        encryptedPreferences.edit()
+            .remove(feed.loginKey)
+            .remove(feed.passwordKey)
+            .apply()
+
+        mockServer.enqueue(
+            MockResponse().setResponseCode(HttpURLConnection.HTTP_OK)
+                .addHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/rss+xml")
+                .setBody("""
+                    <rss version="2.0"><channel><title>Public feed</title>
+                    <link>https://example.org</link></channel></rss>
+                """.trimIndent())
+        )
+
+        try {
+            repository.synchronize(listOf(feed)) { }
+            val request = mockServer.takeRequest()
+
+            assertEquals(null, request.getHeader("Authorization"))
+        } finally {
+            encryptedPreferences.edit()
+                .remove(feed.loginKey)
+                .remove(feed.passwordKey)
+                .apply()
+        }
+    }
+
+    @Test
     fun synchronizationAppliesConfiguredLocalFeedLimitAndKeepsStarredHistory() = runTest {
         preferences.maxItemsPerFeed.write(2)
 

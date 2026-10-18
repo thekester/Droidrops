@@ -44,4 +44,25 @@ class UtilsTest {
         assertTrue(result.contains("This is a very very long strin"))
         assertTrue(result.endsWith("..."))
     }
+
+    @Test
+    fun normalizeUrlTrimsWhitespaceAndRecognizesSchemesOnlyAtStart() {
+        assertEquals("https://example.org/fever.php/", Utils.normalizeUrl("  example.org/fever.php  "))
+        assertEquals("HTTP://example.org/fever.php/", Utils.normalizeUrl(" HTTP://example.org/fever.php "))
+        assertEquals("https://example.org/path/http://legacy/", Utils.normalizeUrl("https://example.org/path/http://legacy"))
+    }
+
+    @Test
+    fun normalizeUrlKeepsQueryAndFragmentOutsideThePath() {
+        assertEquals(
+            "https://example.org/fever.php/?token=abc&mode=read#api",
+            Utils.normalizeUrl(" https://example.org/fever.php?token=abc&mode=read#api ")
+        )
+        assertEquals("https://example.org/?token=abc", Utils.normalizeUrl("example.org?token=abc"))
+    }
+
+    @Test
+    fun normalizeUrlLeavesBlankInputBlank() {
+        assertEquals("", Utils.normalizeUrl("   "))
+    }
 }

@@ -5,8 +5,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -99,11 +101,33 @@ fun SimpleTitle(
         } else {
             stringResource(id = R.string.read_time_lower_than_1)
         }
-        Text(
-            text = "${DateUtils.formattedDateTimeByLocal(item.pubDate!!)} ${stringResource(id = R.string.interpoint)} $readTime",
-            style = MaterialTheme.typography.labelMedium,
-            color = onBackgroundColor
-        )
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.veryShortSpacing),
+            verticalArrangement = Arrangement.Center,
+            itemVerticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = DateUtils.formattedDateTimeByLocal(item.pubDate!!),
+                style = MaterialTheme.typography.labelMedium,
+                color = onBackgroundColor
+            )
+            Text(
+                text = stringResource(id = R.string.interpoint),
+                style = MaterialTheme.typography.labelMedium,
+                color = onBackgroundColor
+            )
+            Icon(
+                painter = painterResource(R.drawable.ic_schedule),
+                contentDescription = null,
+                modifier = Modifier.size(14.dp),
+                tint = onBackgroundColor
+            )
+            Text(
+                text = readTime,
+                style = MaterialTheme.typography.labelMedium,
+                color = onBackgroundColor
+            )
+        }
 
         if (itemWithFeed.item.tags.isNotEmpty()) {
             MediumSpacer()

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+    <channel>
+        <item>
+            <link>https://example.com/post</link>
+            <title>   </title>
+            <description><![CDATA[<p>   </p>]]></description>
+        </item>
+    </channel>
+</rss>

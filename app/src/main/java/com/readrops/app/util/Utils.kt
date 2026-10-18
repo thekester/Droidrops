@@ -28,17 +28,23 @@ object Utils {
     }
 
     fun normalizeUrl(url: String): String {
-        return buildString {
-            if (!url.contains("https://") && !url.contains("http://")) {
-                append("https://$url")
-            } else {
-                append(url)
-            }
+        val trimmedUrl = url.trim()
+        if (trimmedUrl.isEmpty()) return ""
 
-            if (!url.endsWith("/")) {
-                append("/")
-            }
-        }
+        val urlWithScheme = if (
+            trimmedUrl.startsWith("https://", ignoreCase = true) ||
+            trimmedUrl.startsWith("http://", ignoreCase = true)
+        ) trimmedUrl else "https://$trimmedUrl"
+
+        // Keep query parameters and fragments after the path. Appending '/' to the whole string
+        // turns `https://host/path?token=x` into `...?token=x/`, corrupting the supplied endpoint.
+        val suffixIndex = listOf(urlWithScheme.indexOf('?'), urlWithScheme.indexOf('#'))
+            .filter { it >= 0 }
+            .minOrNull() ?: urlWithScheme.length
+        val base = urlWithScheme.substring(0, suffixIndex)
+        val suffix = urlWithScheme.substring(suffixIndex)
+
+        return if (base.endsWith('/')) urlWithScheme else "$base/$suffix"
     }
 
     fun shareItem(

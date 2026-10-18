@@ -62,6 +62,36 @@ class Preferences(
         default = "large"
     )
 
+    val showTimelineImages = Preference(
+        dataStore = dataStore,
+        key = booleanPreferencesKey("show_timeline_images"),
+        default = true
+    )
+
+    val showTimelineSource = Preference(
+        dataStore = dataStore,
+        key = booleanPreferencesKey("show_timeline_source"),
+        default = true
+    )
+
+    val showTimelineDate = Preference(
+        dataStore = dataStore,
+        key = booleanPreferencesKey("show_timeline_date"),
+        default = true
+    )
+
+    val showTimelineReadTime = Preference(
+        dataStore = dataStore,
+        key = booleanPreferencesKey("show_timeline_read_time"),
+        default = true
+    )
+
+    val articleFontSize = Preference(
+        dataStore = dataStore,
+        key = stringPreferencesKey("article_font_size"),
+        default = "normal"
+    )
+
     val displayNotificationsPermission = Preference(
         dataStore = dataStore,
         key = booleanPreferencesKey("display_notification_permission"),

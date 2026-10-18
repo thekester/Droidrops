@@ -56,6 +56,7 @@ fun ItemScreenPage(
     onOpenLinkDialog: (String) -> Unit,
     onPop: () -> Unit,
     openVideosInYoutube: Boolean,
+    articleFontSize: String = "normal",
     modifier: Modifier = Modifier
 ) {
     val item = itemWithFeed.item
@@ -80,8 +81,11 @@ fun ItemScreenPage(
             } else {
                 0.dp
             }
-            val visibleHeight = (nestedScrollConnection.bottomBarHeight + hiddenHeight)
-                .coerceIn(0.dp, nestedScrollConnection.bottomBarHeight)
+            val visibleHeight = visibleBottomBarSlotHeight(
+                bottomBarHeight = nestedScrollConnection.bottomBarHeight,
+                bottomBarOffset = hiddenHeight,
+                isScrollable = isScrollable
+            )
 
             // Shrink the Scaffold slot as the bar moves off-screen. Otherwise Scaffold keeps
             // reserving the full bar height and the article view cannot receive gestures there.
@@ -172,7 +176,8 @@ fun ItemScreenPage(
                             accentColor = accentColor,
                             backgroundColor = backgroundColor,
                             onBackgroundColor = onBackgroundColor,
-                            openVideosInYoutube = openVideosInYoutube
+                            openVideosInYoutube = openVideosInYoutube,
+                            articleFontSize = articleFontSize
                         )
 
                         refreshAndroidView = false

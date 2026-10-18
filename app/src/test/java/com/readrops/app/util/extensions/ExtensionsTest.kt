@@ -10,6 +10,8 @@ class ExtensionsTest {
     fun acceptsSelfHostedFeedUrls() {
         assertTrue("http://nas/feed.xml".isValidFeedUrl())
         assertTrue("http://localhost:8080/feed".isValidFeedUrl())
+        assertTrue("https://reader.home:8443/rss?category=tech".isValidFeedUrl())
+        assertTrue("HTTP://NAS:8080/feed".isValidFeedUrl())
         assertTrue("https://example.com/feed".isValidFeedUrl())
     }
 
@@ -18,5 +20,7 @@ class ExtensionsTest {
         assertFalse("not a url".isValidFeedUrl())
         assertFalse("ftp://example.com/feed".isValidFeedUrl())
         assertFalse("https://".isValidFeedUrl())
+        assertFalse("http://host name/feed".isValidFeedUrl())
+        assertFalse("https://example.com:invalid/feed".isValidFeedUrl())
     }
 }

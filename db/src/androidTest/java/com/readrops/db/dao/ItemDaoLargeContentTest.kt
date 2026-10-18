@@ -77,4 +77,31 @@ class ItemDaoLargeContentTest {
         val retained = database.itemDao().selectItems(feed.id)
         assertEquals(setOf("Old favorite", "New article 1", "New article 2"), retained.map { it.title }.toSet())
     }
+
+    @Test
+    fun widgetQueryReturnsNewestUnreadArticlesWithFeedAndAccount() = runTest {
+        val account = Account(type = AccountType.LOCAL)
+        account.id = database.accountDao().insert(account).toInt()
+        val feed = Feed(name = "Widget feed", accountId = account.id)
+        feed.id = database.feedDao().insert(feed).toInt()
+        database.itemDao().insert(
+            listOf(
+                Item(title = "Old unread", feedId = feed.id,
+                    pubDate = LocalDateTime.of(2024, 1, 1, 0, 0)),
+                Item(title = "Newest unread", feedId = feed.id,
+                    pubDate = LocalDateTime.of(2025, 1, 2, 0, 0)),
+                Item(title = "Read article", feedId = feed.id, isRead = true,
+                    pubDate = LocalDateTime.of(2025, 1, 3, 0, 0)),
+                Item(title = "Recent unread", feedId = feed.id,
+                    pubDate = LocalDateTime.of(2025, 1, 1, 0, 0)),
+            )
+        )
+
+        val widgetArticles = database.itemDao().selectLatestUnreadForWidget(limit = 1)
+
+        assertEquals(1, widgetArticles.size)
+        assertEquals("Newest unread", widgetArticles.single().title)
+        assertEquals("Widget feed", widgetArticles.single().feedName)
+        assertEquals(account.id, widgetArticles.single().accountId)
+    }
 }

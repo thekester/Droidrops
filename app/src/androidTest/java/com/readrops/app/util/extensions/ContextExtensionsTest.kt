@@ -14,6 +14,12 @@ class ContextExtensionsTest {
         InstrumentationRegistry.getInstrumentation().runOnMainSync {
             context.openInCustomTab("file:///android_asset/article.html", theme = null, color = Color.Black)
             context.openInCustomTab("file://www.youtube.com/embed/-u6DvRyyKGU", theme = null, color = Color.Black)
+            context.openInCustomTab(
+                "file://www.youtube.com/embed/M02QBxGzV2M?wmode=opaque&showinfo=0&autoplay=0&controls=1",
+                theme = null,
+                color = Color.Black
+            )
+            context.openUrl("file://www.youtube.com/embed/Sh8yqcozfn8?enablejsapi=1")
             context.openInCustomTab("data:text/html,<script>alert(1)</script>", theme = null, color = Color.Black)
         }
     }

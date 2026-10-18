@@ -80,8 +80,10 @@ fun Context.openInCustomTab(url: String, theme: String?, color: Color) {
 // TODO arbitrary value, we might want to use windowClasses in the future
 fun Context.isTabletUi(): Boolean {
     val configuration = resources.configuration
-    return configuration.smallestScreenWidthDp >= 720
+    return isTabletWindow(configuration.smallestScreenWidthDp)
 }
+
+internal fun isTabletWindow(smallestScreenWidthDp: Int): Boolean = smallestScreenWidthDp >= 600
 
 @Composable
 @ReadOnlyComposable

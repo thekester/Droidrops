@@ -6,6 +6,7 @@
         %3$s: background color
         %4$s: text direction (ltr or rtl)
         %5$s: content
+        %6$s: article body font size
     -->
     <string name="webview_html_template" translatable="false"><![CDATA[
 <!DOCTYPE html>
@@ -46,6 +47,7 @@
             color: %2$s;
             background-color: %3$s;
             font-family: Inter !important;
+            font-size: %6$s;
         }
 
         figure, img, iframe, video {

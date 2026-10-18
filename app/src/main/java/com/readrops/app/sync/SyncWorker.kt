@@ -96,6 +96,9 @@ class SyncWorker(
                 displaySyncResults(syncResults)
             }
 
+            // Keep home-screen widgets in step with the database after both manual and scheduled syncs.
+            runCatching { com.readrops.app.widget.LatestArticlesWidget.refreshWidgets(applicationContext) }
+
             return Result.success(workDataOf(END_SYNC_KEY to true).apply {
                 if (errorResult.isNotEmpty() && isManual) {
                     putSerializable(LOCAL_SYNC_ERRORS_KEY, errorResult)

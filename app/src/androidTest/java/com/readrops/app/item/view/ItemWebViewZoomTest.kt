@@ -34,4 +34,13 @@ class ItemWebViewZoomTest {
             webView.destroy()
         }
     }
+
+    @Test
+    fun articleFontSizePreferenceMapsToReadableCssSizes() {
+        assertTrue(articleFontCssSize("small") == "0.9em")
+        assertTrue(articleFontCssSize("normal") == "1em")
+        assertTrue(articleFontCssSize("large") == "1.15em")
+        assertTrue(articleFontCssSize("extra_large") == "1.3em")
+        assertTrue(articleFontCssSize("unexpected") == "1em")
+    }
 }

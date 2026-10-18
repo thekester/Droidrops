@@ -27,7 +27,7 @@ class RSS2ItemAdapter : XmlAdapter<Item> {
         return item.apply {
             konsumer.allChildrenAutoIgnore(names) {
                 when (tagName) {
-                    "title" -> title = ApiUtils.cleanText(nonNullText())
+                    "title" -> title = ApiUtils.cleanText(nonNullText()).takeIf(String::isNotBlank)
                     "link" -> link = nonNullText()
                     "author" -> author = nullableText()
                     "dc:creator" -> creators += nullableText()
@@ -71,14 +71,17 @@ class RSS2ItemAdapter : XmlAdapter<Item> {
      */
     private fun validateItem(item: Item) {
         when {
-            item.title == null && item.description == null ->
+            item.title == null && item.description.isNullOrBlank() ->
                 throw ParseException("An item requires at least a title or a description")
 
             item.link == null -> throw ParseException("Item link is required")
         }
 
         if (item.title == null) {
-            val text = ApiUtils.cleanText(item.description!!)
+            val text = ApiUtils.cleanText(item.description!!).trim()
+            if (text.isEmpty()) {
+                throw ParseException("An item requires at least a title or a description")
+            }
 
             item.title = if (text.length > TITLE_MAX_LENGTH) {
                 text.take(TITLE_MAX_LENGTH).trimEnd() + "…"

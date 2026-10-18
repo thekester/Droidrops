@@ -99,6 +99,23 @@ class RSS2AdapterTest {
     }
 
     @Test
+    fun longDescriptionWithoutTitleIsTruncatedWithUnicodeEllipsis() {
+        val stream = TestUtils.loadResource("localfeed/rss2/rss_items_long_description_no_title.xml")
+        val item = adapter.fromXml(stream.konsumeXml()).second.single()
+
+        assertEquals("x".repeat(100) + "…", item.title)
+    }
+
+    @Test
+    fun blankTitleAndDescriptionAreRejected() {
+        val stream = TestUtils.loadResource("localfeed/rss2/rss_items_blank_content.xml")
+
+        assertThrows(ParseException::class.java) {
+            adapter.fromXml(stream.konsumeXml())
+        }
+    }
+
+    @Test
     fun noLinkTest() {
         val stream = TestUtils.loadResource("localfeed/rss2/rss_items_no_link.xml")
 

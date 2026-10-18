@@ -205,6 +205,45 @@ class PreferencesScreen : AndroidScreen() {
                                 onValueChange = {}
                             )
 
+                            SwitchPreferenceWidget(
+                                preference = loadedState.showTimelineImages.second,
+                                isChecked = loadedState.showTimelineImages.first,
+                                title = stringResource(R.string.show_timeline_images),
+                                subtitle = stringResource(R.string.show_timeline_images_subtitle)
+                            )
+
+                            SwitchPreferenceWidget(
+                                preference = loadedState.showTimelineSource.second,
+                                isChecked = loadedState.showTimelineSource.first,
+                                title = stringResource(R.string.show_timeline_source),
+                                subtitle = stringResource(R.string.show_timeline_source_subtitle)
+                            )
+
+                            SwitchPreferenceWidget(
+                                preference = loadedState.showTimelineDate.second,
+                                isChecked = loadedState.showTimelineDate.first,
+                                title = stringResource(R.string.show_timeline_date)
+                            )
+
+                            SwitchPreferenceWidget(
+                                preference = loadedState.showTimelineReadTime.second,
+                                isChecked = loadedState.showTimelineReadTime.first,
+                                title = stringResource(R.string.show_timeline_read_time)
+                            )
+
+                            ListPreferenceWidget(
+                                preference = loadedState.articleFontSize.second,
+                                selectedKey = loadedState.articleFontSize.first,
+                                entries = mapOf(
+                                    "small" to stringResource(R.string.article_font_small),
+                                    "normal" to stringResource(R.string.article_font_normal),
+                                    "large" to stringResource(R.string.article_font_large),
+                                    "extra_large" to stringResource(R.string.article_font_extra_large)
+                                ),
+                                title = stringResource(R.string.article_font_size),
+                                onValueChange = {}
+                            )
+
                             ListPreferenceWidget(
                                 preference = loadedState.maxItemsPerFeed.second,
                                 selectedKey = loadedState.maxItemsPerFeed.first,

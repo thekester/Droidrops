@@ -6,6 +6,7 @@ import android.content.ClipData
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.pager.HorizontalPager
@@ -55,6 +56,15 @@ class ItemScreen(
     override fun Content() {
         val context = LocalContext.current
         val navigator = LocalNavigator.currentOrThrow
+
+        LaunchedEffect(itemId) {
+            ReaderSession.save(context, itemId)
+        }
+
+        BackHandler {
+            ReaderSession.clear(context)
+            navigator.pop()
+        }
 
         val screenModel =
             koinScreenModel<ItemScreenModel>(parameters = { parametersOf(itemId, itemIndex, queryFilters) })
@@ -168,7 +178,7 @@ class ItemScreen(
 
             else -> {
                 val pagerState = rememberPagerState(
-                    initialPage = if (itemIndex > -1) itemIndex else 0,
+                    initialPage = state.initialPage.coerceAtLeast(0),
                     pageCount = { items.itemCount }
                 )
 
@@ -212,6 +222,7 @@ class ItemScreen(
                                 }
                             },
                             openVideosInYoutube = state.openVideosInYoutube,
+                            articleFontSize = state.articleFontSize,
                             onShareItem = { screenModel.shareItem(itemWithFeed, context) },
                             onShareSelectedText = { selectedText ->
                                 com.readrops.app.util.Utils.shareSelectionWithReference(
@@ -225,7 +236,10 @@ class ItemScreen(
                             onOpenImageViewer = { imageViewerUrl = it },
                             onOpenImageDialog = { screenModel.openImageDialog(it) },
                             onOpenLinkDialog = { linkDialogUrl = it },
-                            onPop = { navigator.pop() },
+                            onPop = {
+                                ReaderSession.clear(context)
+                                navigator.pop()
+                            },
                         )
                     }
                 }

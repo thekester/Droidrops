@@ -1,4 +1,4 @@
-Droidrops is a fork of Readrops and a multi-services RSS client for Android. Its name is composed of "Read" and "drops", where drops are articles in an ocean of news.
+Droidrops is an independent feed reader for Android, forked from Readrops. It supports multiple services and feed formats. Its name is composed of "Read" and "drops", where drops are articles in an ocean of news.
 
 Features :
 

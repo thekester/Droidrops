@@ -146,7 +146,8 @@ class ItemWebView(
         accentColor: Color,
         backgroundColor: Color,
         onBackgroundColor: Color,
-        openVideosInYoutube: Boolean = false
+        openVideosInYoutube: Boolean = false,
+        articleFontSize: String = "normal"
     ) {
         val direction = if (Locale.getDefault().layoutDirection == LAYOUT_DIRECTION_LTR) {
             "ltr"
@@ -160,7 +161,8 @@ class ItemWebView(
             Utils.getCssColor(onBackgroundColor.toArgb()),
             Utils.getCssColor(backgroundColor.toArgb()),
             direction,
-            formatText(itemWithFeed, openVideosInYoutube)
+            formatText(itemWithFeed, openVideosInYoutube),
+            articleFontCssSize(articleFontSize)
         )
 
         loadDataWithBaseURL(
@@ -282,4 +284,11 @@ class ItemWebView(
         private val YOUTUBE_EMBED =
             Regex("""(?:youtube(?:-nocookie)?\.com/embed/|youtu\.be/)([A-Za-z0-9_-]{6,})""")
     }
+}
+
+internal fun articleFontCssSize(preference: String): String = when (preference) {
+    "small" -> "0.9em"
+    "large" -> "1.15em"
+    "extra_large" -> "1.3em"
+    else -> "1em"
 }

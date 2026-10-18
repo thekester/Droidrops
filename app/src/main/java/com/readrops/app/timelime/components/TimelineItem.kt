@@ -65,7 +65,11 @@ fun TimelineItem(
     onShare: () -> Unit,
     onSetReadState: () -> Unit,
     modifier: Modifier = Modifier,
-    size: TimelineItemSize = TimelineItemSize.LARGE
+    size: TimelineItemSize = TimelineItemSize.LARGE,
+    showImages: Boolean = true,
+    showSource: Boolean = true,
+    showDate: Boolean = true,
+    showReadTime: Boolean = true
 ) {
 
     fun handleSwipeAction(swipeAction: SwipeAction) {
@@ -185,7 +189,11 @@ fun TimelineItem(
                     onClick = onClick,
                     onFavorite = onFavorite,
                     onShare = onShare,
-                    modifier = modifier
+                    modifier = modifier,
+                    showImages = showImages,
+                    showSource = showSource,
+                    showDate = showDate,
+                    showReadTime = showReadTime
                 )
             }
 
@@ -195,7 +203,11 @@ fun TimelineItem(
                     onClick = onClick,
                     onFavorite = onFavorite,
                     onShare = onShare,
-                    modifier = modifier
+                    modifier = modifier,
+                    showImages = showImages,
+                    showSource = showSource,
+                    showDate = showDate,
+                    showReadTime = showReadTime
                 )
             }
 
@@ -205,7 +217,11 @@ fun TimelineItem(
                     onClick = onClick,
                     onFavorite = onFavorite,
                     onShare = onShare,
-                    modifier = modifier
+                    modifier = modifier,
+                    showImages = showImages,
+                    showSource = showSource,
+                    showDate = showDate,
+                    showReadTime = showReadTime
                 )
             }
         }

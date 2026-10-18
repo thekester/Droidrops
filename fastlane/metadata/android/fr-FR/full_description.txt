@@ -1,0 +1,17 @@
+Droidrops est un lecteur de flux indépendant pour Android, dérivé de Readrops. Il prend en charge plusieurs services et formats de flux. Son nom associe « Read » et « drops » : des articles qui tombent dans un océan d'actualités.
+
+Fonctionnalités :
+
+- Lecture locale des flux RSS 1, RSS 2, Atom et JSON Feed
+- Services compatibles :
+  - FreshRSS
+  - Nextcloud News
+  - API Fever
+  - API Google Reader
+- Gestion de plusieurs comptes
+- Gestion des flux et dossiers (ajout, modification et suppression selon les capacités du service)
+- Import et export OPML
+- Synchronisation en arrière-plan
+- Notifications
+- Politique de confidentialité intégrée à l'application et au dépôt
+- Fork indépendant avec son propre suivi des problèmes et ses notes de version

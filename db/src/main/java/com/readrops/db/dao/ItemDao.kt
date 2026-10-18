@@ -12,11 +12,17 @@ import com.readrops.db.entities.Item
 import com.readrops.db.entities.ItemState
 import com.readrops.db.pojo.ExistingItem
 import com.readrops.db.pojo.ItemWithFeed
+import com.readrops.db.pojo.WidgetArticle
 import com.readrops.db.queries.ItemContentProjection
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ItemDao : BaseDao<Item> {
+    @Query("""Select Item.id, Item.title, Feed.name As feedName, Feed.account_id As accountId
+        From Item Inner Join Feed On Feed.id = Item.feed_id
+        Where Item.read = 0 Order By Item.pub_date Desc, Item.id Desc Limit :limit""")
+    suspend fun selectLatestUnreadForWidget(limit: Int = 3): List<WidgetArticle>
+
     @Query("Select Count(id) From Item")
     suspend fun count(): Int
 
@@ -31,6 +37,9 @@ interface ItemDao : BaseDao<Item> {
 
     @RawQuery(observedEntities = [Item::class, Feed::class, Folder::class, ItemState::class])
     fun selectAll(query: SupportSQLiteQuery): PagingSource<Int, ItemWithFeed>
+
+    @RawQuery(observedEntities = [Item::class, Feed::class, Folder::class, ItemState::class])
+    suspend fun selectItemIds(query: SupportSQLiteQuery): List<Int>
 
     @RawQuery(observedEntities = [Item::class, ItemState::class])
     fun selectItemById(query: SupportSQLiteQuery): Flow<ItemWithFeed>

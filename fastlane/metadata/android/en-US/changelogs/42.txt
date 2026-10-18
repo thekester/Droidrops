@@ -1,0 +1,6 @@
+- Choose from four text sizes when reading articles, with pinch-to-zoom support.
+- Add a home-screen widget for the latest unread articles.
+- Customize timeline cards by hiding images, feed details, publication dates, or reading times.
+- Improve reader restoration, article paging, and handling of large articles.
+- Improve RSS and Atom compatibility, including feeds with missing titles or content.
+- Fix article display, feed synchronization, and backup handling of private session data.

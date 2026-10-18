@@ -74,6 +74,7 @@ import com.readrops.app.item.ItemScreen
 import com.readrops.app.more.diagnostics.DiagnosticLogScreen
 import com.readrops.app.timelime.components.TimelineAppBar
 import com.readrops.app.timelime.components.TimelineItem
+import com.readrops.app.timelime.withoutSelectedFolderLabel
 import com.readrops.app.timelime.components.TimelineItemSize
 import com.readrops.app.timelime.dialog.TimelineDialogs
 import com.readrops.app.timelime.drawer.TimelineDrawer
@@ -460,8 +461,11 @@ object TimelineTab : Tab {
                                             val itemWithFeed = items[index]
 
                                             if (itemWithFeed != null) {
+                                                val itemForDisplay = itemWithFeed
+                                                    .withoutSelectedFolderLabel(state.filterFolderName)
+
                                                 TimelineItem(
-                                                    itemWithFeed = itemWithFeed,
+                                                    itemWithFeed = itemForDisplay,
                                                     swipeToLeft = state.preferences.swipeToLeft,
                                                     swipeToRight = state.preferences.swipeToRight,
                                                     onClick = {
@@ -537,6 +541,10 @@ object TimelineTab : Tab {
                                                         }
                                                     },
                                                     size = preferences.itemSize,
+                                                    showImages = preferences.showImages,
+                                                    showSource = preferences.showSource,
+                                                    showDate = preferences.showDate,
+                                                    showReadTime = preferences.showReadTime,
                                                     modifier = Modifier.animateItem()
                                                 )
                                             }

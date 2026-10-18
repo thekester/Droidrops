@@ -1,1 +1,1 @@
-Droidrops RSS client
+Droidrops feed reader

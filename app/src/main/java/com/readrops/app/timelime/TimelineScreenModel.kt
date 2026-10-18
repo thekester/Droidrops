@@ -197,6 +197,10 @@ class TimelineScreenModel(
     private fun getTimelinePreferences(): Flow<TimelinePreferences> = with(preferences) {
         return combine<Any, TimelinePreferences>(
             timelineItemSize.flow,
+            showTimelineImages.flow,
+            showTimelineSource.flow,
+            showTimelineDate.flow,
+            showTimelineReadTime.flow,
             scrollRead.flow,
             displayNotificationsPermission.flow,
             showReadItems.flow,
@@ -216,18 +220,22 @@ class TimelineScreenModel(
                         "regular" -> TimelineItemSize.REGULAR
                         else -> TimelineItemSize.LARGE
                     },
-                    markReadOnScroll = it[1] as Boolean,
-                    displayNotificationsPermission = it[2] as Boolean,
-                    showReadItems = it[3] as Boolean,
-                    orderField = OrderField.valueOf(it[4] as String),
-                    orderType = OrderType.valueOf(it[5] as String),
-                    theme = it[6] as String,
-                    openInExternalBrowser = it[7] as String == "external_navigator",
-                    openInAsk = it[8] as Boolean,
-                    syncAtLaunch = it[9] as Boolean,
-                    swipeToLeft = SwipeAction.valueOf(it[10] as String),
-                    swipeToRight = SwipeAction.valueOf(it[11] as String),
-                    showRecentlyReadItems = it[12] as Boolean
+                    showImages = it[1] as Boolean,
+                    showSource = it[2] as Boolean,
+                    showDate = it[3] as Boolean,
+                    showReadTime = it[4] as Boolean,
+                    markReadOnScroll = it[5] as Boolean,
+                    displayNotificationsPermission = it[6] as Boolean,
+                    showReadItems = it[7] as Boolean,
+                    orderField = OrderField.valueOf(it[8] as String),
+                    orderType = OrderType.valueOf(it[9] as String),
+                    theme = it[10] as String,
+                    openInExternalBrowser = it[11] as String == "external_navigator",
+                    openInAsk = it[12] as Boolean,
+                    syncAtLaunch = it[13] as Boolean,
+                    swipeToLeft = SwipeAction.valueOf(it[14] as String),
+                    swipeToRight = SwipeAction.valueOf(it[15] as String),
+                    showRecentlyReadItems = it[16] as Boolean
                 )
             }
         )
@@ -689,6 +697,10 @@ data class TimelineState(
 @Stable
 data class TimelinePreferences(
     val itemSize: TimelineItemSize = TimelineItemSize.LARGE,
+    val showImages: Boolean = true,
+    val showSource: Boolean = true,
+    val showDate: Boolean = true,
+    val showReadTime: Boolean = true,
     val markReadOnScroll: Boolean = false,
     val displayNotificationsPermission: Boolean = false,
     val showReadItems: Boolean = true,

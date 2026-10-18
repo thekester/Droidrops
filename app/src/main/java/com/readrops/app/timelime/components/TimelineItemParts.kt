@@ -62,7 +62,11 @@ fun RegularTimelineItem(
     onClick: () -> Unit,
     onFavorite: () -> Unit,
     onShare: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showImages: Boolean = true,
+    showSource: Boolean = true,
+    showDate: Boolean = true,
+    showReadTime: Boolean = true
 ) {
     val displayColor = itemWithFeed.displayColor(CardDefaults.cardColors().containerColor.toArgb())
 
@@ -82,7 +86,10 @@ fun RegularTimelineItem(
                 duration = itemWithFeed.item.readTime,
                 isStarred = itemWithFeed.isStarred,
                 onFavorite = onFavorite,
-                onShare = onShare
+                onShare = onShare,
+                showSource = showSource,
+                showDate = showDate,
+                showReadTime = showReadTime
             )
 
             ShortSpacer()
@@ -90,7 +97,7 @@ fun RegularTimelineItem(
             TimelineItemTitle(
                 title = itemWithFeed.item.title!!,
                 isRead = itemWithFeed.isRead,
-                thumbnailUrl = itemWithFeed.item.imageLink
+                thumbnailUrl = itemWithFeed.item.imageLink.takeIf { showImages }
             )
 
             ShortSpacer()
@@ -98,7 +105,9 @@ fun RegularTimelineItem(
             TimelineItemBadge(
                 date = itemWithFeed.item.pubDate!!,
                 duration = itemWithFeed.item.readTime,
-                color = displayColor
+                color = displayColor,
+                showDate = showDate,
+                showReadTime = showReadTime
             )
         }
     }
@@ -110,7 +119,11 @@ fun CompactTimelineItem(
     onClick: () -> Unit,
     onFavorite: () -> Unit,
     onShare: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showImages: Boolean = true,
+    showSource: Boolean = true,
+    showDate: Boolean = true,
+    showReadTime: Boolean = true
 ) {
     val containerColor = MaterialTheme.colorScheme.background
     val displayColor = itemWithFeed.displayColor(CardDefaults.cardColors().containerColor.toArgb())
@@ -143,7 +156,10 @@ fun CompactTimelineItem(
                 date = itemWithFeed.item.pubDate!!,
                 duration = itemWithFeed.item.readTime,
                 isStarred = itemWithFeed.isStarred,
-                displayActions = false
+                displayActions = false,
+                showSource = showSource,
+                showDate = showDate,
+                showReadTime = showReadTime
             )
 
             ShortSpacer()
@@ -151,7 +167,7 @@ fun CompactTimelineItem(
             TimelineItemTitle(
                 title = itemWithFeed.item.title!!,
                 isRead = itemWithFeed.isRead,
-                thumbnailUrl = itemWithFeed.item.imageLink
+                thumbnailUrl = itemWithFeed.item.imageLink.takeIf { showImages }
             )
 
             ShortSpacer()
@@ -169,7 +185,11 @@ fun LargeTimelineItem(
     onClick: () -> Unit,
     onFavorite: () -> Unit,
     onShare: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    showImages: Boolean = true,
+    showSource: Boolean = true,
+    showDate: Boolean = true,
+    showReadTime: Boolean = true
 ) {
     val displayColor = itemWithFeed.displayColor(CardDefaults.cardColors().containerColor.toArgb())
     var imageLoadFailed by remember(itemWithFeed.item.imageLink) { mutableStateOf(false) }
@@ -181,7 +201,11 @@ fun LargeTimelineItem(
             onClick = onClick,
             onFavorite = onFavorite,
             onShare = onShare,
-            modifier = modifier
+            modifier = modifier,
+            showImages = showImages,
+            showSource = showSource,
+            showDate = showDate,
+            showReadTime = showReadTime
         )
     } else {
         TimelineItemContainer(
@@ -201,7 +225,10 @@ fun LargeTimelineItem(
                         duration = itemWithFeed.item.readTime,
                         isStarred = itemWithFeed.isStarred,
                         onFavorite = onFavorite,
-                        onShare = onShare
+                        onShare = onShare,
+                        showSource = showSource,
+                        showDate = showDate,
+                        showReadTime = showReadTime
                     )
 
                     ShortSpacer()
@@ -209,7 +236,9 @@ fun LargeTimelineItem(
                     TimelineItemBadge(
                         date = itemWithFeed.item.pubDate!!,
                         duration = itemWithFeed.item.readTime,
-                        color = displayColor
+                        color = displayColor,
+                        showDate = showDate,
+                        showReadTime = showReadTime
                     )
 
                     ShortSpacer()
@@ -251,7 +280,7 @@ fun LargeTimelineItem(
                     }
                 }
 
-                if (itemWithFeed.item.hasImage && !imageLoadFailed) {
+                if (showImages && itemWithFeed.item.hasImage && !imageLoadFailed) {
                     AsyncImage(
                         model = if (!LocalInspectionMode.current) {
                             itemWithFeed.item.imageLink
@@ -323,7 +352,10 @@ fun TimelineItemHeader(
     isStarred: Boolean,
     onFavorite: () -> Unit,
     onShare: () -> Unit,
-    displayActions: Boolean = true
+    displayActions: Boolean = true,
+    showSource: Boolean = true,
+    showDate: Boolean = true,
+    showReadTime: Boolean = true
 ) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -334,28 +366,30 @@ fun TimelineItemHeader(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier.weight(1f)
         ) {
-            FeedIcon(
-                iconUrl = feedIconUrl,
-                name = feedName
-            )
-
-            ShortSpacer()
-
-            Column {
-                Text(
-                    text = feedName,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    color = feedColor,
+            if (showSource) {
+                FeedIcon(
+                    iconUrl = feedIconUrl,
+                    name = feedName
                 )
 
-                if (!folderName.isNullOrEmpty()) {
+                ShortSpacer()
+
+                Column {
                     Text(
-                        text = folderName,
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = feedName,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        color = feedColor,
                     )
+
+                    if (!folderName.isNullOrEmpty()) {
+                        Text(
+                            text = folderName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
                 }
             }
         }
@@ -405,7 +439,9 @@ fun TimelineItemHeader(
             TimelineItemBadge(
                 date = date,
                 duration = duration,
-                color = feedColor
+                color = feedColor,
+                showDate = showDate,
+                showReadTime = showReadTime
             )
         }
     }
@@ -451,7 +487,10 @@ fun TimelineItemBadge(
     date: LocalDateTime,
     duration: Double,
     color: Color,
+    showDate: Boolean = true,
+    showReadTime: Boolean = true,
 ) {
+    if (!showDate && !showReadTime) return
     val onAccentColor = bestForegroundOn(color.toArgb())
 
     Surface(
@@ -465,20 +504,29 @@ fun TimelineItemBadge(
                 vertical = MaterialTheme.spacing.veryShortSpacing
             )
         ) {
-            Text(
+            if (showDate) Text(
                 text = DateUtils.formattedDateTimeByLocal(date),
                 style = MaterialTheme.typography.labelSmall,
                 color = onAccentColor
             )
 
-            Text(
+            if (showDate && showReadTime) Text(
                 text = stringResource(id = R.string.interpoint),
                 style = MaterialTheme.typography.labelMedium,
                 modifier = Modifier.padding(horizontal = MaterialTheme.spacing.veryShortSpacing),
                 color = onAccentColor
             )
 
-            Text(
+            if (showReadTime) Icon(
+                painter = painterResource(R.drawable.ic_schedule),
+                contentDescription = null,
+                modifier = Modifier.size(12.dp),
+                tint = onAccentColor
+            )
+
+            if (showDate && showReadTime) ShortSpacer()
+
+            if (showReadTime) Text(
                 text = if (duration > 1) {
                     stringResource(id = R.string.read_time, duration.roundToInt())
                 } else {

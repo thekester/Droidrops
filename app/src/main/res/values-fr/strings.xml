@@ -1,5 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="show_timeline_source">Afficher la source du flux</string>
+    <string name="show_timeline_source_subtitle">Afficher ou masquer le nom du flux et du dossier dans les cartes</string>
+    <string name="show_timeline_date">Afficher la date de publication</string>
+    <string name="show_timeline_read_time">Afficher le temps de lecture estimé</string>
+    <string name="article_font_size">Taille du texte des articles</string>
+    <string name="article_font_small">Petite</string>
+    <string name="article_font_normal">Normale</string>
+    <string name="article_font_large">Grande</string>
+    <string name="article_font_extra_large">Très grande</string>
     <string name="article_image">Image de l’article</string>
     <string name="close_image_viewer">Fermer la visionneuse d’images</string>
     <string name="add_feed">Ajouter un flux</string>
@@ -219,7 +228,7 @@
     <string name="use_default_color">Utiliser la couleur par défaut</string>
     <string name="warning">Attention</string>
     <string name="understand">J\'accepte</string>
-    <string name="greader_warning">"Google Reader est une très vielle API et reste peu documentée. Il est probable qu'elle ne soit pas implémentée de la même manière dans chaque agrégateur et ainsi ne pas fonctionner correctement.\n\nSi vous rencontrez des problèmes de synchronisation, merci de les remonter sur le dépôt GitHub de Droidrops. "</string>
+    <string name="greader_warning">Google Reader est une API ancienne et peu documentée, dont la compatibilité varie selon les agrégateurs.\n\nMiniflux : activez son API Google Reader dans Paramètres &gt; Intégrations, puis utilisez les identifiants configurés.\n\nTiny Tiny RSS : activez son extension de compatibilité Google Reader avant ajout du compte. Droidrops utilise cette API compatible ; les API natives de Miniflux et Tiny Tiny RSS ne sont pas prises en charge.\n\nSignalez tout problème, avec le type de serveur et le texte remonté, dans le dépôt GitHub de Droidrops.</string>
     <string name="fever_warning">Fever est une vielle API, limitée et dépréciée. Elle ne supporte pas la gestion des flux et des dossiers. Elle est également mal documentée et risque de ne pas être implémentée de la même manière chez chaque agrégateur, ne permettant pas son bon fonctionnement.\n\nSi vous rencontrez des problèmes de synchronisation, merci de les remonter sur le dépôt GitHub de Droidrops.</string>
     <string name="api">API</string>
 

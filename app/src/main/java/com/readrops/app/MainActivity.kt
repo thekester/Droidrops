@@ -32,6 +32,7 @@ import cafe.adriel.voyager.transitions.SlideTransition
 import com.readrops.app.account.selection.AccountSelectionScreen
 import com.readrops.app.account.selection.AccountSelectionScreenModel
 import com.readrops.app.home.HomeScreen
+import com.readrops.app.item.ReaderSession
 import com.readrops.app.repositories.BaseRepository
 import com.readrops.app.sync.SyncWorker
 import com.readrops.app.timelime.TimelineTab
@@ -101,7 +102,17 @@ class MainActivity : ComponentActivity(), KoinComponent {
                         )
                     ) { navigator ->
                         LaunchedEffect(Unit) {
-                            handleIntent(intent)
+                            val hasNavigationIntent = intent.hasExtra(SyncWorker.ACCOUNT_ID_KEY) ||
+                                    intent.hasExtra(SyncWorker.ITEM_ID_KEY) ||
+                                    intent.action == Intent.ACTION_SEND
+                            if (hasNavigationIntent) {
+                                ReaderSession.clear(this@MainActivity)
+                                handleIntent(intent)
+                            } else if (navigator.lastItem == HomeScreen) {
+                                ReaderSession.take(this@MainActivity)?.let { itemId ->
+                                    HomeScreen.openItem(itemId)
+                                }
+                            }
                         }
 
                         Box(

@@ -24,6 +24,14 @@ class ApiUtilsTest {
     }
 
     @Test
+    fun cleanTextCollapsesMultilineFeedTitlesWithoutChangingWordBoundaries() {
+        assertEquals(
+            "A title written across several lines",
+            ApiUtils.cleanText("  A title\n    written\t across <b>several</b> lines  ")
+        )
+    }
+
+    @Test
     fun md5hashTest() {
         val value = ApiUtils.md5hash("test")
 
