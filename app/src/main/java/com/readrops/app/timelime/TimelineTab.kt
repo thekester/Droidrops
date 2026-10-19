@@ -84,6 +84,7 @@ import com.readrops.app.timelime.withoutSelectedFolderLabel
 import com.readrops.app.timelime.components.TimelineItemSize
 import com.readrops.app.timelime.dialog.TimelineDialogs
 import com.readrops.app.timelime.drawer.TimelineDrawer
+import com.readrops.app.util.KeyboardShortcutFocusAnchor
 import com.readrops.app.util.KeyboardShortcutHandler
 import com.readrops.app.util.Shortcut
 import com.readrops.app.util.components.LoadingScreen
@@ -242,6 +243,8 @@ object TimelineTab : Tab {
                 }
             }
         }
+
+        KeyboardShortcutFocusAnchor()
 
         // with the side pane, J/K walk the timeline itself; the pane's reader handles the rest
         KeyboardShortcutHandler(enabled = useTwoPane) { shortcut ->

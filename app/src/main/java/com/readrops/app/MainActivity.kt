@@ -4,6 +4,7 @@ import android.content.Intent
 import android.content.res.Configuration
 import android.graphics.Color
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.KeyEvent
 import androidx.activity.ComponentActivity
 import androidx.activity.SystemBarStyle
@@ -140,8 +141,33 @@ class MainActivity : ComponentActivity(), KoinComponent {
     }
 
     // hardware keyboard shortcuts only see the keys no view or text field consumed
-    override fun dispatchKeyEvent(event: KeyEvent): Boolean =
-        super.dispatchKeyEvent(event) || KeyboardShortcuts.dispatch(event)
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (super.dispatchKeyEvent(event)) return true
+        if (!KeyboardShortcuts.isShortcutPress(event)) return false
+
+        // A typed key leaves touch mode, and Android then focuses the first focusable control,
+        // the drawer's close button, which draws a focus ring. Focus cannot simply be dropped
+        // outside touch mode (Android hands it back to that same control), so it is moved to
+        // an invisible anchor, whether or not a screen could use the shortcut. The shortcut
+        // may also have replaced the reader, as when the side pane switches article: wait for
+        // the layout that shows the new one.
+        focusAnchorUntil = SystemClock.uptimeMillis() + FOCUS_ANCHOR_WINDOW_MS
+        if (!focusAnchorListenerAdded) {
+            focusAnchorListenerAdded = true
+            window.decorView.viewTreeObserver.addOnGlobalLayoutListener { focusAnchorIfPending() }
+        }
+        window.decorView.post { focusAnchorIfPending() }
+
+        return KeyboardShortcuts.dispatch(event)
+    }
+
+    private var focusAnchorUntil = 0L
+    private var focusAnchorListenerAdded = false
+
+    private fun focusAnchorIfPending() {
+        if (SystemClock.uptimeMillis() > focusAnchorUntil) return
+        if (KeyboardShortcuts.focusAnchor()) focusAnchorUntil = 0L
+    }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -192,5 +218,8 @@ class MainActivity : ComponentActivity(), KoinComponent {
     private companion object {
         const val DYNAMIC_THEME = "dynamic"
         const val TRUE_BLACK_THEME = "true_black"
+
+        // long enough for the side pane to show the article a shortcut switched to
+        const val FOCUS_ANCHOR_WINDOW_MS = 2_000L
     }
 }

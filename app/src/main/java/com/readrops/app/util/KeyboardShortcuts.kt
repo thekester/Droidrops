@@ -1,10 +1,18 @@
 package com.readrops.app.util
 
 import android.view.KeyEvent
+import androidx.compose.foundation.focusable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.unit.dp
 import java.util.concurrent.CopyOnWriteArrayList
 
 /** Reading actions reachable from a hardware keyboard, with the usual feed reader keys. */
@@ -44,21 +52,60 @@ object KeyboardShortcuts {
 
     private val handlers = CopyOnWriteArrayList<(Shortcut) -> Boolean>()
 
+    /** See [KeyboardShortcutFocusAnchor]; the most recently shown one is used. */
+    internal val focusAnchors = CopyOnWriteArrayList<FocusRequester>()
+
+    /** Moves focus to the current anchor, returning false while none can take it yet. */
+    fun focusAnchor(): Boolean {
+        val anchor = focusAnchors.lastOrNull() ?: return false
+        // a requester whose node is not placed yet throws: try again on a later layout
+        return runCatching { anchor.requestFocus() }.isSuccess
+    }
+
     fun register(handler: (Shortcut) -> Boolean): () -> Unit {
         handlers += handler
         return { handlers -= handler }
+    }
+
+    /** Whether [event] is the press of a reading shortcut key, handled or not. */
+    fun isShortcutPress(event: KeyEvent): Boolean =
+        event.action == KeyEvent.ACTION_DOWN && shortcutFor(event) != null
+
+    private fun shortcutFor(event: KeyEvent): Shortcut? {
+        val hasModifiers = event.isCtrlPressed || event.isAltPressed || event.isMetaPressed ||
+            event.isShiftPressed
+        return shortcutFor(event.keyCode, hasModifiers)
     }
 
     /** Returns true when a registered screen handled the key. */
     fun dispatch(event: KeyEvent): Boolean {
         if (event.action != KeyEvent.ACTION_DOWN || event.repeatCount > 0) return false
 
-        val hasModifiers = event.isCtrlPressed || event.isAltPressed || event.isMetaPressed ||
-            event.isShiftPressed
-        val shortcut = shortcutFor(event.keyCode, hasModifiers) ?: return false
+        val shortcut = shortcutFor(event) ?: return false
 
         // the most recently shown screen first, e.g. the reader pane before the timeline
         return handlers.reversed().any { it(shortcut) }
+    }
+}
+
+/**
+ * An invisible, indication-free focus target. Typing a shortcut key leaves touch mode, and Android
+ * then focuses the first focusable control (the drawer's close button), drawing a focus ring on
+ * it. Moving focus here afterwards takes it off that control without showing anything.
+ */
+@Composable
+fun KeyboardShortcutFocusAnchor() {
+    val requester = remember { FocusRequester() }
+    Box(
+        modifier = Modifier
+            .size(1.dp)
+            .focusRequester(requester)
+            .focusable()
+    )
+
+    DisposableEffect(requester) {
+        KeyboardShortcuts.focusAnchors += requester
+        onDispose { KeyboardShortcuts.focusAnchors -= requester }
     }
 }
 

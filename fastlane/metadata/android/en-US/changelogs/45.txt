@@ -1,0 +1,2 @@
+- Keep hardware keyboard shortcut focus invisible in the article reader and timeline.
+- Improve keyboard navigation when switching articles in the two-pane reader.

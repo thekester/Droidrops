@@ -33,6 +33,7 @@ import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.readrops.app.R
+import com.readrops.app.util.KeyboardShortcutFocusAnchor
 import com.readrops.app.util.KeyboardShortcutHandler
 import com.readrops.app.util.Shortcut
 import com.readrops.app.util.components.AndroidScreen
@@ -168,6 +169,8 @@ class ItemScreen(
                 snackbarHostState.showSnackbar(state.error!!)
             }
         }
+
+        KeyboardShortcutFocusAnchor()
 
         when {
             items.isLoading() -> {
