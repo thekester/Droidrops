@@ -5,6 +5,7 @@ import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Folder
 import com.readrops.db.entities.Item
 import com.readrops.db.entities.OpenIn
+import com.readrops.db.entities.Tag
 import kotlinx.coroutines.test.runTest
 import okio.Buffer
 import org.junit.Assert.assertEquals
@@ -144,6 +145,37 @@ class LocalAccountBackupFormatTest {
             ),
             header!!.preferences
         )
+    }
+
+    @Test
+    fun tagsAndArticleLabelsRoundTrip() = runTest {
+        val buffer = Buffer()
+        LocalAccountBackupFormat.Writer(buffer).use { writer ->
+            writer.writeHeader(
+                LocalAccountBackupFormat.Header(
+                    accountName = "Server",
+                    notificationsEnabled = false,
+                    folders = emptyList(),
+                    feeds = listOf(feed),
+                    tags = listOf(Tag(id = 4, name = "Later"), Tag(id = 9, name = "Linux")),
+                )
+            )
+            writer.writeItems(
+                listOf(
+                    item.copy(tags = listOf(Tag(id = 4, name = ""), Tag(id = 9, name = ""))),
+                    item.copy(id = 43, remoteId = "guid-43"),
+                )
+            )
+            writer.finish()
+        }
+
+        var header: LocalAccountBackupFormat.Header? = null
+        val items = mutableListOf<Item>()
+        LocalAccountBackupFormat.read(buffer, { header = it }, { items += it })
+
+        assertEquals(listOf(4 to "Later", 9 to "Linux"), header!!.tags.map { it.id to it.name })
+        assertEquals(listOf(4, 9), items[0].tags.map { it.id })
+        assertTrue(items[1].tags.isEmpty())
     }
 
     @Test

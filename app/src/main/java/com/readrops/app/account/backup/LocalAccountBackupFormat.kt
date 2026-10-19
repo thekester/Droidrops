@@ -4,6 +4,7 @@ import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Folder
 import com.readrops.db.entities.Item
 import com.readrops.db.entities.OpenIn
+import com.readrops.db.entities.Tag
 import com.squareup.moshi.JsonReader
 import com.squareup.moshi.JsonWriter
 import okio.BufferedSink
@@ -40,6 +41,8 @@ object LocalAccountBackupFormat {
         /** Backup ids of the feeds set to always show the full article. */
         val fullContentFeedIds: Set<Int> = emptySet(),
         val preferences: List<BackupPreference> = emptyList(),
+        /** Labels, such as FreshRSS ones; articles refer to them by these backup ids. */
+        val tags: List<Tag> = emptyList(),
     )
 
     class InvalidBackupException(message: String) : IOException(message)
@@ -66,6 +69,15 @@ object LocalAccountBackupFormat {
                 json.beginObject()
                 json.name("id").value(folder.id.toLong())
                 json.name("name").value(folder.name)
+                json.endObject()
+            }
+            json.endArray()
+
+            json.name("tags").beginArray()
+            header.tags.forEach { tag ->
+                json.beginObject()
+                json.name("id").value(tag.id.toLong())
+                json.name("name").value(tag.name)
                 json.endObject()
             }
             json.endArray()
@@ -143,6 +155,11 @@ object LocalAccountBackupFormat {
                     name("read").value(item.isRead)
                     name("starred").value(item.isStarred)
                     name("remoteId").value(item.remoteId)
+                    if (item.tags.isNotEmpty()) {
+                        name("tags").beginArray()
+                        item.tags.forEach { value(it.id.toLong()) }
+                        endArray()
+                    }
                     endObject()
                 }
             }
@@ -178,6 +195,7 @@ object LocalAccountBackupFormat {
         var folders: List<Folder>? = null
         var feeds: List<Pair<Feed, Boolean>>? = null
         var preferences: List<BackupPreference> = emptyList()
+        var tags: List<Tag> = emptyList()
         var headerSent = false
 
         json.beginObject()
@@ -201,6 +219,7 @@ object LocalAccountBackupFormat {
                 "folders" -> folders = json.readArray { readFolder() }
                 "feeds" -> feeds = json.readArray { readFeed() }
                 "preferences" -> preferences = json.readArray { readPreference() }.filterNotNull()
+                "tags" -> tags = json.readArray { readTag() }.filterNotNull()
                 "items" -> {
                     if (format != FORMAT) throw InvalidBackupException("Not a Droidrops account backup")
                     if (version == null || version > VERSION) {
@@ -219,6 +238,7 @@ object LocalAccountBackupFormat {
                             sourceAccountType = accountType,
                             fullContentFeedIds = feeds.filter { it.second }.map { it.first.id }.toSet(),
                             preferences = preferences,
+                            tags = tags,
                         )
                     )
                     headerSent = true
@@ -332,11 +352,28 @@ object LocalAccountBackupFormat {
                 "read" -> item.isRead = nextBoolean()
                 "starred" -> item.isStarred = nextBoolean()
                 "remoteId" -> item.remoteId = nullableString()
+                // only the backup ids matter here: the restore maps them to the inserted tags
+                "tags" -> item.tags = readArray { Tag(id = nextInt(), name = "") }
                 else -> skipValue()
             }
         }
         endObject()
         return item
+    }
+
+    private fun JsonReader.readTag(): Tag? {
+        var id: Int? = null
+        var name: String? = null
+        beginObject()
+        while (hasNext()) {
+            when (nextName()) {
+                "id" -> id = nextInt()
+                "name" -> name = nullableString()
+                else -> skipValue()
+            }
+        }
+        endObject()
+        return if (id != null && !name.isNullOrBlank()) Tag(id = id, name = name) else null
     }
 
     private fun <T> JsonReader.readArray(readElement: JsonReader.() -> T): List<T> {

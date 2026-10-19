@@ -6,6 +6,8 @@ import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Folder
 import com.readrops.db.entities.Item
 import com.readrops.db.entities.ItemState
+import com.readrops.db.entities.Tag
+import com.readrops.db.entities.TagJoin
 import com.readrops.db.entities.OpenIn
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
@@ -130,6 +132,13 @@ class LocalAccountBackupRepositoryTest : KoinTest {
         database.itemStateDao().insert(ItemState(read = true, remoteId = "tag:1", accountId = server.id))
         database.itemStateDao().insert(ItemState(starred = true, remoteId = "tag:2", accountId = server.id))
 
+        // a FreshRSS label on the first article
+        val labelId = database.tagDao().insert(
+            Tag(name = "Read later", remoteId = "user/-/label/Read later", accountId = server.id)
+        ).toInt()
+        val labelledId = database.itemDao().selectItems(feedId).single { it.title == "Read one" }.id
+        database.tagJoinDao().insert(TagJoin(tagId = labelId, itemId = labelledId))
+
         val output = ByteArrayOutputStream()
         repository.export(server, output, fullContentFeedIds = setOf(feedId))
         val json = output.toString(Charsets.UTF_8.name())
@@ -151,6 +160,15 @@ class LocalAccountBackupRepositoryTest : KoinTest {
         assertFalse(items.getValue("Untouched").isRead)
         // local syncs recognise entries by link when the server id is meaningless
         assertEquals("https://example.org/1", items.getValue("Read one").remoteId)
+
+        val restoredTag = database.tagDao().selectAll(restored.id).single()
+        assertEquals("Read later", restoredTag.name)
+        assertEquals(null, restoredTag.remoteId)
+        assertEquals(
+            listOf("Read later"),
+            database.tagDao().selectAllByItem(items.getValue("Read one").id).map { it.name }
+        )
+        assertTrue(database.tagDao().selectAllByItem(items.getValue("Untouched").id).isEmpty())
     }
 
     @Test

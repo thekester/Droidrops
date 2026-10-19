@@ -42,6 +42,10 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
 import coil3.compose.AsyncImage
 import coil3.request.ImageRequest
 import com.readrops.app.R
@@ -127,12 +131,19 @@ fun CompactTimelineItem(
 ) {
     val containerColor = MaterialTheme.colorScheme.background
     val displayColor = itemWithFeed.displayColor(CardDefaults.cardColors().containerColor.toArgb())
+    val isSelected = LocalTimelineItemSelected.current
 
     Surface(
-        color = MaterialTheme.colorScheme.surfaceVariant,
+        color = if (isSelected) {
+            MaterialTheme.colorScheme.secondaryContainer
+        } else {
+            MaterialTheme.colorScheme.surfaceVariant
+        },
+        border = if (isSelected) BorderStroke(SELECTED_BORDER_WIDTH, MaterialTheme.colorScheme.primary) else null,
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
+            .semantics { selected = isSelected }
             .drawBehind {
                 // if some alpha is applied to the card, the swipe to dismiss background appears behind it
                 // so we draw a rect with the current screen background color behind the card but in front of the dismiss background
@@ -315,6 +326,11 @@ fun LargeTimelineItem(
 
 }
 
+/** True for the article currently open in the two-pane reader, which its card then outlines. */
+val LocalTimelineItemSelected = staticCompositionLocalOf { false }
+
+private val SELECTED_BORDER_WIDTH = 2.dp
+
 @Composable
 fun TimelineItemContainer(
     onClick: () -> Unit,
@@ -323,12 +339,20 @@ fun TimelineItemContainer(
     content: @Composable () -> Unit
 ) {
     val containerColor = MaterialTheme.colorScheme.background
+    val isSelected = LocalTimelineItemSelected.current
 
     Card(
         onClick = onClick,
+        border = if (isSelected) BorderStroke(SELECTED_BORDER_WIDTH, MaterialTheme.colorScheme.primary) else null,
+        colors = if (isSelected) {
+            CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer)
+        } else {
+            CardDefaults.cardColors()
+        },
         modifier = modifier
             .padding(padding)
             .fillMaxWidth()
+            .semantics { selected = isSelected }
             .drawBehind {
                 // if some alpha is applied to the card, the swipe to dismiss background appears behind it
                 // so we draw a rect with the current screen background color behind the card but in front of the dismiss background

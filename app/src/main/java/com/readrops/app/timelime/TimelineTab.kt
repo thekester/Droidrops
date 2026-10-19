@@ -188,6 +188,24 @@ object TimelineTab : Tab {
             }
         }
 
+        // Keep the article open in the side pane in view, e.g. after J/K. Declared after the
+        // position restore above so that, when a reload triggers both, this one runs last.
+        LaunchedEffect(paneItemId, state.filters, items.loadState.refresh) {
+            val openId = paneItemId
+            if (!useTwoPane || openId == null || items.loadState.refresh !is LoadState.NotLoading) {
+                return@LaunchedEffect
+            }
+
+            val index = (0 until items.itemCount).firstOrNull { items.peek(it)?.item?.id == openId }
+                ?: return@LaunchedEffect
+            val layout = lazyListState.layoutInfo
+            val fullyVisible = layout.visibleItemsInfo.any {
+                it.index == index && it.offset >= layout.viewportStartOffset &&
+                    it.offset + it.size <= layout.viewportEndOffset
+            }
+            if (!fullyVisible) lazyListState.animateScrollToItem(index)
+        }
+
         val lazyColumnPadding = if (preferences.itemSize == TimelineItemSize.COMPACT) {
             0.dp
         } else {
@@ -242,8 +260,8 @@ object TimelineTab : Tab {
             if (target !in 0 until count) return@KeyboardShortcutHandler false
             val itemWithFeed = items[target] ?: return@KeyboardShortcutHandler false
 
+            // the list follows through the "keep in view" effect, once its reload settled
             openItem(itemWithFeed, target)
-            coroutineScope.launch { lazyListState.animateScrollToItem(target) }
             true
         }
 
@@ -610,6 +628,8 @@ object TimelineTab : Tab {
                                                         showDate = preferences.showDate,
                                                         showReadTime = preferences.showReadTime,
                                                         showPreview = preferences.showPreview,
+                                                        isSelected = useTwoPane &&
+                                                            itemWithFeed.item.id == paneItemId,
                                                         modifier = Modifier.animateItem()
                                                     )
                                                 }

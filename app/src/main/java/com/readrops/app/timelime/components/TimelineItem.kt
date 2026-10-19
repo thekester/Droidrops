@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
@@ -70,7 +71,8 @@ fun TimelineItem(
     showSource: Boolean = true,
     showDate: Boolean = true,
     showReadTime: Boolean = true,
-    showPreview: Boolean = true
+    showPreview: Boolean = true,
+    isSelected: Boolean = false
 ) {
 
     fun handleSwipeAction(swipeAction: SwipeAction) {
@@ -183,48 +185,50 @@ fun TimelineItem(
             }
         }
     ) {
-        when (size) {
-            TimelineItemSize.COMPACT -> {
-                CompactTimelineItem(
-                    itemWithFeed = itemWithFeed,
-                    onClick = onClick,
-                    onFavorite = onFavorite,
-                    onShare = onShare,
-                    modifier = modifier,
-                    showImages = showImages,
-                    showSource = showSource,
-                    showDate = showDate,
-                    showReadTime = showReadTime
-                )
-            }
+        CompositionLocalProvider(LocalTimelineItemSelected provides isSelected) {
+            when (size) {
+                TimelineItemSize.COMPACT -> {
+                    CompactTimelineItem(
+                        itemWithFeed = itemWithFeed,
+                        onClick = onClick,
+                        onFavorite = onFavorite,
+                        onShare = onShare,
+                        modifier = modifier,
+                        showImages = showImages,
+                        showSource = showSource,
+                        showDate = showDate,
+                        showReadTime = showReadTime
+                    )
+                }
 
-            TimelineItemSize.REGULAR -> {
-                RegularTimelineItem(
-                    itemWithFeed = itemWithFeed,
-                    onClick = onClick,
-                    onFavorite = onFavorite,
-                    onShare = onShare,
-                    modifier = modifier,
-                    showImages = showImages,
-                    showSource = showSource,
-                    showDate = showDate,
-                    showReadTime = showReadTime
-                )
-            }
+                TimelineItemSize.REGULAR -> {
+                    RegularTimelineItem(
+                        itemWithFeed = itemWithFeed,
+                        onClick = onClick,
+                        onFavorite = onFavorite,
+                        onShare = onShare,
+                        modifier = modifier,
+                        showImages = showImages,
+                        showSource = showSource,
+                        showDate = showDate,
+                        showReadTime = showReadTime
+                    )
+                }
 
-            TimelineItemSize.LARGE -> {
-                LargeTimelineItem(
-                    itemWithFeed = itemWithFeed,
-                    onClick = onClick,
-                    onFavorite = onFavorite,
-                    onShare = onShare,
-                    modifier = modifier,
-                    showImages = showImages,
-                    showSource = showSource,
-                    showDate = showDate,
-                    showReadTime = showReadTime,
-                    showPreview = showPreview
-                )
+                TimelineItemSize.LARGE -> {
+                    LargeTimelineItem(
+                        itemWithFeed = itemWithFeed,
+                        onClick = onClick,
+                        onFavorite = onFavorite,
+                        onShare = onShare,
+                        modifier = modifier,
+                        showImages = showImages,
+                        showSource = showSource,
+                        showDate = showDate,
+                        showReadTime = showReadTime,
+                        showPreview = showPreview
+                    )
+                }
             }
         }
     }

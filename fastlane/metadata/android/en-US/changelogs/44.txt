@@ -1,0 +1,3 @@
+- Preserve article labels when backing up and restoring accounts.
+- Keep the selected article visible and highlighted in the tablet two-pane reader.
+- Improve backup compatibility and article navigation on large screens.

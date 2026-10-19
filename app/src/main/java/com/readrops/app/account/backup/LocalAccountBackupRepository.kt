@@ -3,6 +3,8 @@ package com.readrops.app.account.backup
 import androidx.room.withTransaction
 import com.readrops.app.account.backup.LocalAccountBackupFormat.InvalidBackupException
 import com.readrops.db.Database
+import com.readrops.db.entities.Tag
+import com.readrops.db.entities.TagJoin
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
 import okio.buffer
@@ -42,6 +44,7 @@ class LocalAccountBackupRepository(private val database: Database) {
     ): BackupSummary {
         val folders = database.folderDao().selectAllFolders(account.id)
         val feeds = database.feedDao().selectFeeds(account.id)
+        val tags = database.tagDao().selectAll(account.id)
         var itemCount = 0
 
         // server accounts may keep read and star states apart from the articles
@@ -62,6 +65,7 @@ class LocalAccountBackupRepository(private val database: Database) {
                     sourceAccountType = account.type?.name,
                     fullContentFeedIds = fullContentFeedIds.intersect(feeds.map { it.id }.toSet()),
                     preferences = preferences,
+                    tags = tags,
                 )
             )
 
@@ -70,6 +74,12 @@ class LocalAccountBackupRepository(private val database: Database) {
                 while (true) {
                     val page = database.itemDao().selectItemsPage(feed.id, lastId, EXPORT_PAGE_SIZE)
                     if (page.isEmpty()) break
+
+                    if (tags.isNotEmpty()) {
+                        val itemTags = database.tagJoinDao().selectByItems(page.map { it.id })
+                            .groupBy({ it.itemId }, { Tag(id = it.tagId, name = "") })
+                        page.forEach { it.tags = itemTags[it.id].orEmpty() }
+                    }
 
                     writer.writeItems(
                         if (account.isLocal) page else page.map { item ->
@@ -115,6 +125,7 @@ class LocalAccountBackupRepository(private val database: Database) {
         database.withTransaction {
             val folderIds = HashMap<Int, Int>()
             val feedIds = HashMap<Int, Int>()
+            val tagIds = HashMap<Int, Int>()
 
             input.source().buffer().use { source ->
                 LocalAccountBackupFormat.read(
@@ -136,6 +147,14 @@ class LocalAccountBackupRepository(private val database: Database) {
                             folderIds[backupId] = database.folderDao().insert(
                                 folder.copy(id = 0, remoteId = null, accountId = accountId)
                             ).toInt()
+                        }
+
+                        header.tags.forEach { tag ->
+                            // names are unique per account: a duplicate in the file is skipped
+                            val id = database.tagDao().insertIgnoreConflicts(
+                                tag.copy(id = 0, remoteId = null, accountId = accountId)
+                            )
+                            if (id > 0) tagIds[tag.id] = id.toInt()
                         }
 
                         header.feeds
@@ -165,8 +184,14 @@ class LocalAccountBackupRepository(private val database: Database) {
                         }
 
                         if (restored.isNotEmpty()) {
-                            database.itemDao().insert(restored)
+                            val itemIds = database.itemDao().insert(restored)
                             itemCount += restored.size
+
+                            val tagJoins = restored.zip(itemIds).flatMap { (item, itemId) ->
+                                item.tags.mapNotNull { tagIds[it.id] }
+                                    .map { tagId -> TagJoin(tagId = tagId, itemId = itemId.toInt()) }
+                            }
+                            if (tagJoins.isNotEmpty()) database.tagJoinDao().insertConflict(tagJoins)
                         }
                     }
                 )
