@@ -36,6 +36,12 @@
 
 -keep class com.readrops.api.opml.model.** { *; }
 
+# DataStore Preferences' generated protobuf schema resolves fields such as `value_` by name at runtime.
+# Keep those generated message fields from being renamed by R8.
+-keepclassmembers class androidx.datastore.preferences.PreferencesProto$* {
+    <fields>;
+}
+
 # Please add these rules to your existing keep rules in order to suppress warnings.
 # This is generated automatically by the Android Gradle plugin.
 -dontwarn javax.xml.stream.Location

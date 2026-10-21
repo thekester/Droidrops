@@ -35,7 +35,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentType
-import androidx.compose.ui.semantics.onAutofillText
+import androidx.compose.ui.semantics.onFillData
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -75,8 +75,8 @@ fun Modifier.autofill(
     onFill: ((String) -> Unit),
 ) = semantics {
     this.contentType = contentType
-    onAutofillText { value ->
-        onFill(value.text)
+    onFillData { value ->
+        value.textValue?.let { onFill(it.toString()) }
         true
     }
 }

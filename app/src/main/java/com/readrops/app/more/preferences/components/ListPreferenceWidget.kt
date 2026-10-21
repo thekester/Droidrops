@@ -17,6 +17,7 @@ fun <T> ListPreferenceWidget(
     selectedKey: T,
     entries: Map<T, String>,
     title: String,
+    description: String? = null,
     modifier: Modifier = Modifier,
     onValueChange: (T) -> Unit,
 ) {
@@ -54,7 +55,9 @@ fun <T> ListPreferenceWidget(
 
     BasePreference(
         title = title,
-        subtitle = entries[selectedKey],
+        subtitle = listOfNotNull(entries[selectedKey], description)
+            .joinToString(" · ")
+            .ifEmpty { null },
         onClick = { showDialog = true },
         modifier = modifier
     )

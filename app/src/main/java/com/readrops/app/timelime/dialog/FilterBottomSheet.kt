@@ -21,6 +21,7 @@ import androidx.compose.material3.SegmentedButtonDefaults
 import androidx.compose.material3.SingleChoiceSegmentedButtonRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
@@ -133,7 +134,9 @@ fun FilterBottomSheet(
                     Text(text = stringResource(R.string.order_by))
 
                     TooltipBox(
-                        positionProvider = TooltipDefaults.rememberRichTooltipPositionProvider(),
+                        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+                            positioning = TooltipAnchorPosition.Above
+                        ),
                         tooltip = {
                             RichTooltip(
                                 title = { Text(text = stringResource(id = R.string.order_by)) }

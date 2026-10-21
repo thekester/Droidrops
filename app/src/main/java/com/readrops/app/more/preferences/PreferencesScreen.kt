@@ -188,6 +188,16 @@ class PreferencesScreen : AndroidScreen() {
                                 subtitle = stringResource(R.string.two_pane_reader_subtitle)
                             )
 
+                            SwitchPreferenceWidget(
+                                preference = loadedState.homeScreenWidgetEnabled.second,
+                                isChecked = loadedState.homeScreenWidgetEnabled.first,
+                                title = stringResource(R.string.home_screen_widget),
+                                subtitle = stringResource(R.string.home_screen_widget_subtitle),
+                                onValueChanged = {
+                                    com.readrops.app.widget.LatestArticlesWidget.refreshWidgets(context)
+                                }
+                            )
+
                             ListPreferenceWidget(
                                 preference = loadedState.mainFilterPref.second,
                                 selectedKey = loadedState.mainFilterPref.first,
@@ -208,7 +218,8 @@ class PreferencesScreen : AndroidScreen() {
                                     "regular" to stringResource(id = R.string.regular),
                                     "large" to stringResource(id = R.string.large)
                                 ),
-                                title = stringResource(id = R.string.item_size),
+                                title = stringResource(id = R.string.timeline_layout),
+                                description = stringResource(id = R.string.timeline_layout_subtitle),
                                 onValueChange = {}
                             )
 

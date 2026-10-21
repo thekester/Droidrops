@@ -44,8 +44,8 @@ android {
     defaultConfig {
         applicationId = "com.droidrops.app"
 
-        versionCode = 45
-        versionName = "2.2.24"
+        versionCode = 46
+        versionName = "2.2.25"
 
         testInstrumentationRunner = "com.readrops.app.ReadropsTestRunner"
     }

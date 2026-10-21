@@ -11,12 +11,14 @@ import android.widget.RemoteViews
 import com.readrops.app.MainActivity
 import com.readrops.app.R
 import com.readrops.app.sync.SyncWorker
+import com.readrops.app.util.Preferences
 import com.readrops.db.Database
 import com.readrops.db.pojo.WidgetArticle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.core.context.GlobalContext
 
@@ -45,10 +47,17 @@ class LatestArticlesWidget : AppWidgetProvider() {
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         scope.launch {
             try {
-                val articles = runCatching {
-                    GlobalContext.get().get<Database>().itemDao().selectLatestUnreadForWidget()
-                }.getOrDefault(emptyList())
-                ids.forEach { id -> manager.updateAppWidget(id, views(context, articles)) }
+                val enabled = runCatching {
+                    GlobalContext.get().get<Preferences>().homeScreenWidgetEnabled.flow.first()
+                }.getOrDefault(false)
+                val articles = if (enabled) {
+                    runCatching {
+                        GlobalContext.get().get<Database>().itemDao().selectLatestUnreadForWidget()
+                    }.getOrDefault(emptyList())
+                } else {
+                    emptyList()
+                }
+                ids.forEach { id -> manager.updateAppWidget(id, views(context, articles, enabled)) }
             } finally {
                 pendingResult?.finish()
                 scope.cancel()
@@ -56,7 +65,11 @@ class LatestArticlesWidget : AppWidgetProvider() {
         }
     }
 
-    private fun views(context: Context, articles: List<WidgetArticle>): RemoteViews =
+    private fun views(
+        context: Context,
+        articles: List<WidgetArticle>,
+        enabled: Boolean
+    ): RemoteViews =
         RemoteViews(context.packageName, R.layout.widget_latest_articles).apply {
             setOnClickPendingIntent(
                 R.id.widget_refresh,
@@ -72,7 +85,12 @@ class LatestArticlesWidget : AppWidgetProvider() {
             rowIds.forEachIndexed { index, viewId ->
                 val article = articles.getOrNull(index)
                 if (article == null) {
-                    setTextViewText(viewId, if (index == 0) context.getString(R.string.widget_no_unread) else "")
+                    val message = when {
+                        index != 0 -> ""
+                        !enabled -> context.getString(R.string.widget_disabled)
+                        else -> context.getString(R.string.widget_no_unread)
+                    }
+                    setTextViewText(viewId, message)
                     setViewVisibility(viewId, if (index == 0) android.view.View.VISIBLE else android.view.View.GONE)
                     setOnClickPendingIntent(viewId, null)
                 } else {

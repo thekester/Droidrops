@@ -63,6 +63,12 @@ class Preferences(
         default = "large"
     )
 
+    val homeScreenWidgetEnabled = Preference(
+        dataStore = dataStore,
+        key = booleanPreferencesKey("home_screen_widget_enabled"),
+        default = false
+    )
+
     val showTimelineImages = Preference(
         dataStore = dataStore,
         key = booleanPreferencesKey("show_timeline_images"),

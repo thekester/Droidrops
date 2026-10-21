@@ -32,6 +32,10 @@
     <string name="feed_list_density">Feed list spacing</string>
     <string name="feed_list_comfortable">Comfortable</string>
     <string name="feed_list_compact">Compact</string>
+    <string name="timeline_layout">Timeline layout</string>
+    <string name="timeline_layout_subtitle">Compact shows more articles with less detail; Regular and Large show more content per article.</string>
+    <string name="home_screen_widget">Home-screen article widget</string>
+    <string name="home_screen_widget_subtitle">Show unread articles in the widget. Add or remove the widget from your home screen.</string>
     <string name="show_timeline_preview">Show article previews</string>
     <string name="show_timeline_preview_subtitle">Hide excerpts on large cards to shorten the timeline</string>
     <string name="share_selection_with_reference">Share selection with reference</string>
@@ -249,6 +253,7 @@
     <string name="widget_description">Your latest unread articles</string>
     <string name="widget_refresh">Refresh articles</string>
     <string name="widget_no_unread">No unread articles</string>
+    <string name="widget_disabled">Enable this widget in Droidrops settings</string>
     <string name="widget_untitled">Untitled article</string>
     <string name="fever_warning">Fever is a very old, limited and depreciated API. It doesn\'t support feed and folder management. It is also poorly documented, may not be implemented in every aggregator the same way and thus might not work well.\n\nIf you encounter any synchronization problem, please report them to the Droidrops GitHub repository.</string>
     <string name="api">API</string>

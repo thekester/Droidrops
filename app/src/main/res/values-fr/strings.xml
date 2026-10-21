@@ -10,6 +10,10 @@
     <string name="article_font_large">Grande</string>
     <string name="article_font_extra_large">Très grande</string>
     <string name="feed_list_density">Espacement de la liste des flux</string>
+    <string name="timeline_layout">Affichage de la timeline</string>
+    <string name="timeline_layout_subtitle">Compact affiche plus d’articles avec moins de détails ; les formats Standard et Grand montrent plus de contenu par article.</string>
+    <string name="home_screen_widget">Widget d’articles sur l’écran d’accueil</string>
+    <string name="home_screen_widget_subtitle">Afficher les articles non lus dans le widget. Ajoutez ou retirez le widget depuis l’écran d’accueil.</string>
     <string name="feed_list_comfortable">Aéré</string>
     <string name="feed_list_compact">Compact</string>
     <string name="show_timeline_preview">Afficher les aperçus d’articles</string>
@@ -319,6 +323,7 @@
     <string name="two_pane_reader_subtitle">Sur tablette et fenêtre large, ouvre les articles à côté de la timeline</string>
     <string name="select_an_article">Sélectionnez un article pour le lire ici</string>
     <string name="close_article">Fermer l\'article</string>
+    <string name="widget_disabled">Activez ce widget dans les paramètres de Droidrops</string>
     <string name="load_full_article">Charger l\'article complet</string>
     <string name="show_feed_content">Afficher le contenu du flux</string>
     <string name="full_article_not_found">Aucun texte d\'article n\'a été trouvé sur cette page</string>

@@ -55,6 +55,7 @@ class PreferencesScreenModel(
                     feedListDensity.flow,
                     showTimelinePreview.flow,
                     twoPaneReader.flow,
+                    homeScreenWidgetEnabled.flow,
                 )
 
                 combine(
@@ -84,6 +85,7 @@ class PreferencesScreenModel(
                         feedListDensity = (list[20] as String) to feedListDensity,
                         showTimelinePreview = (list[21] as Boolean) to showTimelinePreview,
                         twoPaneReader = (list[22] as Boolean) to twoPaneReader,
+                        homeScreenWidgetEnabled = (list[23] as Boolean) to homeScreenWidgetEnabled,
                         exampleItem = ItemWithFeed(
                             item = Item(
                                 title = context.getString(R.string.example_item_title),
@@ -146,6 +148,7 @@ sealed class PreferencesScreenState {
         val feedListDensity: PreferenceState<String>,
         val showTimelinePreview: PreferenceState<Boolean>,
         val twoPaneReader: PreferenceState<Boolean>,
+        val homeScreenWidgetEnabled: PreferenceState<Boolean>,
         val useCustomShareIntentTpl: PreferenceState<Boolean>,
         val customShareIntentTpl: PreferenceState<String>,
         val swipeToLeft: PreferenceState<String>,

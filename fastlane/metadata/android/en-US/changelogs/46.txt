@@ -1,0 +1,4 @@
+﻿- Fix a startup crash caused by R8 renaming DataStore Preferences fields used at runtime.
+- Fix a crash when opening the Open source libraries screen by aligning Compose and Material 3 versions.
+- Add a home-screen widget setting, disabled by default, to control article display in the widget.
+- Clarify the timeline layout choices and retain Large as the default.
