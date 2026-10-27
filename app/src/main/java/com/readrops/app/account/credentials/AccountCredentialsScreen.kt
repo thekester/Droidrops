@@ -220,7 +220,12 @@ class AccountCredentialsScreen(
                         label = { Text(text = stringResource(id = R.string.login)) },
                         singleLine = true,
                         isError = state.isLoginError,
-                        supportingText = { Text(text = state.loginError?.errorText().orEmpty()) },
+                        supportingText = {
+                            when {
+                                state.loginError != null -> Text(text = state.loginError!!.errorText())
+                                account.type == AccountType.MINIFLUX -> Text(text = stringResource(R.string.miniflux_login_helper))
+                            }
+                        },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
                         modifier = Modifier.autofill(
                             ContentType.Username,
@@ -264,6 +269,9 @@ class AccountCredentialsScreen(
                                 }
                                 account.type == AccountType.FRESHRSS -> {
                                     Text(text = stringResource(id = R.string.password_helper))
+                                }
+                                account.type == AccountType.MINIFLUX -> {
+                                    Text(text = stringResource(id = R.string.miniflux_password_helper))
                                 }
                             }
                         },

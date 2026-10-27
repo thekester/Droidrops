@@ -135,7 +135,7 @@ class AccountCredentialsScreenModel(
             validate = false
         }
 
-        if (login.isEmpty()) {
+        if (login.isEmpty() && account.type != AccountType.MINIFLUX) {
             mutableState.update { it.copy(loginError = TextFieldError.EmptyField) }
             validate = false
         }
@@ -159,6 +159,9 @@ class AccountCredentialsScreenModel(
                 url = context.getString(R.string.debug_freshrss_url),
                 login = context.getString(R.string.debug_freshrss_login),
                 password = context.getString(R.string.debug_freshrss_password),
+            )
+            AccountType.MINIFLUX -> AccountCredentialsState(
+                url = context.getString(R.string.debug_local_url),
             )
             AccountType.FEVER -> AccountCredentialsState(
                 url = context.getString(R.string.debug_fever_url),

@@ -38,6 +38,7 @@
 - External services:
   - FreshRSS
   - Nextcloud News
+  - Miniflux REST API (v2.0.49+ for incremental sync)
   - Fever API
   - Google Reader API
 - Multi-account

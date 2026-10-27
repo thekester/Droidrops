@@ -116,6 +116,8 @@
     <string name="open">Ouvrir</string>
     <string name="back">Retour</string>
     <string name="password_helper">Votre mot de passe d\'API (Configuration &gt; Profil)</string>
+    <string name="miniflux_login_helper">Saisissez votre identifiant Miniflux ou laissez ce champ vide avec une clé API.</string>
+    <string name="miniflux_password_helper">Saisissez votre mot de passe ou une clé API Miniflux.</string>
     <string name="synchronize">Synchroniser</string>
     <string name="navigator_view">Vue navigateur</string>
     <string name="favorites">Favoris</string>
@@ -237,7 +239,7 @@
     <string name="use_default_color">Utiliser la couleur par défaut</string>
     <string name="warning">Attention</string>
     <string name="understand">J\'accepte</string>
-    <string name="greader_warning">Google Reader est une API ancienne et peu documentée, dont la compatibilité varie selon les agrégateurs.\n\nMiniflux : activez son API Google Reader dans Paramètres &gt; Intégrations, puis utilisez les identifiants configurés.\n\nTiny Tiny RSS : activez son extension de compatibilité Google Reader avant ajout du compte. Droidrops utilise cette API compatible ; les API natives de Miniflux et Tiny Tiny RSS ne sont pas prises en charge.\n\nSignalez tout problème, avec le type de serveur et le texte remonté, dans le dépôt GitHub de Droidrops.</string>
+    <string name="greader_warning">Google Reader est une API ancienne et peu documentée, dont la compatibilité varie selon les agrégateurs. Miniflux : ajoutez-le avec le type de compte natif Miniflux REST. Tiny Tiny RSS : activez son extension de compatibilité Google Reader. L\'API native de Tiny Tiny RSS n\'est pas prise en charge. En cas de problème, signalez le type de serveur et l\'erreur dans le dépôt GitHub de Droidrops.</string>
     <string name="fever_warning">Fever est une vielle API, limitée et dépréciée. Elle ne supporte pas la gestion des flux et des dossiers. Elle est également mal documentée et risque de ne pas être implémentée de la même manière chez chaque agrégateur, ne permettant pas son bon fonctionnement.\n\nSi vous rencontrez des problèmes de synchronisation, merci de les remonter sur le dépôt GitHub de Droidrops.</string>
     <string name="api">API</string>
 

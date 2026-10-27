@@ -22,6 +22,10 @@ enum class AccountType(
         R.drawable.ic_freshrss, R.string.freshrss, AccountConfig.FRESHRSS,
         "https://freshrss.org/"
     ),
+    MINIFLUX(
+        R.drawable.ic_miniflux, R.string.miniflux, AccountConfig.MINIFLUX,
+        "https://miniflux.app/docs/api.html"
+    ),
     FEVER(R.drawable.ic_fever, R.string.fever, AccountConfig.FEVER),
     GREADER(R.drawable.ic_google_reader, R.string.greader, AccountConfig.GREADER)
 }

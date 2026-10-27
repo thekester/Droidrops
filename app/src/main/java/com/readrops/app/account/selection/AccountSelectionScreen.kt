@@ -244,7 +244,7 @@ class AccountSelectionScreen : AndroidScreen() {
                                 modifier = Modifier.padding(start = MaterialTheme.spacing.mediumSpacing)
                             )
 
-                            listOf(AccountType.FRESHRSS, AccountType.NEXTCLOUD_NEWS)
+                            listOf(AccountType.FRESHRSS, AccountType.NEXTCLOUD_NEWS, AccountType.MINIFLUX)
                                 .forEach { accountType ->
                                     SelectableImageText(
                                         image = adaptiveIconPainterResource(id = accountType.iconRes),

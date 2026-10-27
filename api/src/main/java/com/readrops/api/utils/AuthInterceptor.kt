@@ -14,6 +14,7 @@ class AuthInterceptor(var credentials: Credentials? = null) : Interceptor {
             if (it.authorization != null) {
                 requestBuilder.addHeader("Authorization", it.authorization)
             }
+            it.additionalHeaders.forEach { (name, value) -> requestBuilder.addHeader(name, value) }
         }
 
         return chain.proceed(requestBuilder.build())

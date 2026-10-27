@@ -40,6 +40,13 @@ data class AccountConfig(
             showCustomFolderDeleteMessage = true
         )
 
+        val MINIFLUX = AccountConfig(
+            isFeedUrlReadOnly = true,
+            addNoFolder = true,
+            useSeparateState = true,
+            canCreateFolder = true,
+        )
+
         val FEVER = AccountConfig(
             isFeedUrlReadOnly = false,
             addNoFolder = true,

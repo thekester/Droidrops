@@ -6,6 +6,7 @@ Fonctionnalités :
 - Services compatibles :
   - FreshRSS
   - Nextcloud News
+  - API REST Miniflux (v2.0.49 ou version ultérieure recommandée pour la synchronisation incrémentale)
   - API Fever
   - API Google Reader
 - Gestion de plusieurs comptes

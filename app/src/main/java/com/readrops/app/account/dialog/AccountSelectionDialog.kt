@@ -1,7 +1,12 @@
 package com.readrops.app.account.dialog
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
@@ -22,18 +27,30 @@ fun AccountSelectionDialog(
         icon = painterResource(id = R.drawable.ic_add_account),
         onDismiss = onDismiss
     ) {
-        AccountType.entries
-            .filter { it != AccountType.FEEDLY }
-            .forEach { type ->
-                SelectableImageText(
-                    image = adaptiveIconPainterResource(id = type.iconRes),
-                    text = stringResource(id = type.nameRes),
-                    style = MaterialTheme.typography.titleMedium,
-                    spacing = MaterialTheme.spacing.mediumSpacing,
-                    padding = MaterialTheme.spacing.shortSpacing,
-                    imageSize = 36.dp,
-                    onClick = { onValidate(type) }
-                )
-            }
+        Column(
+            modifier = Modifier
+                .heightIn(max = 400.dp)
+                .verticalScroll(rememberScrollState())
+        ) {
+            listOf(
+                AccountType.LOCAL,
+                AccountType.NEXTCLOUD_NEWS,
+                AccountType.FRESHRSS,
+                AccountType.MINIFLUX,
+                AccountType.FEVER,
+                AccountType.GREADER
+            )
+                .forEach { type ->
+                    SelectableImageText(
+                        image = adaptiveIconPainterResource(id = type.iconRes),
+                        text = stringResource(id = type.nameRes),
+                        style = MaterialTheme.typography.titleMedium,
+                        spacing = MaterialTheme.spacing.mediumSpacing,
+                        padding = MaterialTheme.spacing.shortSpacing,
+                        imageSize = 36.dp,
+                        onClick = { onValidate(type) }
+                    )
+                }
+        }
     }
 }

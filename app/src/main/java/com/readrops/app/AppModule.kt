@@ -32,6 +32,7 @@ import com.readrops.app.repositories.FeverRepository
 import com.readrops.app.repositories.GReaderRepository
 import com.readrops.app.repositories.GetFoldersWithFeeds
 import com.readrops.app.repositories.LocalRSSRepository
+import com.readrops.app.repositories.MinifluxRepository
 import com.readrops.app.repositories.NextcloudNewsRepository
 import com.readrops.app.sync.SyncAnalyzer
 import com.readrops.app.sync.Synchronizer
@@ -101,6 +102,12 @@ val appModule = module {
             )
 
             AccountType.NEXTCLOUD_NEWS -> NextcloudNewsRepository(
+                database = get(),
+                account = account,
+                dataSource = get(parameters = { parametersOf(Credentials.toCredentials(account)) })
+            )
+
+            AccountType.MINIFLUX -> MinifluxRepository(
                 database = get(),
                 account = account,
                 dataSource = get(parameters = { parametersOf(Credentials.toCredentials(account)) })

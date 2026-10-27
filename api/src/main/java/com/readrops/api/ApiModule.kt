@@ -23,6 +23,8 @@ import com.readrops.api.services.nextcloudnews.NextcloudNewsService
 import com.readrops.api.services.nextcloudnews.adapters.NextcloudNewsFeedsAdapter
 import com.readrops.api.services.nextcloudnews.adapters.NextcloudNewsFoldersAdapter
 import com.readrops.api.services.nextcloudnews.adapters.NextcloudNewsItemsAdapter
+import com.readrops.api.services.miniflux.MinifluxDataSource
+import com.readrops.api.services.miniflux.MinifluxService
 import com.readrops.api.utils.AuthInterceptor
 import com.readrops.api.utils.ErrorInterceptor
 import com.readrops.api.utils.NetworkFailureInterceptor
@@ -118,6 +120,20 @@ val apiModule = module {
     }
 
     //endregion nextcloud news
+
+    //region Miniflux
+
+    factory { params -> MinifluxDataSource(get(parameters = { params })) }
+
+    factory { (credentials: Credentials) ->
+        Retrofit.Builder()
+            .baseUrl(credentials.url)
+            .client(get())
+            .build()
+            .create(MinifluxService::class.java)
+    }
+
+    //endregion Miniflux
 
     //region Fever
 

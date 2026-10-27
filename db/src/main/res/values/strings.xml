@@ -4,6 +4,7 @@
     <string name="freshrss" translatable="false">FreshRSS</string>
     <string name="feedly" translatable="false">Feedly</string>
     <string name="nextcloud_news" translatable="false">Nextcloud News</string>
+    <string name="miniflux" translatable="false">Miniflux</string>
 
     <string name="local_account">Local account</string>
     <string name="fever" translatable="false">Fever</string>
