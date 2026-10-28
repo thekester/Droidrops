@@ -1,0 +1,3 @@
+- Add clearer network diagnostics for DNS, refused connections, timeouts, TLS errors, and HTTP responses.
+- Add an option to email the complete diagnostic report as a text attachment.
+- Keep server addresses hidden in reports when the privacy setting is enabled.

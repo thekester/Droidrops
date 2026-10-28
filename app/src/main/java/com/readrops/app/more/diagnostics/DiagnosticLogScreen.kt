@@ -72,6 +72,7 @@ import com.readrops.app.util.diagnostics.DiagnosticEntry
 import com.readrops.app.util.diagnostics.DiagnosticLevel
 import com.readrops.app.util.diagnostics.DiagnosticReport
 import com.readrops.app.util.diagnostics.copyReport
+import com.readrops.app.util.diagnostics.emailReport
 import com.readrops.app.util.diagnostics.reportOnGitHub
 import com.readrops.app.util.diagnostics.shareReport
 import com.readrops.app.util.displayToast
@@ -116,7 +117,7 @@ class DiagnosticLogScreen : AndroidScreen() {
         }
 
         // the report is built on demand, so it always matches what the switch says
-        fun withReport(action: (DiagnosticReport) -> Unit) {
+        fun withReport(action: suspend (DiagnosticReport) -> Unit) {
             coroutineScope.launch { action(screenModel.report(hideServers)) }
         }
 
@@ -179,6 +180,7 @@ class DiagnosticLogScreen : AndroidScreen() {
                                 displayToast(context)
                             }
                         },
+                        onEmail = { withReport { context.emailReport(it) } },
                         onReport = { withReport { context.reportOnGitHub(it) } }
                     )
                 }
@@ -472,6 +474,7 @@ private fun EmptyLog() {
 @Composable
 private fun ReportBar(
     onCopy: () -> Unit,
+    onEmail: () -> Unit,
     onReport: () -> Unit,
 ) {
     Surface(tonalElevation = 3.dp) {
@@ -487,6 +490,10 @@ private fun ReportBar(
         ) {
             OutlinedButton(onClick = onCopy) {
                 Text(text = stringResource(R.string.copy_log))
+            }
+
+            OutlinedButton(onClick = onEmail) {
+                Text(text = stringResource(R.string.email_diagnostic_report))
             }
 
             Button(

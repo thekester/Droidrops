@@ -284,6 +284,9 @@
     <string name="report_on_github">Signaler sur GitHub</string>
     <string name="copy_log">Copier</string>
     <string name="share_log">Partager le journal</string>
+    <string name="email_diagnostic_report">E-mail</string>
+    <string name="diagnostic_email_body">Vérifiez le rapport joint avant de l\'envoyer.</string>
+    <string name="diagnostic_attachment_failed">Impossible de préparer le rapport de diagnostic.</string>
     <string name="clear_log">Effacer le journal</string>
     <string name="clear_log_question">Supprimer toutes les entrées du journal de diagnostic ? Cette action est irréversible.</string>
     <string name="show_details">Afficher les détails</string>

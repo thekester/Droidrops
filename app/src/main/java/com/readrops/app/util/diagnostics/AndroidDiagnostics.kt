@@ -69,11 +69,12 @@ fun diagnosticNetworkListener(log: DiagnosticLog, context: Context) =
     NetworkFailureListener { request, exception ->
         val url = request.url
         val port = if (url.port != HttpUrl.defaultPort(url.scheme)) ":${url.port}" else ""
+        val network = describeNetwork(context)
 
         log.warning(
             tag = NETWORK_TAG,
             message = "${request.method} ${url.scheme}://${url.host}$port${url.encodedPath} " +
-                    "on ${describeNetwork(context)}",
+                    "on $network\nDiagnosis: ${exception.networkFailureDiagnosis(network)}",
             throwable = exception
         )
     }

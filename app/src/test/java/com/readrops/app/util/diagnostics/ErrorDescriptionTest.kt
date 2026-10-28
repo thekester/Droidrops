@@ -1,5 +1,9 @@
 package com.readrops.app.util.diagnostics
 
+import com.readrops.api.utils.exceptions.HttpException
+import okhttp3.Protocol
+import okhttp3.Request
+import okhttp3.Response
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
@@ -81,5 +85,45 @@ class ErrorDescriptionTest {
         assertFalse(SSLHandshakeException("handshake").suggestsBlockedConnection())
         assertFalse(IOException("unexpected end of stream").suggestsBlockedConnection())
         assertFalse(NullPointerException().suggestsBlockedConnection())
+    }
+
+    @Test
+    fun networkDiagnosisDistinguishesRefusedConnectionFromMissingInternet() {
+        val diagnosis = ConnectException("Connection refused").networkFailureDiagnosis(
+            "mobile data, internet validated, metered"
+        )
+
+        assertTrue(diagnosis.contains("TCP connection was refused"))
+        assertTrue(diagnosis.contains("firewall"))
+        assertTrue(diagnosis.contains("does not indicate a Droidrops bug"))
+    }
+
+    @Test
+    fun networkDiagnosisExplainsDnsFailures() {
+        val diagnosis = UnknownHostException("rss.example.org").networkFailureDiagnosis("Wi-Fi, internet validated")
+
+        assertTrue(diagnosis.contains("could not be resolved (DNS)"))
+    }
+
+    @Test
+    fun networkDiagnosisDoesNotOverstateTheCauseOfTimeouts() {
+        val diagnosis = SocketTimeoutException("timeout").networkFailureDiagnosis("Wi-Fi, internet validated")
+
+        assertTrue(diagnosis.contains("cannot distinguish those causes"))
+    }
+
+    @Test
+    fun networkDiagnosisIdentifiesAnHttpResponseAsReachingTheServer() {
+        val response = Response.Builder()
+            .request(Request.Builder().url("https://rss.example.org/feed").build())
+            .protocol(Protocol.HTTP_1_1)
+            .code(503)
+            .message("Service Unavailable")
+            .build()
+
+        val diagnosis = HttpException(response).networkFailureDiagnosis("Wi-Fi, internet validated")
+
+        assertTrue(diagnosis.contains("HTTP 503"))
+        assertTrue(diagnosis.contains("request reached the server"))
     }
 }

@@ -2,5 +2,6 @@
 <resources>
     <paths>
         <cache-path name="images" path="images/" />
+        <cache-path name="diagnostics" path="diagnostics/" />
     </paths>
 </resources>

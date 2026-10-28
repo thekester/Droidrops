@@ -44,6 +44,7 @@ import com.readrops.app.util.diagnostics.DiagnosticLog
 import com.readrops.app.util.diagnostics.DiagnosticRedaction
 import com.readrops.app.util.diagnostics.DiagnosticReport
 import com.readrops.app.util.diagnostics.diagnosticEnvironment
+import com.readrops.app.util.diagnostics.emailReport
 import com.readrops.app.util.diagnostics.reportOnGitHub
 import com.readrops.app.util.theme.MediumSpacer
 import com.readrops.app.util.theme.ReadropsTheme
@@ -67,7 +68,8 @@ class CrashActivity : ComponentActivity() {
             ReadropsTheme {
                 CrashScreen(
                     stackTrace = stackTrace,
-                    onReport = { reportOnGitHub(crashReport(stackTrace)) }
+                    onReport = { reportOnGitHub(crashReport(stackTrace)) },
+                    onEmail = { emailReport(crashReport(stackTrace)) }
                 )
             }
         }
@@ -109,7 +111,7 @@ class CrashActivity : ComponentActivity() {
 }
 
 @Composable
-fun CrashScreen(stackTrace: String, onReport: () -> Unit) {
+fun CrashScreen(stackTrace: String, onReport: () -> Unit, onEmail: suspend () -> Unit) {
     val clipboard = LocalClipboard.current
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
@@ -196,6 +198,15 @@ fun CrashScreen(stackTrace: String, onReport: () -> Unit) {
                 ) {
                     Text(text = stringResource(R.string.copy_error_clipboard))
                 }
+
+                VeryShortSpacer()
+
+                OutlinedButton(
+                    onClick = { coroutineScope.launch { onEmail() } },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(text = stringResource(R.string.email_diagnostic_report))
+                }
             }
         }
     }
@@ -209,6 +220,6 @@ fun displayToast(context: Context) {
 @Composable
 private fun CrashScreenPreview() {
     ReadropsTheme {
-        CrashScreen(stackTrace = "", onReport = {})
+        CrashScreen(stackTrace = "", onReport = {}, onEmail = {})
     }
 }

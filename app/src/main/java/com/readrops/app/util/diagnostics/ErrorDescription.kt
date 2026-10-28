@@ -1,10 +1,14 @@
 package com.readrops.app.util.diagnostics
 
+import com.readrops.api.utils.exceptions.HttpException
 import java.io.InterruptedIOException
 import java.net.ConnectException
 import java.net.NoRouteToHostException
 import java.net.PortUnreachableException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.net.URI
+import javax.net.ssl.SSLException
 
 /**
  * A message fit for display, never "null". Kotlin's `!!` and many network failures throw
@@ -67,4 +71,48 @@ fun Throwable.suggestsBlockedConnection(): Boolean {
     }
 
     return false
+}
+
+/**
+ * A plain-language interpretation for a diagnostic report. It describes what the failed
+ * request proves, without claiming that the server or the app is at fault when it cannot tell.
+ */
+fun Throwable.networkFailureDiagnosis(network: String): String {
+    val causes = generateSequence(this) { current ->
+        current.cause?.takeIf { cause -> cause !== current }
+    }.toList()
+    val httpException = causes.filterIsInstance<HttpException>().firstOrNull()
+
+    return when {
+        httpException != null && httpException.code in 500..599 ->
+            "The server returned HTTP ${httpException.code}. " +
+                    "The request reached the server; it reported a server-side error."
+
+        httpException != null ->
+            "The server returned HTTP ${httpException.code}. " +
+                    "The request reached the server; check the feed URL, credentials, or API support."
+
+        causes.any { it is UnknownHostException } ->
+            "The server hostname could not be resolved (DNS). Check the address and the network's DNS service."
+
+        causes.any { it is ConnectException } ->
+            "The TCP connection was refused before an HTTP response. The server or a firewall rejected the port. " +
+                    "Check that the server is running, listening for remote connections, and that the port is open. " +
+                    "This result alone does not indicate a Droidrops bug."
+
+        causes.any { it is NoRouteToHostException || it is PortUnreachableException } ->
+            "The device could not route a connection to the server. Check server reachability, VPN, and firewall rules."
+
+        causes.any { it is SocketTimeoutException || it is InterruptedIOException } ->
+            "No response arrived before the timeout. The server may be slow or unreachable, or a network/firewall " +
+                    "may be dropping traffic; this log cannot distinguish those causes."
+
+        causes.any { it is SSLException } ->
+            "The connection reached TLS negotiation but secure setup failed. Check the server certificate and TLS configuration."
+
+        network == "offline" ->
+            "Android reported no active network when the request failed."
+
+        else -> "The request failed before a usable response. See the exception details below."
+    }
 }
