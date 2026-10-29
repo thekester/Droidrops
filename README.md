@@ -29,7 +29,7 @@
 <p align="center">
     <a href="https://github.com/thekester/Droidrops/releases/latest">Latest release</a>
     · <a href="https://f-droid.org/fr/packages/com.droidrops.app/"><img src="docs/assets/fdroid-badge.png" alt="Get it on F-Droid" height="40"></a>
-    · Google Play release expected in about two weeks
+    · <a href="https://play.google.com/store/apps/details?id=com.droidrops.app"><img src="docs/assets/google-play-badge.png" alt="Get it on Google Play" height="40"></a>
 </p>
 
 # Features
