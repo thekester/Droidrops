@@ -5,13 +5,13 @@ import org.junit.Test
 
 class TimelineItemSwipeThresholdTest {
     @Test
-    fun wideArticleRequiresSwipeAcrossAlmostHalfItsWidth() {
-        assertEquals(180f, timelineSwipeThreshold(totalDistance = 400f, minimumDistance = 80f), 0.001f)
+    fun wideArticleUsesBoundedSwipeThreshold() {
+        assertEquals(100f, timelineSwipeThreshold(totalDistance = 400f, minimumDistance = 80f), 0.001f)
     }
 
     @Test
-    fun narrowArticleUsesMinimumThresholdWithoutExceedingItsWidth() {
-        assertEquals(80f, timelineSwipeThreshold(totalDistance = 100f, minimumDistance = 80f), 0.001f)
-        assertEquals(40f, timelineSwipeThreshold(totalDistance = 50f, minimumDistance = 80f), 0.001f)
+    fun narrowArticleThresholdNeverExceedsItsWidth() {
+        assertEquals(30f, timelineSwipeThreshold(totalDistance = 100f, minimumDistance = 80f), 0.001f)
+        assertEquals(15f, timelineSwipeThreshold(totalDistance = 50f, minimumDistance = 80f), 0.001f)
     }
 }

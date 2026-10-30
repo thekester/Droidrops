@@ -1,27 +1,32 @@
 package com.readrops.app.timelime.components
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.Orientation
+import androidx.compose.foundation.gestures.draggable
+import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.minimumInteractiveComponentSize
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.readrops.app.R
 import com.readrops.app.util.DefaultPreview
@@ -32,9 +37,9 @@ import com.readrops.db.entities.OpenIn
 import com.readrops.db.entities.Tag
 import com.readrops.db.pojo.ItemWithFeed
 import java.time.LocalDateTime
-import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 
 enum class TimelineItemSize {
     COMPACT,
@@ -53,7 +58,7 @@ const val readAlpha = 0.6f
 internal fun timelineSwipeThreshold(totalDistance: Float, minimumDistance: Float): Float {
     if (totalDistance <= 0f) return 0f
 
-    return min(totalDistance * 0.8f, max(totalDistance * 0.45f, minimumDistance))
+    return min(totalDistance * 0.3f, max(totalDistance * 0.25f, minimumDistance))
 }
 
 
@@ -85,13 +90,13 @@ fun TimelineItem(
     }
 
     val density = LocalDensity.current
-    val swipeState = rememberSwipeToDismissBoxState { totalDistance ->
-        timelineSwipeThreshold(
-            totalDistance = totalDistance,
-            minimumDistance = with(density) { 80.dp.toPx() }
-        )
+    var dragOffset by remember(itemWithFeed.item.id) { mutableFloatStateOf(0f) }
+    var containerWidth by remember { mutableFloatStateOf(0f) }
+    val maximumSwipeOffset = with(density) { 80.dp.toPx() }
+    val dragState = rememberDraggableState { delta ->
+        val dragLimit = min(containerWidth * 0.3f, maximumSwipeOffset)
+        dragOffset = (dragOffset + delta).coerceIn(-dragLimit, dragLimit)
     }
-    val coroutineScope = rememberCoroutineScope()
 
     fun getSwipeIcon(swipeAction: SwipeAction): Int {
         return if (swipeAction == SwipeAction.READ) {
@@ -109,125 +114,106 @@ fun TimelineItem(
         }
     }
 
-    SwipeToDismissBox(
-        state = swipeState,
-        onDismiss = { direction ->
-            when (direction) {
-                SwipeToDismissBoxValue.EndToStart -> handleSwipeAction(swipeToLeft)
-                SwipeToDismissBoxValue.StartToEnd -> handleSwipeAction(swipeToRight)
-                SwipeToDismissBoxValue.Settled -> Unit
-            }
-            coroutineScope.launch { swipeState.reset() }
-        },
-        enableDismissFromStartToEnd = swipeToRight != SwipeAction.DISABLED,
-        enableDismissFromEndToStart = swipeToLeft != SwipeAction.DISABLED,
-        modifier = modifier,
-        backgroundContent = {
-            val color by animateColorAsState(
-                targetValue = when (swipeState.targetValue) {
-                    SwipeToDismissBoxValue.EndToStart, SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.primary
-                    else -> Color.Transparent
-                },
-                label = "Swipe to dismiss background color"
-            )
-
-            val iconColor by animateColorAsState(
-                targetValue = when (swipeState.targetValue) {
-                    SwipeToDismissBoxValue.EndToStart, SwipeToDismissBoxValue.StartToEnd -> MaterialTheme.colorScheme.onPrimary
-                    else -> Color.Transparent
-                },
-                label = "Swipe to dismiss icon color"
-            )
-
-            val icon = when (swipeState.targetValue) {
-                SwipeToDismissBoxValue.EndToStart -> getSwipeIcon(swipeToLeft)
-                SwipeToDismissBoxValue.StartToEnd -> getSwipeIcon(swipeToRight)
-                else -> null
-            }
-
-            Box(
-                modifier = Modifier.padding(
-                    horizontal = if (size == TimelineItemSize.COMPACT) {
-                        0.dp
-                    } else {
-                        MaterialTheme.spacing.shortSpacing
+    Box(
+        modifier = modifier
+            .onSizeChanged { containerWidth = it.width.toFloat() }
+            .draggable(
+                state = dragState,
+                orientation = Orientation.Horizontal,
+                enabled = swipeToLeft != SwipeAction.DISABLED || swipeToRight != SwipeAction.DISABLED,
+                onDragStopped = {
+                    val threshold = min(
+                        timelineSwipeThreshold(
+                            totalDistance = containerWidth,
+                            minimumDistance = maximumSwipeOffset
+                        ),
+                        maximumSwipeOffset
+                    )
+                    val action = when {
+                        dragOffset <= -threshold && swipeToLeft != SwipeAction.DISABLED -> swipeToLeft
+                        dragOffset >= threshold && swipeToRight != SwipeAction.DISABLED -> swipeToRight
+                        else -> null
                     }
-                )
-            ) {
-                Box(
-                    contentAlignment = if (swipeState.targetValue == SwipeToDismissBoxValue.EndToStart) {
-                        Alignment.CenterEnd
-                    } else {
-                        Alignment.CenterStart
-                    },
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .then(
-                            if (size == TimelineItemSize.COMPACT) {
-                                Modifier
-                            } else {
-                                Modifier.clip(CardDefaults.shape)
-                            }
-                        )
-                        .background(color)
-                ) {
-                    if (icon != null) {
-                        Icon(
-                            painter = painterResource(id = icon),
-                            contentDescription = null,
-                            tint = iconColor,
-                            modifier = Modifier
-                                .minimumInteractiveComponentSize()
-                                .padding(horizontal = MaterialTheme.spacing.mediumSpacing)
-                        )
-                    }
+                    action?.let(::handleSwipeAction)
+                    dragOffset = 0f
                 }
+            ),
+    ) {
+        val direction = when {
+            dragOffset < 0f -> -1
+            dragOffset > 0f -> 1
+            else -> 0
+        }
+        val activeAction = when (direction) {
+            -1 -> swipeToLeft
+            1 -> swipeToRight
+            else -> SwipeAction.DISABLED
+        }
+
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .then(if (size == TimelineItemSize.COMPACT) Modifier else Modifier
+                    .padding(horizontal = MaterialTheme.spacing.shortSpacing)
+                    .clip(CardDefaults.shape))
+                .background(if (direction == 0 || activeAction == SwipeAction.DISABLED) Color.Transparent else MaterialTheme.colorScheme.primary),
+            contentAlignment = if (direction < 0) Alignment.CenterEnd else Alignment.CenterStart
+        ) {
+            if (direction != 0 && activeAction != SwipeAction.DISABLED) {
+                Icon(
+                    painter = painterResource(id = getSwipeIcon(activeAction)),
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onPrimary,
+                    modifier = Modifier.minimumInteractiveComponentSize().padding(horizontal = MaterialTheme.spacing.mediumSpacing)
+                )
             }
         }
-    ) {
-        CompositionLocalProvider(LocalTimelineItemSelected provides isSelected) {
-            when (size) {
-                TimelineItemSize.COMPACT -> {
-                    CompactTimelineItem(
-                        itemWithFeed = itemWithFeed,
-                        onClick = onClick,
-                        onFavorite = onFavorite,
-                        onShare = onShare,
-                        modifier = modifier,
-                        showImages = showImages,
-                        showSource = showSource,
-                        showDate = showDate,
-                        showReadTime = showReadTime
-                    )
-                }
 
-                TimelineItemSize.REGULAR -> {
-                    RegularTimelineItem(
-                        itemWithFeed = itemWithFeed,
-                        onClick = onClick,
-                        onFavorite = onFavorite,
-                        onShare = onShare,
-                        modifier = modifier,
-                        showImages = showImages,
-                        showSource = showSource,
-                        showDate = showDate,
-                        showReadTime = showReadTime
-                    )
-                }
+        Box(modifier = Modifier.offset { IntOffset(dragOffset.roundToInt(), 0) }) {
+            CompositionLocalProvider(LocalTimelineItemSelected provides isSelected) {
+                when (size) {
+                    TimelineItemSize.COMPACT -> {
+                        CompactTimelineItem(
+                            itemWithFeed = itemWithFeed,
+                            onClick = onClick,
+                            onFavorite = onFavorite,
+                            onShare = onShare,
+                            modifier = Modifier.fillMaxWidth(),
+                            showImages = showImages,
+                            showSource = showSource,
+                            showDate = showDate,
+                            showReadTime = showReadTime
+                        )
+                    }
 
-                TimelineItemSize.LARGE -> {
-                    LargeTimelineItem(
-                        itemWithFeed = itemWithFeed,
-                        onClick = onClick,
-                        onFavorite = onFavorite,
-                        onShare = onShare,
-                        modifier = modifier,
-                        showImages = showImages,
-                        showSource = showSource,
-                        showDate = showDate,
-                        showReadTime = showReadTime,
-                        showPreview = showPreview
-                    )
+                    TimelineItemSize.REGULAR -> {
+                        RegularTimelineItem(
+                            itemWithFeed = itemWithFeed,
+                            onClick = onClick,
+                            onFavorite = onFavorite,
+                            onShare = onShare,
+                            modifier = Modifier.fillMaxWidth(),
+                            showImages = showImages,
+                            showSource = showSource,
+                            showDate = showDate,
+                            showReadTime = showReadTime
+                        )
+                    }
+
+                    TimelineItemSize.LARGE -> {
+                        LargeTimelineItem(
+                            itemWithFeed = itemWithFeed,
+                            onClick = onClick,
+                            onFavorite = onFavorite,
+                            onShare = onShare,
+                            modifier = Modifier.fillMaxWidth(),
+                            showImages = showImages,
+                            showSource = showSource,
+                            showDate = showDate,
+                            showReadTime = showReadTime,
+                            showPreview = showPreview
+                        )
+                    }
                 }
             }
         }

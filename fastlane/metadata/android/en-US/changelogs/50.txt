@@ -1,0 +1,2 @@
+﻿- Fix the timeline swipe animation so article cards stay visible and return in place after an action.
+- Keep read and unread articles visible according to the selected timeline filter.
