@@ -1,0 +1,2 @@
+- Improve swipe feedback for article actions with responsive motion and haptic feedback.
+- Keep article cards available after read and favorite actions.
