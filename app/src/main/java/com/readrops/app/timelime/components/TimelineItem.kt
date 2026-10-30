@@ -13,8 +13,8 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
@@ -32,6 +32,7 @@ import com.readrops.db.entities.OpenIn
 import com.readrops.db.entities.Tag
 import com.readrops.db.pojo.ItemWithFeed
 import java.time.LocalDateTime
+import kotlinx.coroutines.launch
 import kotlin.math.max
 import kotlin.math.min
 
@@ -90,16 +91,7 @@ fun TimelineItem(
             minimumDistance = with(density) { 80.dp.toPx() }
         )
     }
-
-    LaunchedEffect(swipeState.currentValue) {
-        if (swipeState.currentValue == SwipeToDismissBoxValue.EndToStart) {
-            handleSwipeAction(swipeToLeft)
-            swipeState.dismiss(SwipeToDismissBoxValue.Settled)
-        } else if (swipeState.currentValue == SwipeToDismissBoxValue.StartToEnd) {
-            handleSwipeAction(swipeToRight)
-            swipeState.dismiss(SwipeToDismissBoxValue.Settled)
-        }
-    }
+    val coroutineScope = rememberCoroutineScope()
 
     fun getSwipeIcon(swipeAction: SwipeAction): Int {
         return if (swipeAction == SwipeAction.READ) {
@@ -119,6 +111,14 @@ fun TimelineItem(
 
     SwipeToDismissBox(
         state = swipeState,
+        onDismiss = { direction ->
+            when (direction) {
+                SwipeToDismissBoxValue.EndToStart -> handleSwipeAction(swipeToLeft)
+                SwipeToDismissBoxValue.StartToEnd -> handleSwipeAction(swipeToRight)
+                SwipeToDismissBoxValue.Settled -> Unit
+            }
+            coroutineScope.launch { swipeState.reset() }
+        },
         enableDismissFromStartToEnd = swipeToRight != SwipeAction.DISABLED,
         enableDismissFromEndToStart = swipeToLeft != SwipeAction.DISABLED,
         modifier = modifier,

@@ -1,0 +1,2 @@
+- Fix timeline swipe actions leaving article cards displaced.
+- Keep read and unread filtering in sync after swiping an article.
