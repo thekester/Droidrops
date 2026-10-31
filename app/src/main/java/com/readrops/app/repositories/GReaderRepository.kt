@@ -7,6 +7,8 @@ import com.readrops.api.services.greader.GReaderDataSource
 import com.readrops.api.services.greader.GReaderSyncData
 import com.readrops.api.utils.AuthInterceptor
 import com.readrops.app.util.Utils
+import com.readrops.app.util.diagnostics.DiagnosticLog
+import com.readrops.app.util.diagnostics.RepositorySyncDiagnostics
 import com.readrops.db.Database
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Folder
@@ -25,18 +27,26 @@ class GReaderRepository(
 ) : BaseRepository(database, account), KoinComponent {
 
     override suspend fun login(account: Account) {
-        val authInterceptor = get<AuthInterceptor>().apply {
-            credentials = Credentials.toCredentials(account)
+        val diagnosticLog = get<DiagnosticLog>()
+        val diagnosticTag = account.type?.name ?: DIAGNOSTIC_TAG
+        try {
+            val authInterceptor = get<AuthInterceptor>().apply {
+                credentials = Credentials.toCredentials(account)
+            }
+
+            account.token = dataSource.login(account.login!!, account.password!!)
+            // we got the authToken, time to provide it to make real calls
+            authInterceptor.credentials = Credentials.toCredentials(account)
+
+            account.writeToken = dataSource.getWriteToken()
+
+            val userInfo = dataSource.getUserInfo()
+            account.displayedName = userInfo.userName
+            diagnosticLog.info(diagnosticTag, "Login validation succeeded (Google Reader API)")
+        } catch (exception: Exception) {
+            diagnosticLog.error(diagnosticTag, "Login validation failed (Google Reader API)", exception)
+            throw exception
         }
-
-        account.token = dataSource.login(account.login!!, account.password!!)
-        // we got the authToken, time to provide it to make real calls
-        authInterceptor.credentials = Credentials.toCredentials(account)
-
-        account.writeToken = dataSource.getWriteToken()
-
-        val userInfo = dataSource.getUserInfo()
-        account.displayedName = userInfo.userName
     }
 
     override suspend fun synchronize(
@@ -68,29 +78,53 @@ class GReaderRepository(
         }
 
         val newLastModified = System.currentTimeMillis() / 1000L
+        val diagnostics = RepositorySyncDiagnostics(
+            log = get<DiagnosticLog>(),
+            tag = account.type?.name ?: DIAGNOSTIC_TAG,
+            syncType = syncType.name.lowercase(),
+            authentication = "Google Reader API token",
+            pendingChanges = itemStateChanges.size
+        )
 
-        return dataSource.synchronize(syncType, syncData, account.writeToken!!).run {
-            reconcileRenamedFolders(folders, feeds)
-            insertFolders(folders)
-            val newFeeds = insertFeeds(feeds)
-            val tags = insertTags(tags)
+        return try {
+            dataSource.synchronize(
+                syncType,
+                syncData,
+                account.writeToken!!,
+                diagnostics::progress
+            ).run {
+                diagnostics.saving()
+                reconcileRenamedFolders(folders, feeds)
+                insertFolders(folders)
+                val newFeeds = insertFeeds(feeds)
+                val tags = insertTags(tags)
 
-            val newItems = insertItems(items, filterStarredItems = true)
-            insertItems(starredItems, filterStarredItems = false)
+                val newItems = insertItems(items, filterStarredItems = true)
+                insertItems(starredItems, filterStarredItems = false)
 
-            insertItemsTags(newItems, tags)
+                insertItemsTags(newItems, tags)
 
-            insertItemsIds(unreadIds, readIds, starredIds.toMutableList())
+                insertItemsIds(unreadIds, readIds, starredIds.toMutableList())
 
-            account.lastModified = newLastModified
-            database.accountDao().updateLastModified(newLastModified, account.id)
+                account.lastModified = newLastModified
+                database.accountDao().updateLastModified(newLastModified, account.id)
 
-            database.itemStateChangeDao().resetStateChanges(account.id)
+                database.itemStateChangeDao().resetStateChanges(account.id)
 
-            SyncResult(
-                items = newItems,
-                feeds = newFeeds
-            )
+                diagnostics.completed(
+                    categories = folders.size,
+                    feeds = feeds.size,
+                    remoteItems = items.size + starredItems.size,
+                    newItems = newItems.size
+                )
+                SyncResult(items = newItems, feeds = newFeeds)
+            }
+        } catch (error: OutOfMemoryError) {
+            diagnostics.outOfMemory()
+            throw error
+        } catch (exception: Exception) {
+            diagnostics.failed(exception)
+            throw exception
         }
     }
 
@@ -413,5 +447,6 @@ class GReaderRepository(
 
     companion object {
         private val TAG = GReaderRepository::class.java.simpleName
+        private const val DIAGNOSTIC_TAG = "Google Reader API"
     }
 }

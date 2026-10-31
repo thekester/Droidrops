@@ -44,8 +44,8 @@ android {
     defaultConfig {
         applicationId = "com.droidrops.app"
 
-        versionCode = 51
-        versionName = "2.2.30"
+        versionCode = 52
+        versionName = "2.2.31"
 
         testInstrumentationRunner = "com.readrops.app.ReadropsTestRunner"
     }
@@ -184,6 +184,7 @@ dependencies {
     androidTestImplementation(libs.bundles.test)
     androidTestImplementation(libs.bundles.kointest)
     androidTestImplementation(libs.okhttp.mockserver)
+    androidTestImplementation(libs.retrofit)
     androidTestImplementation(libs.coil.test)
     androidTestImplementation(libs.workmanager.test)
 }

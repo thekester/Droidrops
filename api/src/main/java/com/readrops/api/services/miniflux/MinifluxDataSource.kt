@@ -25,20 +25,28 @@ class MinifluxDataSource(private val service: MinifluxService) {
         readIds: List<String>,
         unreadIds: List<String>,
         starredIds: List<String>,
-        unstarredIds: List<String>
+        unstarredIds: List<String>,
+        onProgress: suspend (String) -> Unit = {}
     ): DataSourceResult {
+        onProgress("Applying pending state changes (read=${readIds.size}, unread=${unreadIds.size}, starred=${starredIds.size}, unstarred=${unstarredIds.size})")
         updateReadState("read", readIds)
         updateReadState("unread", unreadIds)
         starredIds.forEach { id -> service.toggleBookmark(id.toLong()) }
         unstarredIds.forEach { id -> service.toggleBookmark(id.toLong()) }
 
+        onProgress("Fetching categories")
         val folders = getFolders()
+        onProgress("Fetched ${folders.size} categories")
+        onProgress("Fetching feeds")
         val feeds = getFeeds()
+        onProgress("Fetched ${feeds.size} feeds")
         val items = if (syncType == SyncType.INITIAL_SYNC) {
-            getAllEntries("unread") + getAllEntries("read")
+            getAllEntries("unread", onProgress) + getAllEntries("read", onProgress)
         } else {
-            getChangedEntries(lastModified)
+            getChangedEntries(lastModified, onProgress)
         }.distinctBy { it.remoteId }
+
+        onProgress("Miniflux data received: ${folders.size} categories, ${feeds.size} feeds, ${items.size} entries")
 
         return DataSourceResult(
             items = items,
@@ -118,20 +126,33 @@ class MinifluxDataSource(private val service: MinifluxService) {
         service.updateEntries(body)
     }
 
-    private suspend fun getAllEntries(status: String): List<Item> =
-        getEntries(status = status)
+    private suspend fun getAllEntries(
+        status: String,
+        onProgress: suspend (String) -> Unit
+    ): List<Item> = getEntries(status = status, onProgress = onProgress)
 
-    private suspend fun getChangedEntries(lastModified: Long): List<Item> =
-        getEntries(changedAfter = lastModified)
+    private suspend fun getChangedEntries(
+        lastModified: Long,
+        onProgress: suspend (String) -> Unit
+    ): List<Item> = getEntries(changedAfter = lastModified, onProgress = onProgress)
 
     private suspend fun getEntries(
         status: String? = null,
-        changedAfter: Long? = null
+        changedAfter: Long? = null,
+        onProgress: suspend (String) -> Unit
     ): List<Item> {
         val entries = mutableListOf<Item>()
         var offset = 0
+        var pageNumber = 0
 
         while (true) {
+            pageNumber++
+            val queryDescription = when {
+                status != null -> "$status entries"
+                changedAfter != null -> "entries changed since $changedAfter"
+                else -> "entries"
+            }
+            onProgress("Requesting $queryDescription page $pageNumber (offset=$offset, collected=${entries.size})")
             val page = service.getEntries(
                 status = status,
                 changedAfter = changedAfter,
@@ -140,6 +161,7 @@ class MinifluxDataSource(private val service: MinifluxService) {
             ).use { response -> parseEntries(response.string()) }
 
             entries += page
+            onProgress("Received $queryDescription page $pageNumber (${page.size} entries; total=${entries.size})")
             if (page.size < PAGE_SIZE) break
             offset += page.size
         }

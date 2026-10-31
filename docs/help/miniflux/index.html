@@ -1,0 +1,120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Set up Miniflux in Droidrops and collect useful details when feed synchronization stalls or returns no articles.">
+  <meta name="color-scheme" content="light dark">
+  <link rel="canonical" href="https://thekester.github.io/Droidrops/help/miniflux/">
+  <title>Miniflux troubleshooting · Droidrops</title>
+  <style>
+    :root { color-scheme: light dark; --bg:#f6f8f8; --card:#fff; --ink:#102f3c; --muted:#536d78; --accent:#0874aa; --line:#dbe5e7; --note:#e7f3f8; }
+    @media(prefers-color-scheme:dark) { :root { --bg:#10191e; --card:#19252b; --ink:#e6f0f4; --muted:#b3c2c9; --accent:#78c9f1; --line:#35464e; --note:#17323e; } }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--bg); color:var(--ink); font:17px/1.65 system-ui,-apple-system,"Segoe UI",sans-serif; }
+    a { color:var(--accent); }
+    .wrap { width:min(100% - 2rem,850px); margin-inline:auto; }
+    .topbar { background:#082f43; color:#fff; }
+    .topbar-inner { min-height:70px; display:flex; align-items:center; justify-content:space-between; gap:20px; }
+    .brand { color:#fff; font-weight:800; text-decoration:none; }
+    .nav { display:flex; gap:20px; }
+    .nav a { color:#d6e8f0; font-size:.92rem; font-weight:700; text-decoration:none; }
+    .masthead { padding:45px 0 39px; background:#082f43; color:#fff; }
+    .eyebrow { margin:0 0 .5rem; color:#9fdaf5; font-size:.8rem; font-weight:800; letter-spacing:.1em; text-transform:uppercase; }
+    h1 { margin:0; font-size:clamp(2.4rem,7vw,3.7rem); line-height:1.06; letter-spacing:-.055em; }
+    .masthead p:last-child { max-width:680px; margin:13px 0 0; color:#d6e8f0; }
+    main { padding-block:1.25rem 3rem; }
+    article { margin:15px 0; padding:clamp(22px,4vw,38px); border:1px solid var(--line); border-radius:21px; background:var(--card); }
+    h2 { margin:1.7rem 0 .45rem; font-size:1.35rem; letter-spacing:-.025em; }
+    article h2:first-child { margin-top:0; }
+    p,ul,ol { margin-block:.55rem; }
+    li+li { margin-top:.35rem; }
+    code { padding:.08em .32em; border-radius:5px; background:var(--bg); font-size:.92em; }
+    .note { margin:1rem 0; padding:14px 17px; border-left:4px solid var(--accent); border-radius:8px; background:var(--note); }
+    footer { padding:20px 0 32px; border-top:1px solid var(--line); color:var(--muted); font-size:.92rem; }
+    footer .wrap { display:flex; flex-wrap:wrap; justify-content:space-between; gap:12px; }
+    :focus-visible { outline:3px solid #ff8b5f; outline-offset:3px; }
+    @media(max-width:520px) { .topbar-inner { min-height:62px; } .nav { gap:12px; } .masthead { padding:34px 0 30px; } }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="../../">Droidrops</a>
+      <nav class="nav" aria-label="Site navigation"><a href="../../">Home</a><a href="https://github.com/thekester/Droidrops">GitHub</a></nav>
+    </div>
+  </header>
+  <div class="masthead"><div class="wrap">
+    <p class="eyebrow">Droidrops support</p>
+    <h1>Miniflux setup and sync troubleshooting</h1>
+    <p>How to connect a Miniflux server, what a successful login does and does not confirm, and what to send when synchronization appears stuck.</p>
+  </div></div>
+  <main>
+    <div class="wrap">
+      <article>
+        <h2>Connect a Miniflux account</h2>
+        <ol>
+          <li>In Droidrops, add a <strong>Miniflux</strong> account.</li>
+          <li>Enter the service root, such as <code>https://reader.example.org</code>. Do not add <code>/v1</code>; Droidrops adds that API path.</li>
+          <li>For an API key, leave Login blank and enter the key in Password. For HTTP Basic authentication, enter the Miniflux username and account password.</li>
+          <li>Tap <strong>Validate</strong>. This checks authentication and identifies the Miniflux user; it does not confirm that feeds and articles have synced.</li>
+        </ol>
+      </article>
+
+      <article>
+        <h2>If feeds or articles do not appear</h2>
+        <ol>
+          <li>Open the <strong>Account</strong> tab and select the Miniflux account you intend to use. Then check the timeline and the <strong>Feeds</strong> tab; changing credentials or validating an account does not necessarily switch the currently selected account.</li>
+          <li>Start one manual sync and note the time. Avoid repeatedly tapping refresh while it is still running.</li>
+          <li>Check both the <strong>Feeds</strong> tab and the article timeline. A feed list can load separately from article entries.</li>
+          <li>If nothing changes after a few minutes, record how long you waited and whether the sync indicator or notification remained active. Include the approximate number of feeds and unread/read entries in Miniflux, if known.</li>
+        </ol>
+        <p class="note"><strong>About the diagnostic log:</strong> it stays on the device. Recent builds record connector-specific sync stages and result counts. Miniflux entries also include page offsets and counts. Other remote account types record the resources they fetch, such as feeds, folders, articles, and read/star states. It does not log every successful API request or provide a live progress screen. If a request is still pending, the last entry should identify the stage/page being requested. An empty log is not proof that the sync succeeded.</p>
+      </article>
+
+      <article>
+        <h2>Tell a server problem from an app problem</h2>
+        <p>A successful login only confirms that the server accepted the credentials. It does not prove that feed and entry requests completed. When possible, open the Miniflux site in a browser on the same device and check whether the same account can see its feeds and articles.</p>
+        <ul>
+          <li>A connection timeout or <code>ECONNREFUSED</code> means the device could not establish a connection to that host and port. Check the address, HTTPS/reverse-proxy configuration, server availability, and firewall. It does not by itself identify whether the app or the server setup is at fault.</li>
+          <li>HTTP <code>401</code> or <code>403</code> points to rejected or insufficient credentials/permissions. Recheck the API key or username and password.</li>
+          <li>HTTP <code>404</code> can mean the base URL or API path is wrong. Enter the Miniflux service root, without <code>/v1</code>.</li>
+          <li>HTTP <code>5xx</code> indicates that the server or a component in front of it returned a server error. Check the Miniflux and reverse-proxy logs.</li>
+          <li>If Miniflux works in the browser but Droidrops still fails, send the app version, timestamp, full diagnostic report, and relevant redacted server log lines. That gives enough evidence to investigate an app-side API or parsing problem.</li>
+        </ul>
+        <p>These are clues, not definitive diagnoses: include the exact status or error text rather than guessing which side caused it.</p>
+      </article>
+
+      <article>
+        <h2>Send a useful report</h2>
+        <p>Open <strong>More → Diagnostic log</strong>. Review the entries, keep <strong>Hide server addresses</strong> on if you do not want to disclose your host, then choose one of these actions:</p>
+        <ul>
+          <li><strong>Email</strong> opens a draft addressed to <a href="mailto:droidrops@proton.me">droidrops@proton.me</a> with the full diagnostic report attached. Review it and press Send in your mail app; Droidrops does not send it automatically.</li>
+          <li><strong>Report on GitHub</strong> opens a prefilled issue. Long reports may not fit in the GitHub link; Droidrops copies the report to the clipboard so you can paste the remaining text into the issue.</li>
+        </ul>
+        <p>If the log has no new entries, send the report anyway and add:</p>
+        <ul>
+          <li>Droidrops version and Android version/device.</li>
+          <li>Miniflux version and authentication method (API key or username/password).</li>
+          <li>Approximate feed and article counts, when available.</li>
+          <li>When you started syncing, how long you waited, what the app displayed, and whether restarting or trying again changed anything.</li>
+          <li>Screenshots of the empty or loading screen, with private feed names hidden if needed.</li>
+        </ul>
+      </article>
+
+      <article>
+        <h2>Optional server-side details</h2>
+        <p>If you administer the Miniflux server, check its logs around the time of the sync. With a Docker Compose deployment, a starting point is:</p>
+        <p><code>docker compose logs --since 15m miniflux</code></p>
+        <p>Share only the relevant lines and review them first. Remove passwords, API keys, authorization headers, private feed URLs, and any personal data. Never post credentials or an unredacted server log in a public issue.</p>
+      </article>
+
+      <article>
+        <h2>Test coverage note</h2>
+        <p>The 2.2.30 debug build was manually exercised on an Android 15 (API 35) emulator against Miniflux 2.3.4 using both API-key and HTTP Basic authentication. Tests covered account validation, a first sync, loading the feed/folder list, opening the timeline, refreshing, and opening an article. The test account had 31 feeds and 726 unread entries; no crash or <code>OutOfMemoryError</code> was observed. The app's 75 instrumented tests also passed on that emulator. This does not reproduce the reported hour-long sync or establish behavior with larger archives, other feed content, server configurations, or the tester's installed builds.</p>
+      </article>
+    </div>
+  </main>
+  <footer><div class="wrap"><span>© Droidrops · Open-source Android RSS reader</span><a href="https://github.com/thekester/Droidrops/issues">Get support on GitHub</a></div></footer>
+</body>
+</html>

@@ -1,0 +1,3 @@
+- Add detailed, privacy-safe sync progress and result counts for FreshRSS, Google Reader, Nextcloud News, Fever, and Miniflux.
+- Include Miniflux entry-page offsets and record the last stage when a sync fails or runs out of memory.
+- Improve the diagnostic log guidance and Miniflux troubleshooting documentation.

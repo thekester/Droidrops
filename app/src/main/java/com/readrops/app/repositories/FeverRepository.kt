@@ -7,6 +7,8 @@ import com.readrops.api.services.fever.ItemAction
 import com.readrops.api.services.fever.adapters.FeverFeeds
 import com.readrops.api.utils.exceptions.LoginFailedException
 import com.readrops.app.util.Utils
+import com.readrops.app.util.diagnostics.DiagnosticLog
+import com.readrops.app.util.diagnostics.RepositorySyncDiagnostics
 import com.readrops.db.Database
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Folder
@@ -14,20 +16,30 @@ import com.readrops.db.entities.Item
 import com.readrops.db.entities.ItemState
 import com.readrops.db.entities.ItemStateChange
 import com.readrops.db.entities.account.Account
+import org.koin.core.component.KoinComponent
+import org.koin.core.component.get
 
 class FeverRepository(
     database: Database,
     account: Account,
     private val feverDataSource: FeverDataSource
-) : BaseRepository(database, account) {
+) : BaseRepository(database, account), KoinComponent {
 
     override suspend fun login(account: Account) {
-        val authenticated = feverDataSource.login(account.login!!, account.password!!)
+        val diagnosticLog = get<DiagnosticLog>()
+        val accountTypeName = account.type?.name ?: "Fever"
+        try {
+            val authenticated = feverDataSource.login(account.login!!, account.password!!)
 
-        if (authenticated) {
-            account.displayedName = account.type!!.name
-        } else {
-            throw LoginFailedException()
+            if (authenticated) {
+                account.displayedName = account.type!!.name
+                diagnosticLog.info(accountTypeName, "Login validation succeeded (Fever API key)")
+            } else {
+                throw LoginFailedException()
+            }
+        } catch (exception: Exception) {
+            diagnosticLog.error(accountTypeName, "Login validation failed (Fever API key)", exception)
+            throw exception
         }
     }
 
@@ -38,47 +50,72 @@ class FeverRepository(
             SyncType.INITIAL_SYNC
         }
 
-        return feverDataSource.synchronize(
-            account.login!!,
-            account.password!!,
-            syncType,
-            account.lastModified.toString()
-        ).run {
-            // The server snapshots below replace ItemState. Keep local actions which are still
-            // queued after a failed request so the snapshot cannot undo a user's read/star choice.
-            val pendingStateChanges = database.itemStateChangeDao()
-                .selectItemStateChanges(account.id)
+        val pendingStateChanges = database.itemStateChangeDao()
+            .selectItemStateChanges(account.id)
+        val diagnostics = RepositorySyncDiagnostics(
+            log = get<DiagnosticLog>(),
+            tag = DIAGNOSTIC_TAG,
+            syncType = syncType.name.lowercase(),
+            authentication = "Fever API key",
+            pendingChanges = pendingStateChanges.size
+        )
 
-            insertFolders(folders)
-            val newFeeds = insertFeeds(feverFeeds)
+        return try {
+            feverDataSource.synchronize(
+                account.login!!,
+                account.password!!,
+                syncType,
+                account.lastModified.toString(),
+                diagnostics::progress
+            ).run {
+                diagnostics.saving()
+                // The server snapshots below replace ItemState. Keep local actions which are still
+                // queued after a failed request so the snapshot cannot undo a user's read/star choice.
+                insertFolders(folders)
+                val newFeeds = insertFeeds(feverFeeds)
 
-            val newItems = insertItems(items)
-            insertItemsIds(unreadIds, starredIds.toMutableList())
+                val newItems = insertItems(items)
+                insertItemsIds(unreadIds, starredIds.toMutableList())
 
-            pendingStateChanges.forEach { pending ->
-                val state = ItemState(
-                    read = pending.read,
-                    starred = pending.starred,
-                    remoteId = pending.remoteId,
-                    accountId = account.id
-                )
-                if (pending.readChange) database.itemStateDao().upsertItemReadState(state)
-                if (pending.starChange) database.itemStateDao().upsertItemStarState(state)
-            }
-            sendPreviousItemStateChanges()
-
-            // We use the most recent item id as lastModified instead of a timestamp
-            database.accountDao().updateLastModified(sinceId, account.id)
-
-            SyncResult(
-                items = newItems,
-                feeds = newFeeds,
-                favicons = favicons.associateBy { favicon ->
-                    val feedId = feverFeeds.favicons.entries.find { it.key == favicon.id }!!.value
-
-                    feverFeeds.feeds.find { it.remoteId == feedId }!!
+                diagnostics.progress("Applying queued read/star states (${pendingStateChanges.size} changes)")
+                pendingStateChanges.forEach { pending ->
+                    val state = ItemState(
+                        read = pending.read,
+                        starred = pending.starred,
+                        remoteId = pending.remoteId,
+                        accountId = account.id
+                    )
+                    if (pending.readChange) database.itemStateDao().upsertItemReadState(state)
+                    if (pending.starChange) database.itemStateDao().upsertItemStarState(state)
                 }
-            )
+                sendPreviousItemStateChanges()
+                diagnostics.progress("Queued read/star states applied")
+
+                // We use the most recent item id as lastModified instead of a timestamp
+                database.accountDao().updateLastModified(sinceId, account.id)
+
+                diagnostics.completed(
+                    categories = folders.size,
+                    feeds = feverFeeds.feeds.size,
+                    remoteItems = items.size,
+                    newItems = newItems.size
+                )
+                SyncResult(
+                    items = newItems,
+                    feeds = newFeeds,
+                    favicons = favicons.associateBy { favicon ->
+                        val feedId = feverFeeds.favicons.entries.find { it.key == favicon.id }!!.value
+
+                        feverFeeds.feeds.find { it.remoteId == feedId }!!
+                    }
+                )
+            }
+        } catch (error: OutOfMemoryError) {
+            diagnostics.outOfMemory()
+            throw error
+        } catch (exception: Exception) {
+            diagnostics.failed(exception)
+            throw exception
         }
     }
 
@@ -292,5 +329,6 @@ class FeverRepository(
 
     companion object {
         val TAG: String = FeverRepository::class.java.simpleName
+        private const val DIAGNOSTIC_TAG = "Fever"
     }
 }

@@ -279,8 +279,8 @@
     <string name="diagnostic_log_privacy">Ce journal reste sur votre appareil. Rien n\'est envoyé sans votre accord, et les mots de passe et jetons sont retirés automatiquement.</string>
     <string name="hide_server_addresses">Masquer les adresses des serveurs</string>
     <string name="hide_server_addresses_summary">Les ports restent visibles : ils révèlent les réseaux qui bloquent les connexions.</string>
-    <string name="diagnostic_log_empty_title">Rien à signaler</string>
-    <string name="diagnostic_log_empty_text">Les erreurs rencontrées pendant la synchronisation, l\'ajout de flux ou la connexion, ainsi que les plantages, apparaîtront ici pour que vous puissiez les envoyer au développeur.</string>
+    <string name="diagnostic_log_empty_title">Aucun diagnostic pour le moment</string>
+    <string name="diagnostic_log_empty_text">Les erreurs réseau, les étapes et les résultats des synchronisations, les offsets de pages Miniflux, les autres erreurs de synchronisation et les plantages apparaîtront ici. Un journal vide ne confirme pas qu’une synchronisation est terminée.</string>
     <string name="report_on_github">Signaler sur GitHub</string>
     <string name="copy_log">Copier</string>
     <string name="share_log">Partager le journal</string>

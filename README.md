@@ -47,6 +47,12 @@
 - Background synchronisation
 - Notifications
 
+## Miniflux troubleshooting
+
+Droidrops connects to Miniflux through its REST API. Enter the service root URL (for example, `https://reader.example.org`); Droidrops adds `/v1/` itself. For API-key authentication, leave the login blank and enter the key in the password field. For HTTP Basic authentication, enter the Miniflux username and password.
+
+The diagnostic log is stored on the device. It records network failures and connector-specific sync stages and result counts; Miniflux logs entry-page offsets and counts as well. It does not record every successful API request or provide a live progress screen. If a Miniflux sync appears stuck or finishes without showing feeds or articles, follow the [Miniflux troubleshooting guide](https://thekester.github.io/Droidrops/help/miniflux/) for the information to include and how to share a full report.
+
 # Screenshots
 
 <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_1.png" width=250 alt="Droidrops screenshot 1"> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_2.png" width=250 alt="Droidrops screenshot 2"> <img src="fastlane/metadata/android/en-US/images/phoneScreenshots/Screenshot_3.png" width=250 alt="Droidrops screenshot 3">

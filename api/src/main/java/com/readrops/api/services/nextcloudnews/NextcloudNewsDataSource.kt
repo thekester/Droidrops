@@ -32,31 +32,62 @@ class NextcloudNewsDataSource(private val service: NextcloudNewsService) {
         return displayName
     }
 
-    suspend fun synchronize(syncType: SyncType, syncData: NextcloudNewsSyncData): DataSourceResult =
+    suspend fun synchronize(
+        syncType: SyncType,
+        syncData: NextcloudNewsSyncData,
+        onProgress: suspend (String) -> Unit = {}
+    ): DataSourceResult =
         with(CoroutineScope(Dispatchers.IO)) {
             return if (syncType == SyncType.INITIAL_SYNC) {
+                onProgress("Fetching initial folders, feeds, articles and starred articles")
                 DataSourceResult().apply {
                     awaitAll(
-                        async { folders = getFolders() },
-                        async { feeds = getFeeds() },
-                        async { items = getItems(ItemQueryType.ALL.value, false, MAX_ITEMS) },
+                        async {
+                            folders = getFolders()
+                            onProgress("Fetched ${folders.size} folders")
+                        },
+                        async {
+                            feeds = getFeeds()
+                            onProgress("Fetched ${feeds.size} feeds")
+                        },
+                        async {
+                            items = getItems(ItemQueryType.ALL.value, false, MAX_ITEMS)
+                            onProgress("Fetched ${items.size} initial articles (limit=$MAX_ITEMS)")
+                        },
                         async {
                             starredItems =
                                 getItems(ItemQueryType.STARRED.value, true, MAX_STARRED_ITEMS)
+                            onProgress("Fetched ${starredItems.size} starred articles")
                         }
                     )
                 }
             } else {
+                onProgress(
+                    "Applying pending read/star changes " +
+                            "(read=${syncData.readIds.size}, unread=${syncData.unreadIds.size}, " +
+                            "starred=${syncData.starredIds.size}, unstarred=${syncData.unstarredIds.size})"
+                )
                 awaitAll(
                     async { setItemsReadState(syncData) },
                     async { setItemsStarState(syncData) },
                 )
+                onProgress("Pending read/star changes applied")
 
+                onProgress("Fetching updated folders, feeds and articles")
                 DataSourceResult().apply {
                     awaitAll(
-                        async { folders = getFolders() },
-                        async { feeds = getFeeds() },
-                        async { items = getNewItems(syncData.lastModified, ItemQueryType.ALL) }
+                        async {
+                            folders = getFolders()
+                            onProgress("Fetched ${folders.size} folders")
+                        },
+                        async {
+                            feeds = getFeeds()
+                            onProgress("Fetched ${feeds.size} feeds")
+                        },
+                        async {
+                            items = getNewItems(syncData.lastModified, ItemQueryType.ALL)
+                            onProgress("Fetched ${items.size} updated articles")
+                        }
                     )
                 }
             }

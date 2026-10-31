@@ -30,45 +30,81 @@ class GReaderDataSource(private val service: GReaderService) {
     suspend fun synchronize(
         syncType: SyncType,
         syncData: GReaderSyncData,
-        writeToken: String
+        writeToken: String,
+        onProgress: suspend (String) -> Unit = {}
     ): DataSourceResult = withContext(Dispatchers.IO) {
         if (syncType == SyncType.INITIAL_SYNC) {
+            onProgress("Fetching initial folders, feeds, articles and read/star states")
             DataSourceResult().apply {
                 awaitAll(
                     async {
                         val folderTags = getFolders()
                         folders = folderTags.folders
                         tags = folderTags.tags
+                        onProgress("Fetched ${folders.size} folders and ${tags.size} tags")
                     },
-                    async { feeds = getFeeds() },
+                    async {
+                        feeds = getFeeds()
+                        onProgress("Fetched ${feeds.size} feeds")
+                    },
                     async {
                         items = getItems(listOf(GOOGLE_READ, GOOGLE_STARRED), MAX_ITEMS, null)
+                        onProgress("Fetched ${items.size} initial articles (limit=$MAX_ITEMS)")
                     },
-                    async { starredItems = getStarredItems(MAX_STARRED_ITEMS) },
-                    async { unreadIds = getItemsIds(GOOGLE_READ, GOOGLE_READING_LIST, MAX_ITEMS) },
-                    async { starredIds = getItemsIds(null, GOOGLE_STARRED, MAX_STARRED_ITEMS) }
+                    async {
+                        starredItems = getStarredItems(MAX_STARRED_ITEMS)
+                        onProgress("Fetched ${starredItems.size} starred articles")
+                    },
+                    async {
+                        unreadIds = getItemsIds(GOOGLE_READ, GOOGLE_READING_LIST, MAX_ITEMS)
+                        onProgress("Fetched ${unreadIds.size} unread article IDs")
+                    },
+                    async {
+                        starredIds = getItemsIds(null, GOOGLE_STARRED, MAX_STARRED_ITEMS)
+                        onProgress("Fetched ${starredIds.size} starred article IDs")
+                    }
                 )
             }
         } else {
+            onProgress(
+                "Applying pending read/star changes " +
+                        "(read=${syncData.readIds.size}, unread=${syncData.unreadIds.size}, " +
+                        "starred=${syncData.starredIds.size}, unstarred=${syncData.unstarredIds.size})"
+            )
             DataSourceResult().apply {
                 awaitAll(
                     async { setItemsReadState(syncData, writeToken) },
                     async { setItemsStarState(syncData, writeToken) },
                 )
+                onProgress("Pending read/star changes applied")
 
                 awaitAll(
                     async {
                         val folderTags = getFolders()
                         folders = folderTags.folders
                         tags = folderTags.tags
+                        onProgress("Fetched ${folders.size} folders and ${tags.size} tags")
                     },
-                    async { feeds = getFeeds() },
-                    async { items = getItems(null, MAX_ITEMS, syncData.lastModified) },
-                    async { unreadIds = getItemsIds(GOOGLE_READ, GOOGLE_READING_LIST, MAX_ITEMS) },
+                    async {
+                        feeds = getFeeds()
+                        onProgress("Fetched ${feeds.size} feeds")
+                    },
+                    async {
+                        items = getItems(null, MAX_ITEMS, syncData.lastModified)
+                        onProgress("Fetched ${items.size} changed articles (limit=$MAX_ITEMS)")
+                    },
+                    async {
+                        unreadIds = getItemsIds(GOOGLE_READ, GOOGLE_READING_LIST, MAX_ITEMS)
+                        onProgress("Fetched ${unreadIds.size} unread article IDs")
+                    },
                     async {
                         readIds = getItemsIds(GOOGLE_UNREAD, GOOGLE_READING_LIST, MAX_ITEMS)
+                        onProgress("Fetched ${readIds.size} read article IDs")
                     },
-                    async { starredIds = getItemsIds(null, GOOGLE_STARRED, MAX_STARRED_ITEMS) }
+                    async {
+                        starredIds = getItemsIds(null, GOOGLE_STARRED, MAX_STARRED_ITEMS)
+                        onProgress("Fetched ${starredIds.size} starred article IDs")
+                    },
                 )
             }
         }

@@ -28,50 +28,88 @@ class FeverDataSource(private val service: FeverService) {
         password: String,
         syncType: SyncType,
         lastSinceId: String,
+        onProgress: suspend (String) -> Unit = {}
     ): FeverSyncResult = with(CoroutineScope(Dispatchers.IO)) {
         val body = getFeverRequestBody(login, password)
 
         if (syncType == SyncType.INITIAL_SYNC) {
+            onProgress("Fetching initial Fever feeds, folders, article IDs, and favicons")
             return FeverSyncResult().apply {
                 awaitAll(
-                    async { feverFeeds = service.getFeeds(body) },
-                    async { folders = service.getFolders(body) },
+                    async {
+                        feverFeeds = service.getFeeds(body)
+                        onProgress("Fetched ${feverFeeds.feeds.size} feeds")
+                    },
+                    async {
+                        folders = service.getFolders(body)
+                        onProgress("Fetched ${folders.size} folders")
+                    },
                     async {
                         unreadIds = service.getUnreadItemsIds(body)
                             .reversed()
                             .take(MAX_ITEMS_IDS)
+                        onProgress("Fetched ${unreadIds.size} unread article IDs (limit=$MAX_ITEMS_IDS)")
 
                         var maxId = unreadIds.maxOfOrNull { it }
+                        var pageNumber = 0
                         items = buildList {
                             for (index in 0 until INITIAL_SYNC_ITEMS_REQUESTS_COUNT) {
+                                pageNumber++
+                                onProgress("Requesting initial articles page $pageNumber (collected=${size})")
                                 val newItems = service.getItems(body, maxId, null)
 
                                 if (newItems.isEmpty()) break
                                 // always take the lowest id
                                 maxId = newItems.minOfOrNull { it.remoteId!!.toLong() }.toString()
                                 addAll(newItems)
+                                onProgress("Received initial articles page $pageNumber (${newItems.size}; total=$size)")
                             }
                         }
 
                         sinceId = unreadIds.maxOfOrNull { it.toLong() } ?: 0
                     },
-                    async { starredIds = service.getStarredItemsIds(body) },
-                    async { favicons = service.getFavicons(body) }
+                    async {
+                        starredIds = service.getStarredItemsIds(body)
+                        onProgress("Fetched ${starredIds.size} starred article IDs")
+                    },
+                    async {
+                        favicons = service.getFavicons(body)
+                        onProgress("Fetched ${favicons.size} favicons")
+                    }
                 )
             }
         } else {
+            onProgress("Fetching updated Fever feeds, folders, article IDs, and favicons")
             return FeverSyncResult().apply {
                 awaitAll(
-                    async { folders = service.getFolders(body) },
-                    async { feverFeeds = service.getFeeds(body) },
-                    async { unreadIds = service.getUnreadItemsIds(body) },
-                    async { starredIds = service.getStarredItemsIds(body) },
-                    async { favicons = service.getFavicons(body) },
+                    async {
+                        folders = service.getFolders(body)
+                        onProgress("Fetched ${folders.size} folders")
+                    },
+                    async {
+                        feverFeeds = service.getFeeds(body)
+                        onProgress("Fetched ${feverFeeds.feeds.size} feeds")
+                    },
+                    async {
+                        unreadIds = service.getUnreadItemsIds(body)
+                        onProgress("Fetched ${unreadIds.size} unread article IDs")
+                    },
+                    async {
+                        starredIds = service.getStarredItemsIds(body)
+                        onProgress("Fetched ${starredIds.size} starred article IDs")
+                    },
+                    async {
+                        favicons = service.getFavicons(body)
+                        onProgress("Fetched ${favicons.size} favicons")
+                    },
                     async {
                         items = buildList {
                             var localSinceId = lastSinceId
+                            var pageNumber = 0
 
                             while (true) {
+                                pageNumber++
+                                onProgress("Requesting updated articles page $pageNumber (collected=$size)")
                                 val newItems = service.getItems(body, null, localSinceId)
 
                                 if (newItems.isEmpty()) break
@@ -79,6 +117,7 @@ class FeverDataSource(private val service: FeverService) {
                                 localSinceId =
                                     newItems.maxOfOrNull { it.remoteId!!.toLong() }.toString()
                                 addAll(newItems)
+                                onProgress("Received updated articles page $pageNumber (${newItems.size}; total=$size)")
                             }
 
                             sinceId = if (items.isNotEmpty()) {

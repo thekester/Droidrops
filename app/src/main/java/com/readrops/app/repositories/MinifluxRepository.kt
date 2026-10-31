@@ -1,11 +1,13 @@
 package com.readrops.app.repositories
 
+import android.os.SystemClock
 import android.util.Log
 import com.readrops.api.services.Credentials
 import com.readrops.api.services.SyncType
 import com.readrops.api.services.miniflux.MinifluxDataSource
 import com.readrops.api.utils.AuthInterceptor
 import com.readrops.app.util.Utils
+import com.readrops.app.util.diagnostics.DiagnosticLog
 import com.readrops.db.Database
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Folder
@@ -27,7 +29,17 @@ class MinifluxRepository(
 
     override suspend fun login(account: Account) {
         get<AuthInterceptor>().credentials = Credentials.toCredentials(account)
-        account.displayedName = dataSource.login()
+        val diagnosticLog = get<DiagnosticLog>()
+        try {
+            account.displayedName = dataSource.login()
+            diagnosticLog.info(
+                DIAGNOSTIC_TAG,
+                "Login validation succeeded (auth=${if (account.login.isNullOrBlank()) "API key" else "username/password"})"
+            )
+        } catch (exception: Exception) {
+            diagnosticLog.error(DIAGNOSTIC_TAG, "Login validation failed", exception)
+            throw exception
+        }
     }
 
     override suspend fun synchronize(
@@ -39,22 +51,80 @@ class MinifluxRepository(
         val changes = database.itemStateChangeDao().selectItemStateChanges(account.id)
         val syncType = if (account.lastModified == 0L) SyncType.INITIAL_SYNC else SyncType.CLASSIC_SYNC
         val syncStartedAt = System.currentTimeMillis() / 1000L
-        val result = dataSource.synchronize(
-            syncType = syncType,
-            lastModified = account.lastModified,
-            readIds = changes.filter { it.readChange && it.read }.map { it.remoteId },
-            unreadIds = changes.filter { it.readChange && !it.read }.map { it.remoteId },
-            starredIds = changes.filter { it.starChange && it.starred }.map { it.remoteId },
-            unstarredIds = changes.filter { it.starChange && !it.starred }.map { it.remoteId }
+        val readIds = changes.filter { it.readChange && it.read }.map { it.remoteId }
+        val unreadIds = changes.filter { it.readChange && !it.read }.map { it.remoteId }
+        val starredIds = changes.filter { it.starChange && it.starred }.map { it.remoteId }
+        val unstarredIds = changes.filter { it.starChange && !it.starred }.map { it.remoteId }
+        val diagnosticLog = get<DiagnosticLog>()
+        val startedElapsed = SystemClock.elapsedRealtime()
+        var lastProgress = "starting"
+
+        diagnosticLog.info(
+            DIAGNOSTIC_TAG,
+            "Sync started (${syncType.name.lowercase()}, auth=${if (account.login.isNullOrBlank()) "API key" else "username/password"}, pending changes=${changes.size})"
         )
 
-        insertFolders(result.folders)
-        val newFeeds = insertFeeds(result.feeds)
-        val newItems = insertItems(result.items)
+        val result = try {
+            dataSource.synchronize(
+                syncType = syncType,
+                lastModified = account.lastModified,
+                readIds = readIds,
+                unreadIds = unreadIds,
+                starredIds = starredIds,
+                unstarredIds = unstarredIds,
+                onProgress = { progress ->
+                    lastProgress = progress
+                    diagnosticLog.info(DIAGNOSTIC_TAG, progress)
+                }
+            )
+        } catch (error: OutOfMemoryError) {
+            // Avoid formatting the OOM stack trace: even that allocation can fail when the heap
+            // is exhausted. The preceding progress entry identifies the active API/page stage.
+            runCatching {
+                diagnosticLog.error(DIAGNOSTIC_TAG, "Sync ran out of memory during: $lastProgress")
+                diagnosticLog.flush()
+            }
+            throw error
+        } catch (exception: Exception) {
+            diagnosticLog.error(
+                DIAGNOSTIC_TAG,
+                "Sync failed during: $lastProgress",
+                exception
+            )
+            throw exception
+        }
 
-        account.lastModified = syncStartedAt
-        database.accountDao().updateLastModified(syncStartedAt, account.id)
-        database.itemStateChangeDao().resetStateChanges(account.id)
+        lastProgress = "saving downloaded data to the local database"
+        diagnosticLog.info(DIAGNOSTIC_TAG, "Saving downloaded data to the local database")
+        val newFeeds: List<Feed>
+        val newItems: List<Item>
+        try {
+            insertFolders(result.folders)
+            newFeeds = insertFeeds(result.feeds)
+            newItems = insertItems(result.items)
+
+            account.lastModified = syncStartedAt
+            database.accountDao().updateLastModified(syncStartedAt, account.id)
+            database.itemStateChangeDao().resetStateChanges(account.id)
+        } catch (error: OutOfMemoryError) {
+            runCatching {
+                diagnosticLog.error(DIAGNOSTIC_TAG, "Sync ran out of memory while saving downloaded data")
+                diagnosticLog.flush()
+            }
+            throw error
+        } catch (exception: Exception) {
+            diagnosticLog.error(
+                DIAGNOSTIC_TAG,
+                "Sync failed during: $lastProgress",
+                exception
+            )
+            throw exception
+        }
+
+        diagnosticLog.info(
+            DIAGNOSTIC_TAG,
+            "Sync completed in ${SystemClock.elapsedRealtime() - startedElapsed} ms (${result.folders.size} categories, ${result.feeds.size} feeds, ${result.items.size} remote entries, ${newItems.size} new local entries)"
+        )
 
         return SyncResult(items = newItems, feeds = newFeeds)
     }
@@ -190,5 +260,6 @@ class MinifluxRepository(
 
     companion object {
         private val TAG = MinifluxRepository::class.java.simpleName
+        private const val DIAGNOSTIC_TAG = "Miniflux"
     }
 }

@@ -340,8 +340,8 @@
     <string name="diagnostic_log_privacy">This log stays on your device. Nothing is sent unless you choose to share it, and passwords and tokens are removed automatically.</string>
     <string name="hide_server_addresses">Hide server addresses</string>
     <string name="hide_server_addresses_summary">Ports stay visible: they reveal networks that block connections.</string>
-    <string name="diagnostic_log_empty_title">Nothing to report</string>
-    <string name="diagnostic_log_empty_text">Errors met while syncing, adding feeds or logging in, and crashes, will show up here so you can send them to the developer.</string>
+    <string name="diagnostic_log_empty_title">No diagnostics yet</string>
+    <string name="diagnostic_log_empty_text">Network failures, sync steps and result counts, Miniflux entry-page offsets, other sync errors, and crashes will appear here. An empty log does not confirm that a sync completed.</string>
     <string name="report_on_github">Report on GitHub</string>
     <string name="copy_log">Copy</string>
     <string name="share_log">Share log</string>
