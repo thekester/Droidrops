@@ -4,6 +4,7 @@ import androidx.room.testing.MigrationTestHelper
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -99,6 +100,22 @@ class MigrationsTest {
         }
     }
 
+    @Test
+    fun migrate8To9() {
+        helper.createDatabase(dbName, 8).apply {
+            execSQL("Insert Into Account(last_modified, current_account, notifications_enabled) Values(0, 0, 0)")
+            close()
+        }
+
+        helper.runMigrationsAndValidate(dbName, 9, true, MigrationFrom8To9).apply {
+            query("Select sync_cursor From Account").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertTrue(cursor.isNull(0))
+            }
+            close()
+        }
+    }
+
     /**
      * This path did not exist at all, so a database left at version 5 could not be opened and
      * the application crashed on upgrade. runMigrationsAndValidate compares the result against
@@ -125,15 +142,15 @@ class MigrationsTest {
      * goes through every migration in a row.
      */
     @Test
-    fun migrate1To8() {
+    fun migrate1To9() {
         helper.createDatabase(dbName, 1).apply {
             close()
         }
 
         helper.runMigrationsAndValidate(
-            dbName, 8, true,
+            dbName, 9, true,
             MigrationFrom1To2, MigrationFrom2To3, MigrationFrom3To4, MigrationFrom4To5,
-            MigrationFrom5To6, MigrationFrom6To7, MigrationFrom7To8
+            MigrationFrom5To6, MigrationFrom6To7, MigrationFrom7To8, MigrationFrom8To9
         ).apply {
             close()
         }

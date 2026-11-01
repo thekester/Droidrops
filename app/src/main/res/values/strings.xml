@@ -179,6 +179,8 @@
     <string name="large">Large</string>
     <string name="item_size">Item size</string>
     <string name="max_items_per_feed">Maximum articles per feed</string>
+    <string name="miniflux_initial_sync_batch_size">Miniflux initial import batch</string>
+    <string name="miniflux_initial_sync_batch_size_subtitle">Articles per sync. Large imports continue on the next sync.</string>
     <string name="unlimited">Unlimited</string>
     <string name="background_sync_already_running">A background synchronization is already running</string>
     <string name="disable_battery_optimization">Disable battery optimization</string>

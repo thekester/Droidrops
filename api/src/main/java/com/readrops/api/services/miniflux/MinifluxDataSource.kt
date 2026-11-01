@@ -26,6 +26,9 @@ class MinifluxDataSource(private val service: MinifluxService) {
         unreadIds: List<String>,
         starredIds: List<String>,
         unstarredIds: List<String>,
+        initialSyncCursor: String? = null,
+        initialSyncBatchSize: Int = DEFAULT_INITIAL_SYNC_BATCH_SIZE,
+        initialSyncStartedAt: Long = System.currentTimeMillis() / 1000L,
         onProgress: suspend (String) -> Unit = {}
     ): DataSourceResult {
         onProgress("Applying pending state changes (read=${readIds.size}, unread=${unreadIds.size}, starred=${starredIds.size}, unstarred=${unstarredIds.size})")
@@ -40,13 +43,33 @@ class MinifluxDataSource(private val service: MinifluxService) {
         onProgress("Fetching feeds")
         val feeds = getFeeds()
         onProgress("Fetched ${feeds.size} feeds")
-        val items = if (syncType == SyncType.INITIAL_SYNC) {
-            getAllEntries("unread", onProgress) + getAllEntries("read", onProgress)
+        val initialBatch = if (syncType == SyncType.INITIAL_SYNC) {
+            getInitialEntries(
+                cursor = MinifluxInitialSyncCursor.decode(initialSyncCursor)
+                    ?: MinifluxInitialSyncCursor("unread", null, initialSyncStartedAt),
+                batchSize = initialSyncBatchSize,
+                onProgress = onProgress
+            )
         } else {
-            getChangedEntries(lastModified, onProgress)
-        }.distinctBy { it.remoteId }
+            null
+        }
+        val items = initialBatch?.items ?: getChangedEntries(lastModified, onProgress)
 
-        onProgress("Miniflux data received: ${folders.size} categories, ${feeds.size} feeds, ${items.size} entries")
+        onProgress(
+            "Miniflux data received: ${folders.size} categories, ${feeds.size} feeds, " +
+                "${items.size} entries in this sync batch"
+        )
+        if (initialBatch != null) {
+            onProgress(
+                if (initialBatch.nextCursor == null) {
+                    "Miniflux initial import complete (${initialBatch.items.size} entries in this batch)"
+                } else {
+                    "Miniflux initial import paused after ${initialBatch.items.size} entries; " +
+                        "the next sync will continue from ${initialBatch.nextCursor.status} " +
+                        "before entry ${initialBatch.nextCursor.beforeEntryId}"
+                }
+            )
+        }
 
         return DataSourceResult(
             items = items,
@@ -54,7 +77,9 @@ class MinifluxDataSource(private val service: MinifluxService) {
             folders = folders,
             unreadIds = items.filterNot { it.isRead }.mapNotNull { it.remoteId },
             readIds = items.filter { it.isRead }.mapNotNull { it.remoteId },
-            starredIds = items.filter { it.isStarred }.mapNotNull { it.remoteId }
+            starredIds = items.filter { it.isStarred }.mapNotNull { it.remoteId },
+            syncCursor = initialBatch?.nextCursor?.encode(),
+            initialSyncTimestamp = initialBatch?.takeIf { it.nextCursor == null }?.startedAt
         )
     }
 
@@ -126,10 +151,66 @@ class MinifluxDataSource(private val service: MinifluxService) {
         service.updateEntries(body)
     }
 
-    private suspend fun getAllEntries(
-        status: String,
+    private suspend fun getInitialEntries(
+        cursor: MinifluxInitialSyncCursor,
+        batchSize: Int,
         onProgress: suspend (String) -> Unit
-    ): List<Item> = getEntries(status = status, onProgress = onProgress)
+    ): InitialSyncBatch {
+        require(batchSize > 0) { "Initial Miniflux sync batch size must be positive" }
+        val items = mutableListOf<Item>()
+        var status = cursor.status
+        var beforeEntryId = cursor.beforeEntryId
+        var pageNumber = 0
+        var completed = false
+
+        while (items.size < batchSize && !completed) {
+            pageNumber++
+            val limit = minOf(PAGE_SIZE, batchSize - items.size)
+            onProgress(
+                "Requesting initial $status entries page $pageNumber " +
+                    "(before_entry_id=${beforeEntryId ?: "none"}, batch=${items.size}/$batchSize)"
+            )
+            val body = service.getEntries(
+                status = status,
+                limit = limit,
+                offset = 0,
+                beforeEntryId = beforeEntryId
+            ).use { it.string() }
+            val json = JSONObject(body)
+            val rawEntries = json.optJSONArray("entries") ?: JSONArray()
+            val page = parseEntries(body)
+            val rawLastId = rawEntries.optJSONObject(rawEntries.length() - 1)
+                ?.optLong("id")
+                ?.takeIf { it > 0 }
+
+            if (rawEntries.length() > 0 && rawLastId == null) {
+                throw IllegalStateException("Miniflux returned an entry page without a usable final entry ID")
+            }
+
+            items += page
+            val total = json.optInt("total", -1)
+            onProgress(
+                "Received initial $status entries page $pageNumber " +
+                    "(${rawEntries.length()} entries; batch=${items.size}/$batchSize" +
+                    (if (total >= 0) "; server_total=$total" else "") + ")"
+            )
+
+            if (rawLastId != null) beforeEntryId = rawLastId
+            if (rawEntries.length() < limit) {
+                if (status == "unread") {
+                    status = "read"
+                    beforeEntryId = null
+                } else {
+                    completed = true
+                }
+            }
+        }
+
+        val nextCursor = if (completed) null else {
+            MinifluxInitialSyncCursor(status, beforeEntryId, cursor.startedAt)
+        }
+        return InitialSyncBatch(items, nextCursor, cursor.startedAt)
+    }
 
     private suspend fun getChangedEntries(
         lastModified: Long,
@@ -195,6 +276,13 @@ class MinifluxDataSource(private val service: MinifluxService) {
 
     companion object {
         private const val PAGE_SIZE = 500
+        const val DEFAULT_INITIAL_SYNC_BATCH_SIZE = 2000
         private val JSON_MEDIA_TYPE = "application/json; charset=utf-8".toMediaType()
     }
+
+    private data class InitialSyncBatch(
+        val items: List<Item>,
+        val nextCursor: MinifluxInitialSyncCursor?,
+        val startedAt: Long
+    )
 }

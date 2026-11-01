@@ -34,7 +34,7 @@ import com.readrops.db.util.Converters
         ItemStateChange::class,
         ItemState::class
     ],
-    version = 8
+    version = 9
 )
 @TypeConverters(Converters::class)
 abstract class Database : RoomDatabase() {
@@ -196,5 +196,12 @@ object MigrationFrom6To7 : Migration(6, 7) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_ItemStateChange_account_id` ON `ItemStateChange` (`account_id`)")
         db.execSQL("CREATE INDEX IF NOT EXISTS `index_ItemState_account_id` ON `ItemState` (`account_id`)")
+    }
+}
+
+object MigrationFrom8To9 : Migration(8, 9) {
+
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `Account` ADD COLUMN `sync_cursor` TEXT")
     }
 }

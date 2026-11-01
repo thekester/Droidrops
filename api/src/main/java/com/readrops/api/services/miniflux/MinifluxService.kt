@@ -26,6 +26,7 @@ interface MinifluxService {
         @Query("changed_after") changedAfter: Long? = null,
         @Query("limit") limit: Int,
         @Query("offset") offset: Int,
+        @Query("before_entry_id") beforeEntryId: Long? = null,
         @Query("order") order: String = "id",
         @Query("direction") direction: String = "desc"
     ): ResponseBody

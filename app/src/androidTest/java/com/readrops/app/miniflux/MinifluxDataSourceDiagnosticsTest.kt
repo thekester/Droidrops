@@ -1,4 +1,4 @@
-﻿package com.readrops.app.miniflux
+package com.readrops.app.miniflux
 
 import com.readrops.api.services.SyncType
 import com.readrops.api.services.miniflux.MinifluxDataSource
@@ -14,6 +14,8 @@ import org.junit.Before
 import org.junit.Test
 import retrofit2.Retrofit
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class MinifluxDataSourceDiagnosticsTest {
@@ -38,27 +40,24 @@ class MinifluxDataSourceDiagnosticsTest {
     }
 
     @Test
-    fun initialSyncReportsEachStageAndEntryPageWithoutLoggingArticleData() = runTest {
-        val firstPage = entriesJson(firstId = 1, count = 500, status = "unread")
-        val secondPage = entriesJson(firstId = 501, count = 1, status = "unread")
+    fun initialSyncReportsPagesTotalsAndCompletesReadAndUnreadStages() = runTest {
+        val firstPage = entriesJson(firstId = 501, count = 500, status = "unread", total = 501)
+        val secondPage = entriesJson(firstId = 1, count = 1, status = "unread", total = 501)
         val progress = mutableListOf<String>()
-        val entryRequests = mutableListOf<String>()
+        val requests = mutableListOf<RecordedRequest>()
 
         server.dispatcher = object : Dispatcher() {
-            override fun dispatch(request: RecordedRequest): MockResponse = when {
-                request.path == "/v1/categories" -> jsonResponse("[]")
-                request.path == "/v1/feeds" -> jsonResponse("[]")
-                request.path?.startsWith("/v1/entries?") == true -> {
-                    entryRequests += request.path!!
-                    when {
-                        request.requestUrl?.queryParameter("status") == "unread" &&
-                                request.requestUrl?.queryParameter("offset") == "0" -> jsonResponse(firstPage)
-                        request.requestUrl?.queryParameter("status") == "unread" &&
-                                request.requestUrl?.queryParameter("offset") == "500" -> jsonResponse(secondPage)
-                        else -> jsonResponse("{\"entries\":[]}")
-                    }
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                requests += request
+                return when {
+                    request.path == "/v1/categories" -> jsonResponse("[]")
+                    request.path == "/v1/feeds" -> jsonResponse("[]")
+                    request.requestUrl?.queryParameter("status") == "unread" &&
+                        request.requestUrl?.queryParameter("before_entry_id") == null -> jsonResponse(firstPage)
+                    request.requestUrl?.queryParameter("status") == "unread" &&
+                        request.requestUrl?.queryParameter("before_entry_id") == "2" -> jsonResponse(secondPage)
+                    else -> jsonResponse("{\"total\":0,\"entries\":[]}")
                 }
-                else -> MockResponse().setResponseCode(404)
             }
         }
 
@@ -69,19 +68,85 @@ class MinifluxDataSourceDiagnosticsTest {
             unreadIds = emptyList(),
             starredIds = emptyList(),
             unstarredIds = emptyList(),
+            initialSyncBatchSize = 1000,
+            initialSyncStartedAt = 1234,
             onProgress = { progress += it }
         )
 
         assertEquals(501, result.items.size)
-        assertTrue(progress.any { it == "Fetching categories" })
-        assertTrue(progress.any { it == "Fetched 0 categories" })
-        assertTrue(progress.any { it == "Fetching feeds" })
-        assertTrue(progress.any { it == "Fetched 0 feeds" })
-        assertTrue(progress.any { it.contains("unread entries page 2 (offset=500, collected=500)") })
-        assertTrue(progress.any { it.contains("Received unread entries page 2 (1 entries; total=501)") })
-        assertTrue(progress.any { it.contains("501 entries") })
-        assertEquals(3, entryRequests.size)
+        assertNull(result.syncCursor)
+        assertEquals(1234, result.initialSyncTimestamp)
+        assertTrue(progress.any { it.contains("server_total=501") })
+        assertTrue(progress.any { it.contains("Miniflux initial import complete") })
+        assertEquals(listOf(null, "2", null), requests
+            .filter { it.path?.startsWith("/v1/entries?") == true }
+            .map { it.requestUrl?.queryParameter("before_entry_id") })
         assertTrue(progress.none { it.contains("Article title") || it.contains("private-feed") })
+    }
+
+    @Test
+    fun initialSyncResumesFromLastImportedEntryAndBoundsEachBatch() = runTest {
+        val requests = mutableListOf<RecordedRequest>()
+        server.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                requests += request
+                return when {
+                    request.path == "/v1/categories" -> jsonResponse("[]")
+                    request.path == "/v1/feeds" -> jsonResponse("[]")
+                    request.requestUrl?.queryParameter("status") == "unread" -> when (
+                        request.requestUrl?.queryParameter("before_entry_id")
+                    ) {
+                        null -> jsonResponse(entriesJson(500, 200, "unread", 500))
+                        "301" -> jsonResponse(entriesJson(300, 200, "unread", 500))
+                        "101" -> jsonResponse(entriesJson(100, 100, "unread", 500))
+                        else -> jsonResponse("{\"total\":0,\"entries\":[]}")
+                    }
+                    else -> jsonResponse("{\"total\":0,\"entries\":[]}")
+                }
+            }
+        }
+
+        val first = dataSource.synchronize(
+            syncType = SyncType.INITIAL_SYNC,
+            lastModified = 0,
+            readIds = emptyList(), unreadIds = emptyList(), starredIds = emptyList(), unstarredIds = emptyList(),
+            initialSyncBatchSize = 200,
+            initialSyncStartedAt = 4321
+        )
+        assertEquals(200, first.items.size)
+        val firstCursor = assertNotNull(first.syncCursor)
+        assertNull(first.initialSyncTimestamp)
+
+        val second = dataSource.synchronize(
+            syncType = SyncType.INITIAL_SYNC,
+            lastModified = 0,
+            readIds = emptyList(), unreadIds = emptyList(), starredIds = emptyList(), unstarredIds = emptyList(),
+            initialSyncCursor = firstCursor,
+            initialSyncBatchSize = 200,
+            initialSyncStartedAt = 9999
+        )
+        assertEquals(200, second.items.size)
+        assertEquals("unread|101|4321", second.syncCursor)
+
+        val third = dataSource.synchronize(
+            syncType = SyncType.INITIAL_SYNC,
+            lastModified = 0,
+            readIds = emptyList(), unreadIds = emptyList(), starredIds = emptyList(), unstarredIds = emptyList(),
+            initialSyncCursor = second.syncCursor,
+            initialSyncBatchSize = 200,
+            initialSyncStartedAt = 9999
+        )
+        assertEquals(100, third.items.size)
+        assertNull(third.syncCursor)
+        assertEquals(4321, third.initialSyncTimestamp)
+
+        val initialEntryRequests = requests.filter { it.path?.startsWith("/v1/entries?") == true }
+        val unreadRequests = initialEntryRequests.filter {
+            it.requestUrl?.queryParameter("status") == "unread"
+        }
+        assertTrue(unreadRequests.all { it.requestUrl?.queryParameter("limit") == "200" })
+        assertEquals(listOf(null, "301", "101"), unreadRequests
+            .map { it.requestUrl?.queryParameter("before_entry_id") })
     }
 
     private fun jsonResponse(body: String) = MockResponse()
@@ -89,11 +154,11 @@ class MinifluxDataSourceDiagnosticsTest {
         .addHeader("Content-Type", "application/json")
         .setBody(body)
 
-    private fun entriesJson(firstId: Int, count: Int, status: String): String = buildString {
-        append("{\"entries\":[")
+    private fun entriesJson(firstId: Int, count: Int, status: String, total: Int): String = buildString {
+        append("{\"total\":$total,\"entries\":[")
         repeat(count) { index ->
             if (index > 0) append(',')
-            val id = firstId + index
+            val id = firstId - index
             append("{\"id\":$id,\"feed\":{\"id\":7},\"title\":\"Article title\",")
             append("\"url\":\"https://example.org/$id\",\"status\":\"$status\",")
             append("\"published_at\":\"2026-10-31T08:00:00Z\"}")

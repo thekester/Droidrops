@@ -14,6 +14,7 @@ data class Account(
     @ColumnInfo(name = "displayed_name") var displayedName: String? = null,
     @ColumnInfo(name = "type") var type: AccountType? = null,
     @ColumnInfo(name = "last_modified") var lastModified: Long = 0,
+    @ColumnInfo(name = "sync_cursor") var syncCursor: String? = null,
     @ColumnInfo(name = "current_account") var isCurrentAccount: Boolean = false,
     var token: String? = null,
     @ColumnInfo(name = "write_token") var writeToken: String? = null,

@@ -13,5 +13,9 @@ data class DataSourceResult(
     var unreadIds: List<String> = listOf(),
     var readIds: List<String> = listOf(),
     var starredIds: List<String> = listOf(),
-    var tags: List<Tag> = listOf()
+    var tags: List<Tag> = listOf(),
+    /** Cursor for resuming a bounded initial import, used by Miniflux. */
+    var syncCursor: String? = null,
+    /** Timestamp to use for incremental sync after the initial import is complete. */
+    var initialSyncTimestamp: Long? = null
 )

@@ -56,6 +56,7 @@ class PreferencesScreenModel(
                     showTimelinePreview.flow,
                     twoPaneReader.flow,
                     homeScreenWidgetEnabled.flow,
+                    minifluxInitialSyncBatchSize.flow,
                 )
 
                 combine(
@@ -86,6 +87,7 @@ class PreferencesScreenModel(
                         showTimelinePreview = (list[21] as Boolean) to showTimelinePreview,
                         twoPaneReader = (list[22] as Boolean) to twoPaneReader,
                         homeScreenWidgetEnabled = (list[23] as Boolean) to homeScreenWidgetEnabled,
+                        minifluxInitialSyncBatchSize = (list[24] as Int) to minifluxInitialSyncBatchSize,
                         exampleItem = ItemWithFeed(
                             item = Item(
                                 title = context.getString(R.string.example_item_title),
@@ -149,6 +151,7 @@ sealed class PreferencesScreenState {
         val showTimelinePreview: PreferenceState<Boolean>,
         val twoPaneReader: PreferenceState<Boolean>,
         val homeScreenWidgetEnabled: PreferenceState<Boolean>,
+        val minifluxInitialSyncBatchSize: PreferenceState<Int>,
         val useCustomShareIntentTpl: PreferenceState<Boolean>,
         val customShareIntentTpl: PreferenceState<String>,
         val swipeToLeft: PreferenceState<String>,

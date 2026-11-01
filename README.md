@@ -51,7 +51,9 @@
 
 Droidrops connects to Miniflux through its REST API. Enter the service root URL (for example, `https://reader.example.org`); Droidrops adds `/v1/` itself. For API-key authentication, leave the login blank and enter the key in the password field. For HTTP Basic authentication, enter the Miniflux username and password.
 
-The diagnostic log is stored on the device. It records network failures and connector-specific sync stages and result counts; Miniflux logs entry-page offsets and counts as well. It does not record every successful API request or provide a live progress screen. If a Miniflux sync appears stuck or finishes without showing feeds or articles, follow the [Miniflux troubleshooting guide](https://thekester.github.io/Droidrops/help/miniflux/) for the information to include and how to share a full report.
+Large Miniflux first imports are split into batches and resume automatically between sync jobs, so article content is not all held in memory at once. Change **More → Preferences → Miniflux initial import batch** to use 500, 1,000, 2,000 (default), or 5,000 entries per batch. Choose a smaller batch if Android still reports an out-of-memory error; a larger batch may finish sooner but uses more memory.
+
+The diagnostic log is stored on the device. It records network failures and connector-specific sync stages and result counts; Miniflux logs page cursors, server totals, and batch progress without recording article content or credentials. It does not record every successful API request or provide a live article counter. If a Miniflux sync appears stuck or finishes without showing feeds or articles, follow the [Miniflux troubleshooting guide](https://thekester.github.io/Droidrops/help/miniflux/) for the information to include and how to share a full report.
 
 # Screenshots
 

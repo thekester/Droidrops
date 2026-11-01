@@ -6,6 +6,7 @@ import com.readrops.api.services.Credentials
 import com.readrops.api.services.SyncType
 import com.readrops.api.services.miniflux.MinifluxDataSource
 import com.readrops.api.utils.AuthInterceptor
+import com.readrops.app.util.Preferences
 import com.readrops.app.util.Utils
 import com.readrops.app.util.diagnostics.DiagnosticLog
 import com.readrops.db.Database
@@ -16,6 +17,7 @@ import com.readrops.db.entities.ItemState
 import com.readrops.db.entities.account.Account
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
@@ -56,6 +58,7 @@ class MinifluxRepository(
         val starredIds = changes.filter { it.starChange && it.starred }.map { it.remoteId }
         val unstarredIds = changes.filter { it.starChange && !it.starred }.map { it.remoteId }
         val diagnosticLog = get<DiagnosticLog>()
+        val initialSyncBatchSize = get<Preferences>().minifluxInitialSyncBatchSize.flow.first()
         val startedElapsed = SystemClock.elapsedRealtime()
         var lastProgress = "starting"
 
@@ -72,6 +75,9 @@ class MinifluxRepository(
                 unreadIds = unreadIds,
                 starredIds = starredIds,
                 unstarredIds = unstarredIds,
+                initialSyncCursor = account.syncCursor,
+                initialSyncBatchSize = initialSyncBatchSize,
+                initialSyncStartedAt = syncStartedAt,
                 onProgress = { progress ->
                     lastProgress = progress
                     diagnosticLog.info(DIAGNOSTIC_TAG, progress)
@@ -81,7 +87,10 @@ class MinifluxRepository(
             // Avoid formatting the OOM stack trace: even that allocation can fail when the heap
             // is exhausted. The preceding progress entry identifies the active API/page stage.
             runCatching {
-                diagnosticLog.error(DIAGNOSTIC_TAG, "Sync ran out of memory during: $lastProgress")
+                diagnosticLog.error(
+                    DIAGNOSTIC_TAG,
+                    "Sync ran out of memory during: $lastProgress. Lower the Miniflux initial import batch in More > Preferences and sync again."
+                )
                 diagnosticLog.flush()
             }
             throw error
@@ -103,8 +112,14 @@ class MinifluxRepository(
             newFeeds = insertFeeds(result.feeds)
             newItems = insertItems(result.items)
 
-            account.lastModified = syncStartedAt
-            database.accountDao().updateLastModified(syncStartedAt, account.id)
+            val nextLastModified = if (syncType == SyncType.INITIAL_SYNC) {
+                if (result.syncCursor == null) result.initialSyncTimestamp ?: syncStartedAt else 0L
+            } else {
+                syncStartedAt
+            }
+            account.lastModified = nextLastModified
+            account.syncCursor = if (syncType == SyncType.INITIAL_SYNC) result.syncCursor else null
+            database.accountDao().updateSyncProgress(nextLastModified, account.syncCursor, account.id)
             database.itemStateChangeDao().resetStateChanges(account.id)
         } catch (error: OutOfMemoryError) {
             runCatching {
@@ -123,10 +138,17 @@ class MinifluxRepository(
 
         diagnosticLog.info(
             DIAGNOSTIC_TAG,
-            "Sync completed in ${SystemClock.elapsedRealtime() - startedElapsed} ms (${result.folders.size} categories, ${result.feeds.size} feeds, ${result.items.size} remote entries, ${newItems.size} new local entries)"
+            "Sync batch completed in ${SystemClock.elapsedRealtime() - startedElapsed} ms " +
+                "(${result.folders.size} categories, ${result.feeds.size} feeds, " +
+                "${result.items.size} remote entries, ${newItems.size} new local entries, " +
+                "initial import ${if (account.syncCursor == null) "complete" else "continues next sync"})"
         )
 
-        return SyncResult(items = newItems, feeds = newFeeds)
+        return SyncResult(
+            items = newItems,
+            feeds = newFeeds,
+            continueSync = account.syncCursor != null
+        )
     }
 
     override suspend fun insertNewFeeds(
@@ -207,7 +229,8 @@ class MinifluxRepository(
             .associateBy { it.remoteId }
         val localFeedIds = database.feedDao().selectFeeds(account.id)
             .associate { it.remoteId to it.id }
-        val existingStates = database.itemStateDao().selectAllItemStates(account.id)
+        val existingStates = remoteIds.chunked(SQLITE_MAX_VARIABLES)
+            .flatMap { database.itemStateDao().selectItemStatesByRemoteIds(it, account.id) }
             .associateBy { it.remoteId }
         val newItems = mutableListOf<Item>()
         val newStates = mutableListOf<ItemState>()
@@ -261,5 +284,6 @@ class MinifluxRepository(
     companion object {
         private val TAG = MinifluxRepository::class.java.simpleName
         private const val DIAGNOSTIC_TAG = "Miniflux"
+        private const val SQLITE_MAX_VARIABLES = 900
     }
 }

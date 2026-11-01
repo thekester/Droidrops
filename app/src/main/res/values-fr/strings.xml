@@ -333,4 +333,6 @@
     <string name="show_feed_content">Afficher le contenu du flux</string>
     <string name="full_article_not_found">Aucun texte d\'article n\'a été trouvé sur cette page</string>
     <string name="full_article_failed">Impossible de charger l\'article complet</string>
+    <string name="miniflux_initial_sync_batch_size">Lot d’import initial Miniflux</string>
+    <string name="miniflux_initial_sync_batch_size_subtitle">Articles par synchronisation. Les imports volumineux reprennent à la prochaine synchronisation.</string>
 </resources>

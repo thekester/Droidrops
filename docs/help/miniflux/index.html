@@ -62,6 +62,12 @@
       </article>
 
       <article>
+        <h2>Large first imports</h2>
+        <p>Droidrops imports a bounded batch of Miniflux entries at a time and automatically continues the import in subsequent sync jobs. The cursor is saved locally, so a later batch resumes from the last entry already imported. Both unread and read entries are included in a first import.</p>
+        <p>Use <strong>More → Preferences → Miniflux initial import batch</strong> to choose 500, 1,000, 2,000 (default), or 5,000 entries per batch. If Android reports that the app ran out of memory, lower this value and start another sync; the saved cursor lets the import resume. A higher value may reduce the number of batches but uses more memory.</p>
+      </article>
+
+      <article>
         <h2>If feeds or articles do not appear</h2>
         <ol>
           <li>Open the <strong>Account</strong> tab and select the Miniflux account you intend to use. Then check the timeline and the <strong>Feeds</strong> tab; changing credentials or validating an account does not necessarily switch the currently selected account.</li>
@@ -69,7 +75,7 @@
           <li>Check both the <strong>Feeds</strong> tab and the article timeline. A feed list can load separately from article entries.</li>
           <li>If nothing changes after a few minutes, record how long you waited and whether the sync indicator or notification remained active. Include the approximate number of feeds and unread/read entries in Miniflux, if known.</li>
         </ol>
-        <p class="note"><strong>About the diagnostic log:</strong> it stays on the device. Recent builds record connector-specific sync stages and result counts. Miniflux entries also include page offsets and counts. Other remote account types record the resources they fetch, such as feeds, folders, articles, and read/star states. It does not log every successful API request or provide a live progress screen. If a request is still pending, the last entry should identify the stage/page being requested. An empty log is not proof that the sync succeeded.</p>
+        <p class="note"><strong>About the diagnostic log:</strong> it stays on the device. Recent builds record connector-specific sync stages and result counts. Miniflux entries include page cursors, server totals, and batch progress, but never article contents or credentials. Other remote account types record the resources they fetch, such as feeds, folders, articles, and read/star states. It does not log every successful API request or provide a live article counter. If a request is still pending, the last entry should identify the stage/page being requested. An empty log is not proof that the sync succeeded.</p>
       </article>
 
       <article>

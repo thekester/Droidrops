@@ -295,6 +295,20 @@ class PreferencesScreen : AndroidScreen() {
                                 onValueChange = {}
                             )
 
+                            ListPreferenceWidget(
+                                preference = loadedState.minifluxInitialSyncBatchSize.second,
+                                selectedKey = loadedState.minifluxInitialSyncBatchSize.first,
+                                entries = mapOf(
+                                    500 to "500",
+                                    1000 to "1,000",
+                                    2000 to "2,000",
+                                    5000 to "5,000"
+                                ),
+                                title = stringResource(R.string.miniflux_initial_sync_batch_size),
+                                description = stringResource(R.string.miniflux_initial_sync_batch_size_subtitle),
+                                onValueChange = {}
+                            )
+
                             SwitchPreferenceWidget(
                                 preference = loadedState.hideReadFeeds.second,
                                 isChecked = loadedState.hideReadFeeds.first,

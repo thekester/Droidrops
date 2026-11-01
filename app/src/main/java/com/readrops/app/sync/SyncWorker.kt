@@ -44,6 +44,7 @@ class SyncWorker(
 
     override suspend fun doWork(): Result {
         val isManual = tags.contains(WORK_MANUAL)
+        val isInitialImportContinuation = tags.contains(WORK_CONTINUATION)
 
         val infos = WorkManager.getInstance(applicationContext)
             .getWorkInfosByTagFlow(TAG).first()
@@ -72,13 +73,14 @@ class SyncWorker(
         return try {
             val synchronizer = get<Synchronizer>()
 
+            val syncInputData = SyncInputData(
+                accountId = inputData.getInt(ACCOUNT_ID_KEY, -1),
+                feedId = inputData.getInt(FEED_ID_KEY, -1),
+                folderId = inputData.getInt(FOLDER_ID_KEY, -1)
+            )
             val (syncResults, errorResult) = synchronizer.synchronizeAccounts(
                 notificationBuilder = notificationBuilder,
-                inputData = SyncInputData(
-                    accountId = inputData.getInt(ACCOUNT_ID_KEY, -1),
-                    feedId = inputData.getInt(FEED_ID_KEY, -1),
-                    folderId = inputData.getInt(FOLDER_ID_KEY, -1)
-                ),
+                inputData = syncInputData,
                 onUpdate = { feed, feedMax, feedCount ->
                     setProgress(
                         workDataOf(
@@ -92,8 +94,12 @@ class SyncWorker(
 
             notificationManager.cancel(SYNC_NOTIFICATION_ID)
 
-            if (!isManual) {
+            if (!isManual && !isInitialImportContinuation) {
                 displaySyncResults(syncResults)
+            }
+
+            if (syncResults.values.any { it.continueSync }) {
+                enqueueInitialImportContinuation(syncInputData)
             }
 
             // Keep home-screen widgets in step with the database after both manual and scheduled syncs.
@@ -124,6 +130,28 @@ class SyncWorker(
                 Result.failure()
             }
         }
+    }
+
+    private fun enqueueInitialImportContinuation(syncInputData: SyncInputData) {
+        val continuation = OneTimeWorkRequestBuilder<SyncWorker>()
+            .setConstraints(
+                Constraints.Builder()
+                    .setRequiredNetworkType(NetworkType.CONNECTED)
+                    .build()
+            )
+            .setInputData(
+                workDataOf(
+                    ACCOUNT_ID_KEY to syncInputData.accountId,
+                    FEED_ID_KEY to syncInputData.feedId,
+                    FOLDER_ID_KEY to syncInputData.folderId
+                )
+            )
+            .addTag(TAG)
+            .addTag(WORK_CONTINUATION)
+            .build()
+
+        WorkManager.getInstance(applicationContext)
+            .enqueueUniqueWork(WORK_MANUAL, ExistingWorkPolicy.APPEND_OR_REPLACE, continuation)
     }
 
     private suspend fun displaySyncResults(syncResults: Map<Account, SyncResult>) {
@@ -222,6 +250,7 @@ class SyncWorker(
 
         val WORK_AUTO = "$TAG-auto"
         val WORK_MANUAL = "$TAG-manual"
+        private val WORK_CONTINUATION = "$TAG-initial-import-continuation"
 
         const val SYNC_NOTIFICATION_ID = 2
         const val SYNC_RESULT_NOTIFICATION_ID = 3

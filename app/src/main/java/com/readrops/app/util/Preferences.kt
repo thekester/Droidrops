@@ -143,6 +143,13 @@ class Preferences(
         default = 1000
     )
 
+    // Bound the amount of article content held in memory during a Miniflux first import.
+    val minifluxInitialSyncBatchSize = Preference(
+        dataStore = dataStore,
+        key = intPreferencesKey("miniflux_initial_sync_batch_size"),
+        default = 2000
+    )
+
     val orderField = Preference(
         dataStore = dataStore,
         key = stringPreferencesKey("order_field"),
