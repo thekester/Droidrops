@@ -49,13 +49,16 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.emptyFlow
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import com.readrops.db.entities.Tag
 import java.util.Collections
 import java.util.LinkedHashSet
@@ -255,16 +258,18 @@ class TimelineScreenModel(
 
     private fun buildPager(empty: Boolean = false, reuseForRecentlyRead: Boolean = false) {
         val filters = _timelineState.value.filters
-        val query = ItemsQueryBuilder.buildItemsQuery(
+        val account = currentAccount!!
+        val separateState = account.config.useSeparateState
+        val query = ItemsQueryBuilder.buildTimelineItemsQuery(
             queryFilters = filters,
-            separateState = currentAccount!!.config.useSeparateState
+            separateState = separateState
         )
 
         // Opening an article only adds it to the recently read ids that keep it visible.
         // Rebuilding the pager for that emptied the list and scrolled it, which shows in the
         // two-pane reader: reload the same pager instead, which keeps the items on screen.
         val previousFilters = pagerFilters
-        if (reuseForRecentlyRead && !empty && previousFilters != null && pagerAccountId == currentAccount!!.id &&
+        if (reuseForRecentlyRead && !empty && previousFilters != null && pagerAccountId == account.id &&
             previousFilters.copy(recentlyReadItemIds = filters.recentlyReadItemIds) == filters
         ) {
             if (previousFilters != filters) {
@@ -276,43 +281,67 @@ class TimelineScreenModel(
         }
 
         pagerFilters = if (empty) null else filters
-        pagerAccountId = currentAccount!!.id
+        pagerAccountId = account.id
         pagerQuery = query
 
-        val pager = Pager(
-            config = PagingConfig(
-                initialLoadSize = PAGING_INITIAL_SIZE,
-                pageSize = PAGING_PAGE_SIZE,
-                prefetchDistance = PAGING_PREFETCH_DISTANCE
-            ),
-            pagingSourceFactory = {
-                database.itemDao().selectAll(pagerQuery!!).also { pagingSource = it }
-            },
-        )
-            .flow
-            .map { pagingData ->
+        val itemStateFlow: Flow<PagingData<ItemWithFeed>> = if (empty) {
+            emptyFlow()
+        } else {
+            flow {
+                val initialKey = resolveTimelineInitialKey(filters, separateState)
+                val pager = Pager(
+                    config = PagingConfig(
+                        initialLoadSize = PAGING_INITIAL_SIZE,
+                        pageSize = PAGING_PAGE_SIZE,
+                        prefetchDistance = PAGING_PREFETCH_DISTANCE,
+                        maxSize = TIMELINE_PAGING_MAX_SIZE,
+                        jumpThreshold = TIMELINE_PAGING_JUMP_THRESHOLD
+                    ),
+                    initialKey = initialKey,
+                    pagingSourceFactory = {
+                        database.itemDao().selectAll(pagerQuery!!).also { pagingSource = it }
+                    },
+                )
+                emitAll(pager.flow)
+            }.map { pagingData ->
                 pagingData.map { itemWithFeed ->
-                    itemWithFeed.item.tags = database.tagDao().selectAllByItem(itemWithFeed.item.id)
+                    itemWithFeed.item.tags = itemWithFeed.tagNames
+                        ?.split(TIMELINE_TAG_SEPARATOR)
+                        ?.filter(String::isNotEmpty)
+                        ?.map { Tag(name = it) }
+                        .orEmpty()
 
                     itemWithFeed
                 }
             }
             .cachedIn(screenModelScope)
+        }
 
         _timelineState.update {
             it.copy(
-                itemState = if (!empty) {
-                    pager
-                } else {
-                    emptyFlow()
-                },
-                isAccountLocal = currentAccount!!.isLocal,
+                itemState = itemStateFlow,
+                isAccountLocal = account.isLocal,
                 scrollToTop = true,
-                hideReadAllFAB = !currentAccount!!.config.canMarkAllItemsAsRead
+                hideReadAllFAB = !account.config.canMarkAllItemsAsRead
             )
         }
 
         _listIndexState.update { 0 }
+    }
+
+    private suspend fun resolveTimelineInitialKey(
+        filters: QueryFilters,
+        separateState: Boolean
+    ): Int? {
+        if (!filters.isDefaultTimelinePositionScope()) return null
+
+        val savedPosition = TimelineScrollPosition(context, filters.accountId).read()
+        if (savedPosition.itemIndex == 0 && savedPosition.itemId == null) return null
+
+        val itemIds = database.itemDao().selectItemIds(
+            ItemsQueryBuilder.buildItemIdsQuery(filters, separateState)
+        )
+        return savedPosition.resolveIndex(itemIds)
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -703,9 +732,27 @@ class TimelineScreenModel(
         }
     }
 
-    fun shareItem(itemWithFeed: ItemWithFeed, context: Context) = Utils.shareItem(
-        itemWithFeed, context, useCustomShareIntentTpl.value, customShareIntentTpl.value
-    )
+    fun shareItem(itemWithFeed: ItemWithFeed, context: Context) {
+        val useCustomTemplate = useCustomShareIntentTpl.value
+        val template = customShareIntentTpl.value
+
+        if (!useCustomTemplate || template.isBlank()) {
+            Utils.shareItem(itemWithFeed, context, useCustomTemplate, template)
+            return
+        }
+
+        screenModelScope.launch(dispatcher) {
+            val itemWithContent = itemWithFeed.copy(
+                item = itemWithFeed.item.copy(
+                    content = database.itemDao().selectContent(itemWithFeed.item.id)
+                )
+            )
+
+            withContext(Dispatchers.Main) {
+                Utils.shareItem(itemWithContent, context, useCustomTemplate, template)
+            }
+        }
+    }
 }
 
 @Stable
@@ -761,6 +808,9 @@ data class TimelinePreferences(
 )
 
 private const val MAX_RECENTLY_READ_ITEMS = 100
+private const val TIMELINE_PAGING_MAX_SIZE = PAGING_PAGE_SIZE * 4
+private const val TIMELINE_PAGING_JUMP_THRESHOLD = PAGING_PAGE_SIZE * 3
+private const val TIMELINE_TAG_SEPARATOR = '\u001F'
 
 sealed interface DialogState {
     data object ConfirmDialog : DialogState

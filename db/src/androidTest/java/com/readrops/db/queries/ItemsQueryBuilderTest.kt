@@ -19,6 +19,7 @@ import com.readrops.db.filters.SubFilter
 import junit.framework.TestCase.assertFalse
 import junit.framework.TestCase.assertTrue
 import junit.framework.TestCase.assertEquals
+import junit.framework.TestCase.assertNull
 import org.junit.After
 import org.junit.Assert.assertThrows
 import org.junit.Before
@@ -59,6 +60,86 @@ class ItemsQueryBuilderTest {
             assertFalse(contains("read = 0 And"))
         }
 
+    }
+
+    @Test
+    fun timelineQueryLoadsOnlyPreviewAndAggregatedTags() = runBlocking {
+        val accountId = database.accountDao().insert(Account(type = AccountType.LOCAL)).toInt()
+        val feedId = database.feedDao().insert(
+            Feed(name = "Timeline query", url = "https://example.org/feed", accountId = accountId)
+        ).toInt()
+        val itemId = database.itemDao().insert(
+            Item(
+                title = "title".repeat(300),
+                description = "description".repeat(500),
+                cleanDescription = "preview".repeat(1000),
+                content = "content".repeat(1000),
+                author = "author".repeat(100),
+                remoteId = "long-article",
+                feedId = feedId,
+                pubDate = LocalDateTime.now()
+            )
+        ).toInt()
+        val tagId = database.tagDao().insert(Tag(name = "Research", accountId = accountId)).toInt()
+        database.tagJoinDao().insert(TagJoin(tagId = tagId, itemId = itemId))
+
+        val result = database.itemDao().selectAll(
+            ItemsQueryBuilder.buildTimelineItemsQuery(
+                QueryFilters(accountId = accountId),
+                separateState = false
+            )
+        ).load(
+            PagingSource.LoadParams.Refresh(key = null, loadSize = 10, placeholdersEnabled = false)
+        )
+
+        assertTrue(result is PagingSource.LoadResult.Page)
+        val item = (result as PagingSource.LoadResult.Page).data.single()
+        assertNull(item.item.description)
+        assertNull(item.item.content)
+        assertEquals(1000, item.item.title?.length)
+        assertEquals(500, item.item.author?.length)
+        assertEquals(2000, item.item.cleanDescription?.length)
+        assertEquals("Research", item.tagNames)
+        assertEquals("content".repeat(1000), database.itemDao().selectContent(itemId))
+    }
+
+    @Test
+    fun timelinePagingCanRefreshAtASavedDeepIndex() = runBlocking {
+        val accountId = database.accountDao().insert(Account(type = AccountType.LOCAL)).toInt()
+        val feedId = database.feedDao().insert(
+            Feed(name = "Deep timeline", url = "https://example.org/deep", accountId = accountId)
+        ).toInt()
+        val itemCount = 500
+        database.itemDao().insert(
+            (0 until itemCount).map { index ->
+                Item(
+                    title = "Article $index",
+                    remoteId = "article-$index",
+                    feedId = feedId,
+                    pubDate = LocalDateTime.parse("2026-10-17T12:00:00").minusMinutes(index.toLong())
+                )
+            }
+        )
+
+        val filters = QueryFilters(accountId = accountId)
+        val itemIds = database.itemDao().selectItemIds(
+            ItemsQueryBuilder.buildItemIdsQuery(filters, separateState = false)
+        )
+        val savedIndex = 400
+        val result = database.itemDao().selectAll(
+            ItemsQueryBuilder.buildTimelineItemsQuery(filters, separateState = false)
+        ).load(
+            PagingSource.LoadParams.Refresh(
+                key = savedIndex,
+                loadSize = 50,
+                placeholdersEnabled = true
+            )
+        )
+
+        assertTrue(result is PagingSource.LoadResult.Page)
+        val page = result as PagingSource.LoadResult.Page
+        assertEquals(itemIds[savedIndex], page.data.first().item.id)
+        assertEquals(savedIndex, page.itemsBefore)
     }
 
     @Test

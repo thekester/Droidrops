@@ -10,24 +10,34 @@ internal class TimelineScrollPosition(context: Context, accountId: Int) {
     private val preferences = context.getSharedPreferences(PREFERENCES_NAME, Context.MODE_PRIVATE)
     private val indexKey = "account_${accountId}_index"
     private val offsetKey = "account_${accountId}_offset"
+    private val itemIdKey = "account_${accountId}_item_id"
 
     fun read(): Position = Position(
         itemIndex = preferences.getInt(indexKey, 0).coerceAtLeast(0),
-        itemOffset = preferences.getInt(offsetKey, 0).coerceAtLeast(0)
+        itemOffset = preferences.getInt(offsetKey, 0).coerceAtLeast(0),
+        itemId = preferences.getInt(itemIdKey, 0).takeIf { it > 0 }
     )
 
-    fun write(itemIndex: Int, itemOffset: Int) {
+    fun write(itemIndex: Int, itemOffset: Int, itemId: Int) {
         preferences.edit()
             .putInt(indexKey, itemIndex.coerceAtLeast(0))
             .putInt(offsetKey, itemOffset.coerceAtLeast(0))
+            .putInt(itemIdKey, itemId)
             .apply()
     }
 
-    data class Position(val itemIndex: Int, val itemOffset: Int)
+    data class Position(val itemIndex: Int, val itemOffset: Int, val itemId: Int? = null)
 
     private companion object {
         const val PREFERENCES_NAME = "timeline_scroll_positions"
     }
+}
+
+internal fun TimelineScrollPosition.Position.resolveIndex(orderedItemIds: List<Int>): Int {
+    if (orderedItemIds.isEmpty()) return 0
+
+    val indexById = itemId?.let(orderedItemIds::indexOf)?.takeIf { it >= 0 }
+    return indexById ?: itemIndex.coerceIn(0, orderedItemIds.lastIndex)
 }
 
 internal fun QueryFilters.isDefaultTimelinePositionScope(): Boolean =

@@ -22,7 +22,9 @@ data class ItemWithFeed(
     @ColumnInfo(name = "is_starred") val isStarred: Boolean = false,
     @ColumnInfo(name = "is_read") val isRead: Boolean = false,
     @ColumnInfo(name = "open_in") val openIn: OpenIn?,
-    @ColumnInfo(name = "open_in_ask") val openInAsk: Boolean = true
+    @ColumnInfo(name = "open_in_ask") val openInAsk: Boolean = true,
+    /** Tag names aggregated for timeline rows to avoid one tag query per item. */
+    @ColumnInfo(name = "tag_names") val tagNames: String? = null
 ) {
 
     override fun equals(other: Any?): Boolean {

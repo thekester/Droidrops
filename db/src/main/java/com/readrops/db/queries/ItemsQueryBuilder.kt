@@ -33,6 +33,31 @@ object ItemsQueryBuilder {
         "Folder.name as folder_name"
     )
 
+    private val TIMELINE_COLUMNS = arrayOf(
+        "Item.id",
+        "Item.remote_id",
+        ItemContentProjection.previewTextColumn("Item.title", 1000),
+        ItemContentProjection.previewTextColumn("Item.author", 500),
+        ItemContentProjection.previewTextColumn("Item.clean_description", 2000),
+        "NULL AS description",
+        "NULL AS content",
+        "image_link",
+        "pub_date",
+        "link",
+        "Feed.name",
+        "color",
+        "icon_url",
+        "read_time",
+        "Feed.id as feedId",
+        "Feed.account_id",
+        "Feed.open_in",
+        "Feed.open_in_ask",
+        "Folder.id as folder_id",
+        "Folder.name as folder_name",
+        "(Select group_concat(Tag.name, char(31)) From TagJoin " +
+            "Inner Join Tag On Tag.id = TagJoin.tag_id Where TagJoin.item_id = Item.id) As tag_names"
+    )
+
     private val SEPARATE_STATE_COLUMNS = arrayOf(
         "case When ItemState.remote_id is NULL Or ItemState.read = 1 Then 1 else 0 End is_read",
         "case When ItemState.remote_id is NULL Or ItemState.read = 1 Then 1 else 0 End read",
@@ -55,13 +80,20 @@ object ItemsQueryBuilder {
     fun buildItemsQuery(queryFilters: QueryFilters): SupportSQLiteQuery =
         buildQuery(queryFilters, false)
 
+    /** Query only timeline fields and a short preview; full article text is loaded on demand. */
+    fun buildTimelineItemsQuery(
+        queryFilters: QueryFilters,
+        separateState: Boolean
+    ): SupportSQLiteQuery = buildQuery(queryFilters, separateState, timelineItems = true)
+
     fun buildItemIdsQuery(queryFilters: QueryFilters, separateState: Boolean): SupportSQLiteQuery =
         buildQuery(queryFilters, separateState, itemIdsOnly = true)
 
     private fun buildQuery(
         queryFilters: QueryFilters,
         separateState: Boolean,
-        itemIdsOnly: Boolean = false
+        itemIdsOnly: Boolean = false,
+        timelineItems: Boolean = false
     ): SupportSQLiteQuery =
         with(queryFilters) {
             require(accountId != 0) { "AccountId must be greater than 0" }
@@ -74,12 +106,15 @@ object ItemsQueryBuilder {
                 throw IllegalArgumentException("TagId must be greater than 0 if subFilter is TAG")
             }
 
-            val columns = if (itemIdsOnly) {
-                arrayOf("Item.id")
-            } else if (separateState) {
-                COLUMNS.plus(SEPARATE_STATE_COLUMNS)
-            } else {
-                COLUMNS.plus(OTHER_COLUMNS)
+            val baseColumns = when {
+                itemIdsOnly -> arrayOf("Item.id")
+                timelineItems -> TIMELINE_COLUMNS
+                else -> COLUMNS
+            }
+            val columns = when {
+                itemIdsOnly -> baseColumns
+                !separateState -> baseColumns.plus(OTHER_COLUMNS)
+                else -> baseColumns.plus(SEPARATE_STATE_COLUMNS)
             }
 
             val selectAllJoin = if (separateState) {
@@ -179,16 +214,15 @@ object ItemsQueryBuilder {
     }
 
     private fun buildOrderByClause(orderField: OrderField, orderType: OrderType): String {
-        return buildString {
-            when (orderField) {
-                OrderField.ID -> append("Item.id ")
-                else -> append("pub_date ")
-            }
+        val direction = when (orderType) {
+            OrderType.DESC -> "DESC"
+            else -> "ASC"
+        }
 
-            when (orderType) {
-                OrderType.DESC -> append("DESC")
-                else -> append("ASC")
-            }
+        return if (orderField == OrderField.ID) {
+            "Item.id $direction"
+        } else {
+            "pub_date $direction, Item.id $direction"
         }
     }
 }

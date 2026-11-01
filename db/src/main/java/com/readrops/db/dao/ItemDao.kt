@@ -10,6 +10,8 @@ import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Folder
 import com.readrops.db.entities.Item
 import com.readrops.db.entities.ItemState
+import com.readrops.db.entities.Tag
+import com.readrops.db.entities.TagJoin
 import com.readrops.db.pojo.ExistingItem
 import com.readrops.db.pojo.ItemWithFeed
 import com.readrops.db.pojo.WidgetArticle
@@ -29,6 +31,9 @@ interface ItemDao : BaseDao<Item> {
     @Query("Select ${ItemContentProjection.ITEM_COLUMNS} From Item Where id = :itemId")
     suspend fun select(itemId: Int): Item
 
+    @Query("Select ${ItemContentProjection.CONTENT_COLUMN} From Item Where id = :itemId")
+    suspend fun selectContent(itemId: Int): String?
+
     @Query("Select ${ItemContentProjection.ITEM_COLUMNS} From Item Limit 1")
     suspend fun selectFirst(): Item
 
@@ -40,7 +45,9 @@ interface ItemDao : BaseDao<Item> {
         And id > :afterId Order By id Limit :limit""")
     suspend fun selectItemsPage(feedId: Int, afterId: Int, limit: Int): List<Item>
 
-    @RawQuery(observedEntities = [Item::class, Feed::class, Folder::class, ItemState::class])
+    @RawQuery(
+        observedEntities = [Item::class, Feed::class, Folder::class, ItemState::class, Tag::class, TagJoin::class]
+    )
     fun selectAll(query: SupportSQLiteQuery): PagingSource<Int, ItemWithFeed>
 
     @RawQuery(observedEntities = [Item::class, Feed::class, Folder::class, ItemState::class])

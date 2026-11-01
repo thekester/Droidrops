@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.Canvas
@@ -50,6 +51,7 @@ import androidx.compose.runtime.snapshotFlow
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
@@ -59,6 +61,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.background
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
@@ -111,6 +115,26 @@ import kotlinx.coroutines.flow.receiveAsFlow
 import androidx.compose.runtime.rememberCoroutineScope
 import kotlinx.coroutines.launch
 import com.readrops.db.filters.SubFilter
+
+
+@Composable
+private fun TimelineItemPlaceholder(itemSize: TimelineItemSize) {
+    val isCompact = itemSize == TimelineItemSize.COMPACT
+    val height = when (itemSize) {
+        TimelineItemSize.COMPACT -> 96.dp
+        TimelineItemSize.REGULAR -> 160.dp
+        TimelineItemSize.LARGE -> 220.dp
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = if (isCompact) 0.dp else MaterialTheme.spacing.shortSpacing)
+            .height(height)
+            .clip(if (isCompact) RoundedCornerShape(0.dp) else RoundedCornerShape(12.dp))
+            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.45f))
+    )
+}
 
 
 object TimelineTab : Tab {
@@ -182,11 +206,17 @@ object TimelineTab : Tab {
 
             val positionStore = TimelineScrollPosition(context, filters.accountId)
             val savedPosition = positionStore.read()
-            lazyListState.scrollToItem(savedPosition.itemIndex, savedPosition.itemOffset)
+            lazyListState.scrollToItem(
+                items.findLoadedIndex(savedPosition.itemId) ?: savedPosition.itemIndex,
+                savedPosition.itemOffset
+            )
             snapshotFlow {
-                lazyListState.firstVisibleItemIndex to lazyListState.firstVisibleItemScrollOffset
-            }.distinctUntilChanged().collect { (index, offset) ->
-                positionStore.write(index, offset)
+                val index = lazyListState.firstVisibleItemIndex
+                val offset = lazyListState.firstVisibleItemScrollOffset
+                VisibleTimelinePosition(index, offset, items.peek(index)?.item?.id)
+            }.distinctUntilChanged().collect { position ->
+                val itemId = position.itemId ?: return@collect
+                positionStore.write(position.index, position.offset, itemId)
             }
         }
 
@@ -291,12 +321,16 @@ object TimelineTab : Tab {
             }
         }
 
-        LaunchedEffect(state.scrollToTop) {
+        LaunchedEffect(state.scrollToTop, items.loadState.refresh) {
             if (state.scrollToTop) {
                 val filters = state.filters
                 if (filters.isDefaultTimelinePositionScope()) {
+                    if (items.loadState.refresh !is LoadState.NotLoading) return@LaunchedEffect
                     val savedPosition = TimelineScrollPosition(context, filters.accountId).read()
-                    lazyListState.scrollToItem(savedPosition.itemIndex, savedPosition.itemOffset)
+                    lazyListState.scrollToItem(
+                        items.findLoadedIndex(savedPosition.itemId) ?: savedPosition.itemIndex,
+                        savedPosition.itemOffset
+                    )
                 } else {
                     lazyListState.scrollToItem(0)
                 }
@@ -636,6 +670,8 @@ object TimelineTab : Tab {
                                                             itemWithFeed.item.id == paneItemId,
                                                         modifier = Modifier.animateItem()
                                                     )
+                                                } else {
+                                                    TimelineItemPlaceholder(preferences.itemSize)
                                                 }
                                             }
                                         }
@@ -802,4 +838,14 @@ object TimelineTab : Tab {
     suspend fun openItem(itemId: Int) {
         openItemChannel.send(itemId)
     }
+}
+
+private data class VisibleTimelinePosition(val index: Int, val offset: Int, val itemId: Int?)
+
+private fun LazyPagingItems<ItemWithFeed>.findLoadedIndex(itemId: Int?): Int? {
+    if (itemId == null) return null
+
+    val snapshot = itemSnapshotList
+    val loadedIndex = snapshot.items.indexOfFirst { it?.item?.id == itemId }
+    return loadedIndex.takeIf { it >= 0 }?.let { snapshot.placeholdersBefore + it }
 }

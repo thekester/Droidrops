@@ -1,0 +1,2 @@
+- Reduce memory use when restoring the timeline, especially with large feeds.
+- Keep timeline previews lightweight and load full article content only when needed.

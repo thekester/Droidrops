@@ -11,6 +11,15 @@ import org.junit.Test
 class TimelineScrollPositionTest {
 
     @Test
+    fun savedItemIdTracksItsPositionAfterNewArticlesAreInsertedTest() {
+        val position = TimelineScrollPosition.Position(itemIndex = 42, itemOffset = 96, itemId = 123)
+
+        assertEquals(1, position.resolveIndex(listOf(456, 123, 789)))
+        assertEquals(2, position.resolveIndex(listOf(456, 789, 999)))
+        assertEquals(0, position.resolveIndex(emptyList()))
+    }
+
+    @Test
     fun onlyTheUnfilteredTimelineUsesTheSavedPositionTest() {
         assertEquals(true, QueryFilters(accountId = 7).isDefaultTimelinePositionScope())
         assertEquals(
@@ -34,10 +43,11 @@ class TimelineScrollPositionTest {
         context.deleteSharedPreferences("timeline_scroll_positions")
 
         try {
-            TimelineScrollPosition(context, accountId = 7).write(itemIndex = 42, itemOffset = 96)
+            TimelineScrollPosition(context, accountId = 7)
+                .write(itemIndex = 42, itemOffset = 96, itemId = 123)
 
             assertEquals(
-                TimelineScrollPosition.Position(itemIndex = 42, itemOffset = 96),
+                TimelineScrollPosition.Position(itemIndex = 42, itemOffset = 96, itemId = 123),
                 TimelineScrollPosition(context, accountId = 7).read()
             )
             assertEquals(
