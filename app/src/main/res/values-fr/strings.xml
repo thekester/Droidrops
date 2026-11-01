@@ -1,5 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="refreshing_articles">Actualisation des articles…</string>
+    <string name="cleanup_title">Nettoyer le stockage</string>
+    <string name="cleanup_account">Compte actuel : %1$s</string>
+    <string name="cleanup_local_only_notice">Cette action supprime uniquement les copies d’articles stockées dans Droidrops sur ce téléphone, afin de libérer de l’espace. Elle ne supprime aucun article du serveur RSS connecté. Les API actuellement utilisées par Droidrops ne permettent pas non plus de supprimer du serveur les articles déjà lus. Les articles non lus peuvent être téléchargés de nouveau lors d’une synchronisation. Les changements de lecture ou de favori en attente de synchronisation sont conservés.</string>
+    <string name="cleanup_older_than">Supprimer les articles antérieurs à</string>
+    <string name="cleanup_period_days">%1$d jours</string>
+    <string name="cleanup_article_state">État des articles</string>
+    <string name="cleanup_read">Lus</string>
+    <string name="cleanup_unread">Non lus</string>
+    <string name="cleanup_read_and_unread">Lus et non lus</string>
+    <string name="cleanup_keep_favorites">Conserver les favoris</string>
+    <string name="cleanup_keep_favorites_subtitle">Les articles favoris sont exclus, sauf si vous désactivez cette option.</string>
+    <string name="cleanup_all_feeds">Tous les flux</string>
+    <string name="cleanup_feeds">Flux à nettoyer</string>
+    <string name="cleanup_choose_feeds">Choisir les flux</string>
+    <string name="cleanup_search_feeds">Rechercher des flux</string>
+    <string name="cleanup_selected_feeds">%1$d flux sur %2$d sélectionnés</string>
+    <string name="cleanup_done">Terminé</string>
+    <string name="cleanup_calculating">Comptage des articles concernés…</string>
+    <string name="cleanup_deleting">Suppression des copies locales…</string>
+    <string name="cleanup_error">Impossible de compter ou supprimer les articles. Réessayez.</string>
+    <string name="cleanup_button">Vérifier et supprimer</string>
+    <string name="cleanup_confirm_title">Supprimer les articles locaux ?</string>
+    <string name="cleanup_confirm_message">Supprimer de Droidrops, sur ce téléphone, les %1$d copies locales concernées ? Aucun article ne sera supprimé du serveur RSS.</string>
+    <string name="cleanup_no_account">Ajoutez ou sélectionnez un compte avant de nettoyer les articles.</string>
+    <plurals name="cleanup_preview_count">
+        <item quantity="one">%1$d article correspond. Il sera supprimé de cet appareil.</item>
+        <item quantity="other">%1$d articles correspondent. Ils seront supprimés de cet appareil.</item>
+    </plurals>
+    <plurals name="cleanup_deleted_count">
+        <item quantity="one">%1$d article local supprimé.</item>
+        <item quantity="other">%1$d articles locaux supprimés.</item>
+    </plurals>
     <string name="show_timeline_source">Afficher la source du flux</string>
     <string name="show_timeline_source_subtitle">Afficher ou masquer le nom du flux et du dossier dans les cartes</string>
     <string name="show_timeline_date">Afficher la date de publication</string>
@@ -20,6 +53,7 @@
     <string name="show_timeline_preview_subtitle">Masquer les extraits des grandes cartes pour raccourcir la liste</string>
     <string name="article_image">Image de l’article</string>
     <string name="close_image_viewer">Fermer la visionneuse d’images</string>
+    <string name="rotate_image">Faire pivoter l’image</string>
     <string name="add_feed">Ajouter un flux</string>
     <string name="settings">Paramètres</string>
     <string name="add_feed_title">Ajouter un flux</string>

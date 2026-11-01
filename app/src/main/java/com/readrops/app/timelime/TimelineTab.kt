@@ -90,6 +90,7 @@ import com.readrops.app.util.Shortcut
 import com.readrops.app.util.components.LoadingScreen
 import com.readrops.app.util.components.Placeholder
 import com.readrops.app.util.components.RefreshBanner
+import com.readrops.app.util.components.RefreshStatusBanner
 import com.readrops.app.util.components.RefreshScreen
 import com.readrops.app.util.extensions.isError
 import com.readrops.app.util.extensions.isLoading
@@ -675,6 +676,14 @@ object TimelineTab : Tab {
                                 currentFeed = state.currentFeed,
                                 feedCount = state.feedCount,
                                 feedMax = state.feedMax,
+                                modifier = Modifier
+                                    .align(Alignment.TopCenter)
+                                    .fillMaxWidth()
+                            )
+                        }
+
+                        if (state.isRefreshing && (!state.isAccountLocal || state.feedMax == 0)) {
+                            RefreshStatusBanner(
                                 modifier = Modifier
                                     .align(Alignment.TopCenter)
                                     .fillMaxWidth()

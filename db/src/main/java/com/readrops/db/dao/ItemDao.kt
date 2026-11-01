@@ -55,6 +55,65 @@ interface ItemDao : BaseDao<Item> {
     @Query("Delete From Item Where id In (:itemIds)")
     suspend fun deleteByIds(itemIds: List<Int>)
 
+    @Query("""Select Item.id From Item
+        Inner Join Feed On Feed.id = Item.feed_id
+        Left Join ItemState On Item.remote_id = ItemState.remote_id And ItemState.account_id = Feed.account_id
+        Where Feed.account_id = :accountId And Item.feed_id In (:feedIds) And Item.pub_date < :cutoff
+        And Not Exists (Select 1 From ItemStateChange Where ItemStateChange.id = Item.id
+            And ItemStateChange.account_id = Feed.account_id)
+        And ((:includeRead = 1 And
+                (Case When :separateState = 1 Then
+                    Case When ItemState.remote_id Is Null Or ItemState.read = 1 Then 1 Else 0 End
+                    Else Item.read End) = 1)
+            Or (:includeUnread = 1 And
+                (Case When :separateState = 1 Then
+                    Case When ItemState.remote_id Is Null Or ItemState.read = 1 Then 1 Else 0 End
+                    Else Item.read End) = 0))
+        And (:keepStarred = 0 Or
+            (Case When :separateState = 1 Then
+                Case When ItemState.starred = 1 Then 1 Else 0 End
+                Else Item.starred End) = 0)
+        And Item.id > :afterId Order By Item.id Limit :limit""")
+    suspend fun selectCleanupItemIdsPage(
+        accountId: Int,
+        feedIds: List<Int>,
+        cutoff: Long,
+        includeRead: Boolean,
+        includeUnread: Boolean,
+        keepStarred: Boolean,
+        separateState: Boolean,
+        afterId: Int,
+        limit: Int
+    ): List<Int>
+
+    @Query("""Select Count(Item.id) From Item
+        Inner Join Feed On Feed.id = Item.feed_id
+        Left Join ItemState On Item.remote_id = ItemState.remote_id And ItemState.account_id = Feed.account_id
+        Where Feed.account_id = :accountId And Item.feed_id In (:feedIds) And Item.pub_date < :cutoff
+        And Not Exists (Select 1 From ItemStateChange Where ItemStateChange.id = Item.id
+            And ItemStateChange.account_id = Feed.account_id)
+        And ((:includeRead = 1 And
+                (Case When :separateState = 1 Then
+                    Case When ItemState.remote_id Is Null Or ItemState.read = 1 Then 1 Else 0 End
+                    Else Item.read End) = 1)
+            Or (:includeUnread = 1 And
+                (Case When :separateState = 1 Then
+                    Case When ItemState.remote_id Is Null Or ItemState.read = 1 Then 1 Else 0 End
+                    Else Item.read End) = 0))
+        And (:keepStarred = 0 Or
+            (Case When :separateState = 1 Then
+                Case When ItemState.starred = 1 Then 1 Else 0 End
+                Else Item.starred End) = 0)""")
+    suspend fun countCleanupItems(
+        accountId: Int,
+        feedIds: List<Int>,
+        cutoff: Long,
+        includeRead: Boolean,
+        includeUnread: Boolean,
+        keepStarred: Boolean,
+        separateState: Boolean
+    ): Int
+
     @Query("""Delete From Item Where feed_id = :feedId And starred = 0 And id Not In
         (Select id From Item Where feed_id = :feedId Order By pub_date Desc, id Desc Limit :keepCount)""")
     suspend fun pruneUnstarredItems(feedId: Int, keepCount: Int)

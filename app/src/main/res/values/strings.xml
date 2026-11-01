@@ -3,6 +3,7 @@
     <string name="app_name" translatable="false">Droidrops</string>
     <string name="article_image">Article image</string>
     <string name="close_image_viewer">Close image viewer</string>
+    <string name="rotate_image">Rotate image</string>
     <string name="add_feed">Add feed</string>
     <string name="settings">Settings</string>
     <string name="add_feed_title">Add feed</string>
@@ -256,6 +257,39 @@
     <string name="widget_title">Droidrops</string>
     <string name="widget_description">Your latest unread articles</string>
     <string name="widget_refresh">Refresh articles</string>
+    <string name="refreshing_articles">Refreshing articles…</string>
+    <string name="cleanup_title">Clean up storage</string>
+    <string name="cleanup_account">Current account: %1$s</string>
+    <string name="cleanup_local_only_notice">This action removes only article copies stored by Droidrops on this phone to free up space. It does not delete any articles from your connected RSS server. The APIs currently used by Droidrops also do not allow it to delete read articles from the server. Unread articles may be downloaded again during a later sync. Read or favorite changes waiting to sync are kept.</string>
+    <string name="cleanup_older_than">Remove articles older than</string>
+    <string name="cleanup_period_days">%1$d days</string>
+    <string name="cleanup_article_state">Article status</string>
+    <string name="cleanup_read">Read</string>
+    <string name="cleanup_unread">Unread</string>
+    <string name="cleanup_read_and_unread">Read and unread</string>
+    <string name="cleanup_keep_favorites">Keep favorites</string>
+    <string name="cleanup_keep_favorites_subtitle">Favorited articles are skipped unless you turn this off.</string>
+    <string name="cleanup_all_feeds">All feeds</string>
+    <string name="cleanup_feeds">Feeds to clean</string>
+    <string name="cleanup_choose_feeds">Choose feeds</string>
+    <string name="cleanup_search_feeds">Search feeds</string>
+    <string name="cleanup_selected_feeds">%1$d of %2$d feeds selected</string>
+    <string name="cleanup_done">Done</string>
+    <string name="cleanup_calculating">Counting matching articles…</string>
+    <string name="cleanup_deleting">Removing local copies…</string>
+    <string name="cleanup_error">Could not calculate or remove articles. Try again.</string>
+    <string name="cleanup_button">Review and remove</string>
+    <string name="cleanup_confirm_title">Remove local articles?</string>
+    <string name="cleanup_confirm_message">Remove the %1$d matching local copies from Droidrops on this phone? No articles will be deleted from your RSS server.</string>
+    <string name="cleanup_no_account">Add or select an account before cleaning up articles.</string>
+    <plurals name="cleanup_preview_count">
+        <item quantity="one">%1$d article matches. It will be removed from this device.</item>
+        <item quantity="other">%1$d articles match. They will be removed from this device.</item>
+    </plurals>
+    <plurals name="cleanup_deleted_count">
+        <item quantity="one">Removed %1$d local article.</item>
+        <item quantity="other">Removed %1$d local articles.</item>
+    </plurals>
     <string name="widget_no_unread">No unread articles</string>
     <string name="widget_disabled">Enable this widget in Droidrops settings</string>
     <string name="widget_untitled">Untitled article</string>

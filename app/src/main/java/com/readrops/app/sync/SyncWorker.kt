@@ -29,6 +29,7 @@ import com.readrops.app.util.diagnostics.DiagnosticLog
 import com.readrops.app.util.extensions.putSerializable
 import com.readrops.db.entities.account.Account
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.takeWhile
 import org.koin.core.component.KoinComponent
 import org.koin.core.component.get
 import org.koin.core.component.inject
@@ -275,12 +276,13 @@ class SyncWorker(
                 .build()
 
             WorkManager.getInstance(context).apply {
-                enqueueUniqueWork(WORK_MANUAL, ExistingWorkPolicy.KEEP, request)
+                // KEEP can discard this request while another manual sync is queued/running.
+                // Observing the discarded request id then waits forever, leaving the UI spinner on.
+                enqueueUniqueWork(WORK_MANUAL, ExistingWorkPolicy.APPEND_OR_REPLACE, request)
                 getWorkInfoByIdFlow(request.id)
-                    .collect { workInfo ->
-                        if (workInfo != null) {
-                            onUpdate(workInfo)
-                        }
+                    .takeWhile { workInfo ->
+                        if (workInfo != null) onUpdate(workInfo)
+                        workInfo?.state?.isFinished != true
                     }
             }
         }

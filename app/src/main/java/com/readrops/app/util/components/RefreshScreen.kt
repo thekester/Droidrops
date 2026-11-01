@@ -11,8 +11,10 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextOverflow
+import com.readrops.app.R
 import com.readrops.app.util.theme.MediumSpacer
 import com.readrops.app.util.theme.VeryShortSpacer
 import com.readrops.app.util.theme.spacing
@@ -42,14 +44,19 @@ fun RefreshIndicator(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier.padding(MaterialTheme.spacing.mediumSpacing)
     ) {
-        LinearProgressIndicator(
-            progress = { feedCount.toFloat() / feedMax.toFloat() }
-        )
+        if (feedMax > 0) {
+            LinearProgressIndicator(
+                progress = { feedCount.toFloat() / feedMax.toFloat() }
+            )
+        } else {
+            LinearProgressIndicator()
+        }
 
         VeryShortSpacer()
 
         Text(
-            text = "${currentFeed.orEmpty()} ($feedCount/$feedMax)",
+            text = if (feedMax > 0) "${currentFeed.orEmpty()} ($feedCount/$feedMax)"
+            else stringResource(R.string.refreshing_articles),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
         )
@@ -83,6 +90,22 @@ fun RefreshBanner(
 }
 
 @Composable
+fun RefreshStatusBanner(modifier: Modifier = Modifier) {
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.surfaceContainer
+    ) {
+        Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Text(
+                text = stringResource(R.string.refreshing_articles),
+                style = MaterialTheme.typography.labelMedium
+            )
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
+    }
+}
+
+@Composable
 fun LoadingScreen(
     isRefreshing: Boolean
 ) {
@@ -90,7 +113,7 @@ fun LoadingScreen(
 
         if (isRefreshing) {
             Text(
-                text = "Refreshing...",
+                text = stringResource(R.string.refreshing_articles),
                 style = MaterialTheme.typography.labelLarge
             )
 

@@ -317,9 +317,22 @@ class TimelineScreenModel(
 
     @Suppress("UNCHECKED_CAST")
     fun refreshTimeline() {
+        if (_timelineState.value.isRefreshing) return
+
         if (!context.isConnected()) {
             _timelineState.update { it.copy(syncError = context.getString(R.string.no_network)) }
             return
+        }
+
+        val account = currentAccount ?: return
+        _timelineState.update {
+            it.copy(
+                isRefreshing = true,
+                hideReadAllFAB = true,
+                currentFeed = "",
+                feedCount = 0,
+                feedMax = 0
+            )
         }
 
         screenModelScope.launch(dispatcher) {
@@ -330,7 +343,7 @@ class TimelineScreenModel(
                     else -> null
                 }
             }
-            val accountPair = SyncWorker.ACCOUNT_ID_KEY to currentAccount!!.id
+            val accountPair = SyncWorker.ACCOUNT_ID_KEY to account.id
 
             val workData = if (filterPair != null) {
                 workDataOf(filterPair, accountPair)
@@ -338,64 +351,62 @@ class TimelineScreenModel(
                 workDataOf(accountPair)
             }
 
-            if (!currentAccount!!.isLocal) {
-                _timelineState.update {
-                    it.copy(
-                        isRefreshing = true,
-                        hideReadAllFAB = true
-                    )
+            try {
+                SyncWorker.startNow(context, workData) { workInfo ->
+                    when {
+                        workInfo.outputData.getBoolean(SyncWorker.END_SYNC_KEY, false) -> {
+                            val errors =
+                                workInfo.outputData.getSerializable(SyncWorker.LOCAL_SYNC_ERRORS_KEY) as ErrorResult?
+                            workInfo.outputData.clearSerializables()
+
+                            _timelineState.update {
+                                it.copy(
+                                    isRefreshing = false,
+                                    hideReadAllFAB = false,
+                                    scrollToTop = true,
+                                    localSyncErrors = errors?.ifEmpty { null }
+                                )
+                            }
+
+                            buildPager()
+                        }
+
+                        workInfo.outputData.getBoolean(SyncWorker.SYNC_FAILURE_KEY, false) -> {
+                            val error =
+                                workInfo.outputData.getSerializable(SyncWorker.SYNC_FAILURE_EXCEPTION_KEY) as Exception?
+                            workInfo.outputData.clearSerializables()
+
+                            _timelineState.update {
+                                it.copy(
+                                    // the exception sits in a process wide map that the first delivery
+                                    // clears, so a repeated failed state finds nothing: keep the message
+                                    syncError = error?.let { e -> accountError?.genericMessage(e) }
+                                        ?: it.syncError,
+                                    isRefreshing = false,
+                                    hideReadAllFAB = false
+                                )
+                            }
+
+                            buildPager()
+                        }
+
+                        workInfo.progress.getString(SyncWorker.FEED_NAME_KEY) != null -> {
+                            _timelineState.update {
+                                it.copy(
+                                    isRefreshing = true,
+                                    currentFeed = workInfo.progress.getString(SyncWorker.FEED_NAME_KEY)
+                                        ?: "",
+                                    feedCount = workInfo.progress.getInt(SyncWorker.FEED_COUNT_KEY, 0),
+                                    feedMax = workInfo.progress.getInt(SyncWorker.FEED_MAX_KEY, 0)
+                                )
+                            }
+                        }
+                    }
                 }
-            }
-
-            SyncWorker.startNow(context, workData) { workInfo ->
-                when {
-                    workInfo.outputData.getBoolean(SyncWorker.END_SYNC_KEY, false) -> {
-                        val errors =
-                            workInfo.outputData.getSerializable(SyncWorker.LOCAL_SYNC_ERRORS_KEY) as ErrorResult?
-                        workInfo.outputData.clearSerializables()
-
-                        _timelineState.update {
-                            it.copy(
-                                isRefreshing = false,
-                                hideReadAllFAB = false,
-                                scrollToTop = true,
-                                localSyncErrors = errors?.ifEmpty { null }
-                            )
-                        }
-
-                        buildPager()
-                    }
-
-                    workInfo.outputData.getBoolean(SyncWorker.SYNC_FAILURE_KEY, false) -> {
-                        val error =
-                            workInfo.outputData.getSerializable(SyncWorker.SYNC_FAILURE_EXCEPTION_KEY) as Exception?
-                        workInfo.outputData.clearSerializables()
-
-                        _timelineState.update {
-                            it.copy(
-                                // the exception sits in a process wide map that the first delivery
-                                // clears, so a repeated failed state finds nothing: keep the message
-                                syncError = error?.let { e -> accountError?.genericMessage(e) }
-                                    ?: it.syncError,
-                                isRefreshing = false,
-                                hideReadAllFAB = false
-                            )
-                        }
-
-                        buildPager()
-                    }
-
-                    workInfo.progress.getString(SyncWorker.FEED_NAME_KEY) != null -> {
-                        _timelineState.update {
-                            it.copy(
-                                isRefreshing = true,
-                                currentFeed = workInfo.progress.getString(SyncWorker.FEED_NAME_KEY)
-                                    ?: "",
-                                feedCount = workInfo.progress.getInt(SyncWorker.FEED_COUNT_KEY, 0),
-                                feedMax = workInfo.progress.getInt(SyncWorker.FEED_MAX_KEY, 0)
-                            )
-                        }
-                    }
+            } finally {
+                // Also clear pull-to-refresh if WorkManager cancels the request.
+                _timelineState.update {
+                    if (it.isRefreshing) it.copy(isRefreshing = false, hideReadAllFAB = false) else it
                 }
             }
         }

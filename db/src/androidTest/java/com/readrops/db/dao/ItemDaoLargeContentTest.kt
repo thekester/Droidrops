@@ -7,6 +7,8 @@ import androidx.test.ext.junit.runners.AndroidJUnit4
 import com.readrops.db.Database
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Item
+import com.readrops.db.entities.ItemState
+import com.readrops.db.entities.ItemStateChange
 import com.readrops.db.entities.account.Account
 import com.readrops.db.entities.account.AccountType
 import com.readrops.db.queries.ItemContentProjection
@@ -103,5 +105,60 @@ class ItemDaoLargeContentTest {
         assertEquals("Newest unread", widgetArticles.single().title)
         assertEquals("Widget feed", widgetArticles.single().feedName)
         assertEquals(account.id, widgetArticles.single().accountId)
+    }
+
+    @Test
+    fun cleanupPreviewUsesRemoteReadAndFavoriteStateAndRespectsCutoff() = runTest {
+        val account = Account(type = AccountType.MINIFLUX)
+        account.id = database.accountDao().insert(account).toInt()
+        val feed = Feed(name = "Cleanup feed", accountId = account.id)
+        feed.id = database.feedDao().insert(feed).toInt()
+        val oldDate = LocalDateTime.now().minusDays(60)
+        val recentDate = LocalDateTime.now().minusDays(5)
+        val articles = listOf(
+            Item(title = "Old read", remoteId = "old-read", feedId = feed.id, pubDate = oldDate),
+            Item(title = "Old unread", remoteId = "old-unread", feedId = feed.id, pubDate = oldDate),
+            Item(title = "Old favorite", remoteId = "old-favorite", feedId = feed.id, pubDate = oldDate),
+            Item(title = "Recent read", remoteId = "recent-read", feedId = feed.id, pubDate = recentDate)
+        )
+        database.itemDao().insert(articles)
+        val pendingItem = Item(title = "Old pending", remoteId = "old-pending", feedId = feed.id, pubDate = oldDate)
+        pendingItem.id = database.itemDao().insert(pendingItem).toInt()
+        database.itemStateDao().insert(
+            listOf(
+                ItemState(read = true, starred = false, remoteId = "old-read", accountId = account.id),
+                ItemState(read = false, starred = false, remoteId = "old-unread", accountId = account.id),
+                ItemState(read = true, starred = true, remoteId = "old-favorite", accountId = account.id),
+                ItemState(read = true, starred = false, remoteId = "recent-read", accountId = account.id),
+                ItemState(read = true, starred = false, remoteId = "old-pending", accountId = account.id)
+            )
+        )
+        database.itemStateChangeDao().insert(
+            ItemStateChange(id = pendingItem.id, readChange = true, accountId = account.id)
+        )
+
+        val matching = database.itemDao().selectCleanupItemIdsPage(
+            accountId = account.id,
+            feedIds = listOf(feed.id),
+            cutoff = System.currentTimeMillis() - 30L * 86_400_000L,
+            includeRead = true,
+            includeUnread = false,
+            keepStarred = true,
+            separateState = true,
+            afterId = 0,
+            limit = 100
+        )
+
+        val selectedArticles = database.itemDao().selectItems(feed.id).filter { it.id in matching }
+        assertEquals(setOf("old-read"), selectedArticles.map { it.remoteId }.toSet())
+        assertEquals(1, database.itemDao().countCleanupItems(
+            accountId = account.id,
+            feedIds = listOf(feed.id),
+            cutoff = System.currentTimeMillis() - 30L * 86_400_000L,
+            includeRead = true,
+            includeUnread = false,
+            keepStarred = true,
+            separateState = true
+        ))
     }
 }
