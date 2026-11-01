@@ -1,0 +1,3 @@
+- Show article refresh progress and explain when syncing is unavailable offline.
+- Zoom and rotate images while reading articles.
+- Clean up old local article copies by age, read status, and feed, while keeping favorites and pending sync changes safe.

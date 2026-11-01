@@ -1,7 +1,3 @@
 - Import large Miniflux accounts progressively in configurable batches, resuming automatically where the previous sync stopped.
 - Add diagnostics for Miniflux page progress, imported counts, server totals, and the current cursor without logging article content or credentials.
 - Improve Miniflux initial sync memory handling and troubleshooting guidance.
-- Show sync progress and offline status during article refresh.
-- Add pinch-to-zoom and rotation controls to the article image viewer.
-- Add local storage cleanup with age, read-state, feed, and favorite filters.
-- Keep server articles untouched and protect pending read or favorite changes during local cleanup.
