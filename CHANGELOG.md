@@ -7,6 +7,222 @@ This release fixes Miniflux feed icons and a reader loading issue.
 - Load and display Miniflux feed favicons, including when Android has cleared the image cache.
 - Fix the article reader remaining on a loading spinner when opened from the timeline.
 
+# v2.2.33
+
+This release improves article reading and adds local storage cleanup tools.
+
+## Changes
+
+- Show article refresh progress and explain when syncing is unavailable offline.
+- Zoom and rotate images while reading articles.
+- Clean up old local article copies by age, read status, and feed, while protecting favourites and pending sync changes.
+
+# v2.2.32
+
+This release makes large Miniflux libraries safer to synchronize.
+
+## Changes
+
+- Import Miniflux articles progressively in configurable batches and resume from the previous sync position.
+- Report page progress, imported counts, server totals, and the current cursor without logging article content or credentials.
+- Improve memory handling and troubleshooting guidance for initial Miniflux syncs.
+
+# v2.2.31
+
+This release improves synchronization diagnostics across supported services.
+
+## Changes
+
+- Show privacy-safe sync progress and result counts for FreshRSS, Google Reader, Nextcloud News, Fever, and Miniflux.
+- Include Miniflux page offsets and the last sync stage in failure and out-of-memory reports.
+- Improve diagnostic guidance and Miniflux troubleshooting documentation.
+
+# v2.2.30
+
+This release improves the feel and feedback of timeline swipe actions.
+
+## Changes
+
+- Add responsive motion and haptic feedback to article read and favourite actions.
+- Return swiped cards smoothly to their original position.
+
+# v2.2.29
+
+This release makes timeline cards remain visible and usable after swipe actions, while respecting the selected read/unread filter.
+
+# v2.2.28
+
+This release fixes timeline swipe behavior.
+
+## Fixes
+
+- Return article cards to their original position after a swipe.
+- Keep the read/unread filter synchronized with swipe actions.
+
+# v2.2.27
+
+This release adds more useful network diagnostics.
+
+## Changes
+
+- Distinguish DNS failures, refused connections, timeouts, TLS errors, and HTTP responses in diagnostic reports.
+- Send a complete diagnostic report by email as a text attachment.
+- Respect the option to hide server addresses in reports.
+
+# v2.2.26
+
+This release adds native Miniflux support and updates the Android target level.
+
+## Changes
+
+- Connect to Miniflux through its REST API, with password or API key authentication.
+- Synchronize Miniflux accounts, feeds, folders, articles, read states, and bookmarks.
+- Target Android 16 (API 36).
+
+# v2.2.25
+
+This release fixes startup crashes and clarifies timeline and widget settings.
+
+## Changes
+
+- Add a home-screen widget setting, disabled by default.
+- Make the large timeline layout the default.
+
+## Fixes
+
+- Fix a startup crash caused by release shrinking and a Compose dependency mismatch.
+
+# v2.2.24
+
+This release improves keyboard navigation in the article reader.
+
+## Changes
+
+- Keep keyboard shortcut focus invisible in the timeline and article reader.
+- Improve keyboard navigation when switching articles in the two-pane reader.
+
+# v2.2.23
+
+This release improves restored article labels and tablet reading.
+
+## Fixes
+
+- Preserve article labels when restoring a backup.
+- Keep the selected article visible and highlighted in the tablet two-pane reader.
+- Improve backup compatibility and article navigation on large screens.
+
+# v2.2.22
+
+This release adds backup, full-article reading, and large-screen improvements.
+
+## Changes
+
+- Back up and restore accounts, feeds, article history, and app settings.
+- Load full article text for feeds that provide summaries only.
+- Read articles beside the timeline on tablets and other large screens.
+- Add optional hardware keyboard shortcuts for common reading actions.
+- Customize feed-list density, article previews, and metadata.
+
+## Fixes
+
+- Improve tablet navigation, reader state, and image-only article handling.
+
+# v2.2.21
+
+This release adds a home-screen widget and more ways to customize reading.
+
+## Changes
+
+- Choose from four text sizes when reading articles, with pinch-to-zoom support.
+- Add a home-screen widget for the latest unread articles.
+- Customize timeline cards by hiding images, feed details, publication dates, or reading times.
+- Improve reader restoration, article paging, and handling of large articles.
+- Improve RSS and Atom compatibility, including entries with missing titles or content.
+
+## Fixes
+
+- Fix article display, feed synchronization, and backup handling of private session data.
+
+# v2.2.20
+
+This release improves article reading and login troubleshooting.
+
+## Changes
+
+- Support pinch-to-zoom on article pages without showing zoom buttons.
+- Improve contrast for feed colours and correct Droidrops branding in crash reports.
+- Show actionable guidance for TLS certificate errors during login.
+
+# v2.2.19
+
+This release improves article reading, timeline navigation, and feed history.
+
+## Changes
+
+- Add a recently read filter and restore timeline position per account.
+- Improve reading with image viewing, long-press link actions, excerpt sharing, and smoother scrolling.
+- Configure feed history while preserving starred articles.
+- Accept more OPML exports and handle files with no subscriptions gracefully.
+
+## Fixes
+
+- Fix blank article cards, Atom entries without links, FreshRSS URL normalization, sync/query edge cases, and a crash when opening Add Feed.
+
+# v2.2.18
+
+This release adds a true black theme and improves article state handling.
+
+## Changes
+
+- Add a true black theme.
+- Keep read articles visible in Favorites when the unread-only filter is enabled.
+- Make Undo restore the unread state reliably.
+- Simplify folder/feed queries and add regression tests.
+
+# v2.2.17
+
+This release improves image captions and pull-to-refresh, and fixes a startup crash.
+
+## Changes
+
+- Show image title text below article images, using alt text when needed.
+- Add a monochrome adaptive launcher icon for themed icons.
+
+## Fixes
+
+- Fix pull-to-refresh when the feed list is shorter than the screen.
+- Fix an app startup crash caused by a missing Compose icons dependency.
+
+# v2.2.16
+
+This release improves feed parsing, FreshRSS behavior, and release identity.
+
+## Changes
+
+- Improve RSS and Atom parsing for feeds with nonstandard XML encodings.
+- Update the app identity to Droidrops and modernize the optimized Android release build.
+
+## Fixes
+
+- Fix FreshRSS subscription reconciliation and timeline search typing.
+
+# v2.2.15
+
+This release improves article links and feed behavior.
+
+## Changes
+
+- Respect per-feed external browser settings.
+- Support Atom entries with an ID and content but no article link.
+
+## Fixes
+
+- Prevent duplicate timeline articles when accounts share item IDs.
+
+# v2.2.14
+
+This release fixes importing RSS 1.0 feeds from OPML when the feed URL differs from the website URL.
+
 # v2.2.13
 
 This release fixes subscriptions imported from RSS 1.0 feeds.
