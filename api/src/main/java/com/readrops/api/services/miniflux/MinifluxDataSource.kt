@@ -12,6 +12,8 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.time.LocalDateTime
 import java.time.OffsetDateTime
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 class MinifluxDataSource(private val service: MinifluxService) {
 
@@ -95,9 +97,20 @@ class MinifluxDataSource(private val service: MinifluxService) {
                 remoteId = value.optLong("id").takeIf { it > 0 }?.toString(),
                 remoteFolderId = category?.optLong("id")
                     ?.takeIf { it > 0 }
+                    ?.toString(),
+                remoteIconId = value.optJSONObject("icon")
+                    ?.optLong("icon_id")
+                    ?.takeIf { it > 0 }
                     ?.toString()
             )
         }
+    }
+
+    @OptIn(ExperimentalEncodingApi::class)
+    suspend fun getFeedIcon(iconId: Long): ByteArray? = service.getIcon(iconId).use { response ->
+        val data = JSONObject(response.string()).optString("data")
+        val encodedImage = data.substringAfter("base64,", missingDelimiterValue = "")
+        encodedImage.takeIf(String::isNotBlank)?.let(Base64::decode)
     }
 
     suspend fun getFolders(): List<Folder> = service.getCategories().use { response ->

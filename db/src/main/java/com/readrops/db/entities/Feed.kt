@@ -52,6 +52,7 @@ data class Feed(
     @ColumnInfo(name = "open_in_ask", defaultValue = "1") var openInAsk: Boolean = true,
     @Ignore var unreadCount: Int = 0,
     @Ignore var remoteFolderId: String? = null,
+    @Ignore var remoteIconId: String? = null,
 ) : Serializable {
 
     /**

@@ -1,9 +1,12 @@
 package com.readrops.app.repositories
 
+import android.content.Context
 import android.os.SystemClock
 import android.util.Log
+import coil3.imageLoader
 import com.readrops.api.services.Credentials
 import com.readrops.api.services.SyncType
+import com.readrops.api.services.fever.adapters.Favicon
 import com.readrops.api.services.miniflux.MinifluxDataSource
 import com.readrops.api.utils.AuthInterceptor
 import com.readrops.app.util.Preferences
@@ -17,6 +20,10 @@ import com.readrops.db.entities.ItemState
 import com.readrops.db.entities.account.Account
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import org.koin.core.component.KoinComponent
@@ -107,9 +114,11 @@ class MinifluxRepository(
         diagnosticLog.info(DIAGNOSTIC_TAG, "Saving downloaded data to the local database")
         val newFeeds: List<Feed>
         val newItems: List<Item>
+        val favicons: Map<Feed, Favicon>
         try {
             insertFolders(result.folders)
             newFeeds = insertFeeds(result.feeds)
+            favicons = loadMinifluxFavicons(result.feeds, diagnosticLog)
             newItems = insertItems(result.items)
 
             val nextLastModified = if (syncType == SyncType.INITIAL_SYNC) {
@@ -147,6 +156,7 @@ class MinifluxRepository(
         return SyncResult(
             items = newItems,
             feeds = newFeeds,
+            favicons = favicons,
             continueSync = account.syncCursor != null
         )
     }
@@ -214,6 +224,58 @@ class MinifluxRepository(
     private suspend fun insertFolders(folders: List<Folder>) {
         folders.forEach { it.accountId = account.id }
         database.folderDao().upsertFolders(folders, account)
+    }
+
+    private suspend fun loadMinifluxFavicons(
+        remoteFeeds: List<Feed>,
+        diagnosticLog: DiagnosticLog
+    ): Map<Feed, Favicon> = coroutineScope {
+        val localFeedsByRemoteId = database.feedDao().selectFeeds(account.id)
+            .associateBy { it.remoteId }
+        val diskCache = get<Context>().imageLoader.diskCache!!
+        val feedsNeedingIcons = remoteFeeds.mapNotNull { remoteFeed ->
+            val localFeed = localFeedsByRemoteId[remoteFeed.remoteId] ?: return@mapNotNull null
+            val iconId = remoteFeed.remoteIconId?.toLongOrNull() ?: return@mapNotNull null
+            val iconIsCached = localFeed.iconUrl?.let { cachedIconKey ->
+                diskCache.openSnapshot(cachedIconKey)?.use { true } ?: false
+            } ?: false
+            if (iconIsCached) return@mapNotNull null
+            iconId to localFeed
+        }
+        val feedIdsByIconId = feedsNeedingIcons.groupBy({ it.first }, { it.second })
+        val iconsById = mutableMapOf<Long, Favicon>()
+
+        diagnosticLog.info(
+            DIAGNOSTIC_TAG,
+            "Loading Miniflux favicons for ${feedIdsByIconId.size} unique icons across ${feedsNeedingIcons.size} feeds"
+        )
+
+        feedIdsByIconId.keys.toList().chunked(MAX_PARALLEL_ICON_REQUESTS).forEach { iconIds ->
+            iconIds.map { iconId ->
+                async {
+                    try {
+                        dataSource.getFeedIcon(iconId)?.let { iconId to Favicon(iconId.toInt(), it) }
+                    } catch (cancellation: CancellationException) {
+                        throw cancellation
+                    } catch (exception: Exception) {
+                        diagnosticLog.warning(
+                            DIAGNOSTIC_TAG,
+                            "Unable to load Miniflux favicon $iconId",
+                            exception
+                        )
+                        null
+                    }
+                }
+            }.awaitAll().filterNotNull().forEach { (iconId, favicon) ->
+                iconsById[iconId] = favicon
+            }
+        }
+
+        feedsNeedingIcons.mapNotNull { (iconId, feed) ->
+            iconsById[iconId]?.let { feed to it }
+        }.toMap().also { loaded ->
+            diagnosticLog.info(DIAGNOSTIC_TAG, "Loaded ${loaded.size} Miniflux favicons")
+        }
     }
 
     private suspend fun insertFeeds(feeds: List<Feed>): List<Feed> {
@@ -285,5 +347,6 @@ class MinifluxRepository(
         private val TAG = MinifluxRepository::class.java.simpleName
         private const val DIAGNOSTIC_TAG = "Miniflux"
         private const val SQLITE_MAX_VARIABLES = 900
+        private const val MAX_PARALLEL_ICON_REQUESTS = 5
     }
 }

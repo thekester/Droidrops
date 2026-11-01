@@ -239,6 +239,10 @@ class Synchronizer(
                             } catch (e: Exception) {
                                 Log.e(TAG, "${feed.name}: ${e.message}")
                             }
+                        } else {
+                            // The image may already be cached (for example after a retry or
+                            // another sync), but the feed row can still be missing its cache key.
+                            database.feedDao().updateFeedIconUrl(feed.id, key)
                         }
 
                         snapshot?.close()

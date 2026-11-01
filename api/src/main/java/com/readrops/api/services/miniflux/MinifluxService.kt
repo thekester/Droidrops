@@ -20,6 +20,9 @@ interface MinifluxService {
     @GET("feeds")
     suspend fun getFeeds(): ResponseBody
 
+    @GET("icons/{iconId}")
+    suspend fun getIcon(@Path("iconId") iconId: Long): ResponseBody
+
     @GET("entries")
     suspend fun getEntries(
         @Query("status") status: String? = null,

@@ -1,0 +1,2 @@
+- Restore Miniflux feed favicons, including after the image cache is cleared.
+- Fix articles getting stuck on a loading spinner when opened from the timeline.

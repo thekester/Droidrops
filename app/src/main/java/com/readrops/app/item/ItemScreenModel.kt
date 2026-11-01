@@ -43,12 +43,14 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -84,8 +86,8 @@ class ItemScreenModel(
     private val useStateChanges = itemIndex > -1 && (queryFilters.mainFilter != MainFilter.ALL
             || !queryFilters.showReadItems)
 
-    private val _itemState: MutableStateFlow<PagingData<ItemWithFeed>> =
-        MutableStateFlow(
+    private val activeItemFlow = MutableStateFlow<Flow<PagingData<ItemWithFeed>>>(
+        flowOf(
             PagingData.empty(
                 sourceLoadStates = LoadStates(
                     refresh = LoadState.Loading,
@@ -94,10 +96,12 @@ class ItemScreenModel(
                 )
             )
         )
+    )
 
-    // based type is Flow because with StateFlow when coming back from process death, pager doesn't resume
-    // it might be due to stateIn() overlapping cachedIn(), but not sure
-    var itemState: Flow<PagingData<ItemWithFeed>> = _itemState.asStateFlow()
+    // Keep one stable Flow for Compose to collect while switching from the initial placeholder
+    // to the account-backed pager once the current account has been loaded.
+    @OptIn(ExperimentalCoroutinesApi::class)
+    val itemState: Flow<PagingData<ItemWithFeed>> = activeItemFlow.flatMapLatest { it }
 
     init {
         screenModelScope.launch(dispatcher) {
@@ -119,17 +123,15 @@ class ItemScreenModel(
                     if (itemIndex > -1) {
                         val currentItemIndex = findCurrentItemIndex(account.config.useSeparateState)
                         mutableState.update { it.copy(initialPage = currentItemIndex) }
-                        itemState = buildPager(currentItemIndex)
+                        activeItemFlow.value = buildPager(currentItemIndex)
                     } else {
                         val query = ItemSelectionQueryBuilder.buildQuery(
                             itemId = itemId,
                             separateState = account.config.useSeparateState
                         )
 
-                        database.itemDao().selectItemById(query)
-                            .collect { itemWithFeed ->
-                                _itemState.update { PagingData.from(listOf(itemWithFeed)) }
-                            }
+                        activeItemFlow.value = database.itemDao().selectItemById(query)
+                            .map { itemWithFeed -> PagingData.from(listOf(itemWithFeed)) }
                     }
                 }
         }

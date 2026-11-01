@@ -64,4 +64,5 @@ dependencies {
     testImplementation(libs.coroutines.test)
     testImplementation(libs.bundles.kointest)
     testImplementation(libs.okhttp.mockserver)
+    testImplementation("org.json:json:20240303")
 }

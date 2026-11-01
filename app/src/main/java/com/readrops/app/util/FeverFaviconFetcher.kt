@@ -1,6 +1,5 @@
 package com.readrops.app.util
 
-import android.util.Patterns
 import coil3.ImageLoader
 import coil3.decode.DataSource
 import coil3.decode.ImageSource
@@ -27,7 +26,8 @@ class FeverFaviconFetcher(
     override suspend fun fetch(): FetchResult? {
         return when {
             data.faviconUrl == null -> null
-            Patterns.WEB_URL.matcher(data.faviconUrl).matches() -> httpLoader()
+            data.faviconUrl.startsWith("http://", ignoreCase = true) ||
+                data.faviconUrl.startsWith("https://", ignoreCase = true) -> httpLoader()
             else -> fileLoader()
         }
     }

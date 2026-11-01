@@ -1,3 +1,12 @@
+# v2.2.34
+
+This release fixes Miniflux feed icons and a reader loading issue.
+
+## Fixes
+
+- Load and display Miniflux feed favicons, including when Android has cleared the image cache.
+- Fix the article reader remaining on a loading spinner when opened from the timeline.
+
 # v2.2.13
 
 This release fixes subscriptions imported from RSS 1.0 feeds.

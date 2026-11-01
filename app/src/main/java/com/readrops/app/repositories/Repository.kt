@@ -14,7 +14,7 @@ typealias ErrorResult = HashMap<Feed, Exception>
 data class SyncResult(
     val items: List<Item> = listOf(),
     val feeds: List<Feed> = listOf(),
-    val favicons: Map<Feed, Favicon> = emptyMap(), // only for Fever
+    val favicons: Map<Feed, Favicon> = emptyMap(), // Fever and Miniflux
     val continueSync: Boolean = false
 )
 
