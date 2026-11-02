@@ -1,3 +1,22 @@
+# v2.2.36
+
+This release adds step-by-step feed URL diagnostics to help identify whether a connection problem comes from the address, network, server, authentication, TLS certificate, or feed response.
+
+## Changes
+
+- Check a feed address and explain each connection step in plain language.
+- Discover RSS and Atom feed addresses on a website and suggest nearby feed URLs.
+- Explain authentication and TLS certificate problems, with safe troubleshooting guidance.
+- Include privacy-safe technical details that users can copy into a bug report.
+
+# v2.2.35
+
+This release reduces memory use when restoring the timeline.
+
+## Changes
+
+- Keep timeline previews lightweight and load full article content only when needed.
+
 # v2.2.34
 
 This release fixes Miniflux feed icons and a reader loading issue.

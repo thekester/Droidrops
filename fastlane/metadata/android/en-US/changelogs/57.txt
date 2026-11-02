@@ -1,0 +1,3 @@
+- Diagnose feed addresses step by step, including network, server, authentication, and TLS issues.
+- Find RSS and Atom feeds on websites and suggest working feed addresses.
+- Show safe troubleshooting guidance and copyable diagnostic details.

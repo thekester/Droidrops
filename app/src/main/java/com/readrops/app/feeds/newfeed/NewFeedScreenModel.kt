@@ -5,6 +5,8 @@ import android.content.SharedPreferences
 import cafe.adriel.voyager.core.model.StateScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.readrops.api.localfeed.LocalRSSDataSource
+import com.readrops.api.localfeed.FeedUrlChecker
+import com.readrops.api.localfeed.FeedUrlCheckResult
 import com.readrops.api.services.Credentials
 import com.readrops.api.utils.ApiUtils
 import com.readrops.api.utils.AuthInterceptor
@@ -31,6 +33,7 @@ import org.koin.core.component.get
 import org.koin.core.parameter.parametersOf
 import com.readrops.app.util.extensions.isValidFeedUrl
 import okhttp3.Headers
+import okhttp3.OkHttpClient
 
 class NewFeedScreenModel(
     private val database: Database,
@@ -154,10 +157,41 @@ class NewFeedScreenModel(
         }
     }
 
+    fun diagnoseUrl() {
+        val url = mutableState.value.actualUrl
+        if (url.isBlank() || !url.isValidFeedUrl()) {
+            mutableState.update { it.copy(urlError = if (url.isBlank()) TextFieldError.EmptyField else TextFieldError.BadUrl) }
+            return
+        }
+
+        screenModelScope.launch(dispatcher) {
+            mutableState.update { it.copy(isDiagnosing = true, feedUrlCheck = null) }
+            val result = FeedUrlChecker(get<OkHttpClient>()).check(url.withScheme(), authHeaders())
+            get<DiagnosticLog>().info(
+                "Feed check",
+                "Feed URL check: ${result.status}; HTTP ${result.httpCode ?: "none"}; " +
+                        "content-type=${result.contentType.ifBlank { "unknown" }}; " +
+                        "DNS addresses=${result.resolvedAddresses.size}; discovered feeds=${result.discoveredFeeds.size}; " +
+                        "nearby feeds=${result.nearbyFeeds.size}; TLS=${result.tlsProblem ?: "none"}; " +
+                        "plain HTTP=${result.plainHttpAvailable}; allow=${result.allowedMethods ?: "none"}; " +
+                        "auth scheme=${result.authScheme ?: "none"}; credentials sent=${result.credentialsSent}; " +
+                        "${result.durationMs} ms"
+            )
+            mutableState.update { it.copy(isDiagnosing = false, feedUrlCheck = result) }
+        }
+    }
+
+    /** Offered only after the check found a plain HTTP server on the port the user typed. */
+    fun switchToPlainHttp() {
+        val url = mutableState.value.actualUrl.withScheme().replaceFirst(Regex("^https://", RegexOption.IGNORE_CASE), "http://")
+        mutableState.update { it.copy(url = url, urlError = null, feedUrlCheck = null) }
+        diagnoseUrl()
+    }
+
     // the field invites pasting a bare website address, so give it a scheme
     // before parsing: OkHttp rejects a schemeless url
     private fun String.withScheme(): String =
-        if (startsWith("http://") || startsWith("https://")) this else "https://$this"
+        if (startsWith("http://", ignoreCase = true) || startsWith("https://", ignoreCase = true)) this else "https://$this"
 
     /**
      * Some feeds sit behind HTTP authentication. The credentials typed on this screen are used
@@ -207,8 +241,11 @@ class NewFeedScreenModel(
                     val rssUrls = HtmlParser.getFeedLink(url, get(), headers)
 
                     when {
-                        rssUrls.isEmpty() -> mutableState.update {
-                            it.copy(urlError = TextFieldError.NoRSSFeed, isLoading = false)
+                        rssUrls.isEmpty() -> {
+                            mutableState.update {
+                                it.copy(urlError = TextFieldError.NoRSSFeed, isLoading = false)
+                            }
+                            diagnoseUrl()
                         }
 
                         rssUrls.size == 1 -> insertFeeds(
@@ -250,6 +287,8 @@ class NewFeedScreenModel(
                         isLoading = false
                     )
                 }
+                // the generic error rarely says what to do; the check explains it step by step
+                diagnoseUrl()
             }
         }
     }
@@ -308,7 +347,13 @@ class NewFeedScreenModel(
         }
     }
 
-    fun updateUrl(url: String) = mutableState.update { it.copy(url = url, urlError = null) }
+    fun updateUrl(url: String) = mutableState.update { it.copy(url = url, urlError = null, feedUrlCheck = null) }
+
+    fun useDiscoveredFeed(url: String) {
+        mutableState.update { it.copy(url = url, urlError = null, feedUrlCheck = null, isManualEntryExpanded = true) }
+        // confirms the suggestion right away, so the next step is simply to add it
+        diagnoseUrl()
+    }
 
     fun updateDirectorySearch(query: String) = mutableState.update { it.copy(directorySearch = query) }
 
@@ -426,6 +471,8 @@ data class State(
     val urlError: TextFieldError? = null,
     val error: String? = null,
     val isLoading: Boolean = false,
+    val isDiagnosing: Boolean = false,
+    val feedUrlCheck: FeedUrlCheckResult? = null,
     val popScreen: Boolean = false,
     val login: String = "",
     val password: String = "",

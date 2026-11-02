@@ -27,7 +27,9 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -37,8 +39,11 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberTopAppBarState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -72,6 +77,7 @@ class NewFeedScreen(val url: String? = null) : AndroidScreen() {
         val screenModel = koinScreenModel<NewFeedScreenModel> { parametersOf(url) }
         val appBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(rememberTopAppBarState())
         val state by screenModel.state.collectAsStateWithLifecycle()
+        val loginFocusRequester = remember { FocusRequester() }
         if (state.popScreen) navigator.pop()
 
         Scaffold(topBar = {
@@ -193,10 +199,39 @@ class NewFeedScreen(val url: String? = null) : AndroidScreen() {
                         supportingText = { Text(state.urlError?.errorText() ?: stringResource(R.string.enter_url_helper)) },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    OutlinedButton(
+                        onClick = screenModel::diagnoseUrl,
+                        enabled = !state.isDiagnosing,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Search, contentDescription = null)
+                        Spacer(Modifier.width(MaterialTheme.spacing.shortSpacing))
+                        Text(stringResource(if (state.isDiagnosing) R.string.diagnosing_feed_url else R.string.diagnose_feed_url))
+                    }
+                    if (state.isDiagnosing) {
+                        LinearProgressIndicator(modifier = Modifier.fillMaxWidth().padding(vertical = MaterialTheme.spacing.shortSpacing))
+                    } else if (state.feedUrlCheck == null) {
+                        Text(
+                            stringResource(R.string.diagnose_feed_url_helper),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(vertical = MaterialTheme.spacing.veryShortSpacing)
+                        )
+                    }
+                    state.feedUrlCheck?.let { result ->
+                        FeedUrlCheckCard(
+                            result = result,
+                            onUseFeed = screenModel::useDiscoveredFeed,
+                            onAddFeed = screenModel::validate,
+                            onEnterCredentials = { loginFocusRequester.requestFocus() },
+                            onSwitchToPlainHttp = screenModel::switchToPlainHttp,
+                            onRetry = screenModel::diagnoseUrl,
+                        )
+                    }
                     ShortSpacer()
                     TextHorizontalDivider(text = stringResource(R.string.feed_authentication))
                     ShortSpacer()
-                    OutlinedTextField(value = state.login, onValueChange = screenModel::updateLogin, label = { Text(stringResource(R.string.feed_login)) }, singleLine = true, modifier = Modifier.fillMaxWidth())
+                    OutlinedTextField(value = state.login, onValueChange = screenModel::updateLogin, label = { Text(stringResource(R.string.feed_login)) }, singleLine = true, modifier = Modifier.fillMaxWidth().focusRequester(loginFocusRequester))
                     ShortSpacer()
                     OutlinedTextField(
                         value = state.password,
