@@ -1,3 +1,12 @@
+# v2.2.37
+
+This release makes it easier to browse images in articles.
+
+## Changes
+
+- Open all article images in one gallery and swipe between them.
+- Keep image zoom and rotation available in the gallery.
+
 # v2.2.36
 
 This release adds step-by-step feed URL diagnostics to help identify whether a connection problem comes from the address, network, server, authentication, TLS certificate, or feed response.

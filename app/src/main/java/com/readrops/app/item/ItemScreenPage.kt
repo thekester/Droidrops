@@ -51,7 +51,7 @@ fun ItemScreenPage(
     onShareSelectedText: (String) -> Unit,
     onSetReadState: (Boolean) -> Unit,
     onSetStarState: (Boolean) -> Unit,
-    onOpenImageViewer: (String) -> Unit,
+    onOpenImageViewer: (List<String>, String) -> Unit,
     onOpenImageDialog: (String) -> Unit,
     onOpenLinkDialog: (String) -> Unit,
     onPop: () -> Unit,
@@ -138,7 +138,9 @@ fun ItemScreenPage(
                             isScrollable = viewHeight - contentHeight < 0
                         },
                         onUrlClick = { url -> onOpenUrl(url) },
-                        onImageClick = { url -> onOpenImageViewer(url) },
+                        onImageClick = { imageUrls, selectedUrl ->
+                            onOpenImageViewer(imageUrls, selectedUrl)
+                        },
                         onImageLongPress = { url -> onOpenImageDialog(url) },
                         onLinkLongPress = { url -> onOpenLinkDialog(url) },
                         onShareSelectedText = onShareSelectedText

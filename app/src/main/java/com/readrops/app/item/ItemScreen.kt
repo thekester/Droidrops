@@ -80,7 +80,7 @@ class ItemScreen(
         val snackbarHostState = remember { SnackbarHostState() }
         val coroutineScope = rememberCoroutineScope()
         val linkAccentColor = MaterialTheme.colorScheme.primary
-        var imageViewerUrl by remember { mutableStateOf<String?>(null) }
+        var imageViewerRequest by remember { mutableStateOf<Pair<List<String>, String>?>(null) }
         var linkDialogUrl by remember { mutableStateOf<String?>(null) }
         var pendingDownloadUrl by remember { mutableStateOf<String?>(null) }
         val downloadPermissionLauncher = rememberLauncherForActivityResult(
@@ -105,10 +105,11 @@ class ItemScreen(
             }
         }
 
-        imageViewerUrl?.let { url ->
+        imageViewerRequest?.let { (imageUrls, selectedUrl) ->
             ItemImageViewerDialog(
-                imageUrl = url,
-                onDismiss = { imageViewerUrl = null }
+                imageUrls = imageUrls,
+                initialImageUrl = selectedUrl,
+                onDismiss = { imageViewerRequest = null }
             )
         }
 
@@ -282,7 +283,9 @@ class ItemScreen(
                             onSetStarState = { screenModel.setItemStarState(item) },
                             fullContent = state.fullContents[item.id],
                             onToggleFullContent = { screenModel.toggleFullContent(item, context) },
-                            onOpenImageViewer = { imageViewerUrl = it },
+                            onOpenImageViewer = { imageUrls, selectedUrl ->
+                                imageViewerRequest = imageUrls to selectedUrl
+                            },
                             onOpenImageDialog = { screenModel.openImageDialog(it) },
                             onOpenLinkDialog = { linkDialogUrl = it },
                             onPop = close,

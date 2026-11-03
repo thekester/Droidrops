@@ -34,7 +34,7 @@ import java.util.Locale
 class ItemWebView(
     context: Context,
     private val onUrlClick: (String) -> Unit,
-    private val onImageClick: (String) -> Unit,
+    private val onImageClick: (List<String>, String) -> Unit,
     onImageLongPress: (String) -> Unit,
     private val onLinkLongPress: (String) -> Unit,
     private val onShareSelectedText: (String) -> Unit,
@@ -145,7 +145,18 @@ class ItemWebView(
         if (uri.scheme == IMAGE_VIEWER_SCHEME && uri.host == IMAGE_VIEWER_HOST) {
             val imageUrl = uri.getQueryParameter(IMAGE_VIEWER_QUERY)
             if (imageUrl?.let { Uri.parse(it).scheme in setOf("http", "https") } == true) {
-                onImageClick(imageUrl)
+                val images = runCatching {
+                    val json = org.json.JSONArray(uri.getQueryParameter(IMAGE_VIEWER_IMAGES).orEmpty())
+                    buildList {
+                        for (index in 0 until json.length()) {
+                            val candidate = json.optString(index)
+                            if (Uri.parse(candidate).scheme in setOf("http", "https") && candidate !in this) {
+                                add(candidate)
+                            }
+                        }
+                    }
+                }.getOrDefault(emptyList())
+                onImageClick((images + imageUrl).distinct(), imageUrl)
             }
         } else {
             onUrlClick(url)
@@ -280,7 +291,9 @@ class ItemWebView(
                 "onclick",
                 "event.preventDefault(); event.stopPropagation(); " +
                     "window.location.href='$IMAGE_VIEWER_URI?url=' + " +
-                    "encodeURIComponent(this.currentSrc || this.src); return false;"
+                    "encodeURIComponent(this.currentSrc || this.src) + '&images=' + " +
+                    "encodeURIComponent(JSON.stringify(Array.from(document.images, image => image.currentSrc || image.src))); " +
+                    "return false;"
             )
             image.attr("style", (image.attr("style") + ";cursor:zoom-in").trimStart(';'))
         }
@@ -295,6 +308,7 @@ class ItemWebView(
         private const val IMAGE_VIEWER_SCHEME = "droidrops-image"
         private const val IMAGE_VIEWER_HOST = "open"
         private const val IMAGE_VIEWER_QUERY = "url"
+        private const val IMAGE_VIEWER_IMAGES = "images"
         private const val SHARE_SELECTION_ACTION_ID = 0xD701
         private const val IMAGE_VIEWER_URI = "$IMAGE_VIEWER_SCHEME://$IMAGE_VIEWER_HOST"
 

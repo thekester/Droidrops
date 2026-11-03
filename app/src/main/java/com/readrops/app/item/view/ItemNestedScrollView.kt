@@ -18,7 +18,7 @@ class ItemNestedScrollView(
     useBackgroundTitle: Boolean,
     onGlobalLayoutListener: (viewHeight: Int, contentHeight: Int) -> Unit,
     onUrlClick: (String) -> Unit,
-    onImageClick: (String) -> Unit,
+    onImageClick: (List<String>, String) -> Unit,
     onImageLongPress: (String) -> Unit,
     onLinkLongPress: (String) -> Unit,
     onShareSelectedText: (String) -> Unit,

@@ -1,0 +1,2 @@
+- Browse every image in an article from one viewer by swiping between images.
+- Zoom and rotate images while browsing the gallery.
