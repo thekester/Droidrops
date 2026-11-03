@@ -20,7 +20,7 @@ class ItemWebViewZoomTest {
             val webView = ItemWebView(
                 context = context,
                 onUrlClick = {},
-                onImageClick = {},
+                onImageClick = { _, _ -> },
                 onImageLongPress = {},
                 onLinkLongPress = {},
                 onShareSelectedText = {},
