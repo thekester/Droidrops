@@ -1,3 +1,12 @@
+# v2.2.38
+
+This release fixes a crash that could occur when changing an article's read or favourite state while the timeline or reader was updating. It also reduces memory use when loading article images and feed icons.
+
+## Fixes
+
+- Safely handle temporary empty Paging snapshots while opening articles, marking them as read, or toggling favourites.
+- Decode feed icons and article images at bounded sizes to reduce memory pressure.
+
 # v2.2.37
 
 This release makes it easier to browse images in articles.

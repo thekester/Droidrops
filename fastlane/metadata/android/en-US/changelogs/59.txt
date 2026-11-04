@@ -1,0 +1,2 @@
+- Prevent a crash when changing article read or favourite state during Paging updates.
+- Reduce memory use when loading large article images and feed icons.

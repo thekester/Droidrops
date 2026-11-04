@@ -35,16 +35,23 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.input.pointer.PointerEventPass
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import coil3.compose.rememberConstraintsSizeResolver
 import coil3.compose.rememberAsyncImagePainter
+import coil3.request.ImageRequest
+import coil3.size.Size
+import coil3.size.SizeResolver
+import coil3.size.pxOrElse
 import com.readrops.app.R
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.math.roundToInt
 import kotlin.math.sqrt
 
 @Composable
@@ -120,7 +127,16 @@ private fun ZoomableArticleImage(
     var scale by remember(imageUrl) { mutableFloatStateOf(1f) }
     var offset by remember(imageUrl) { mutableStateOf(Offset.Zero) }
     var viewport by remember(imageUrl) { mutableStateOf(IntSize.Zero) }
-    val painter = rememberAsyncImagePainter(imageUrl)
+    val constraintsSizeResolver = rememberConstraintsSizeResolver()
+    val zoomSizeResolver = remember(constraintsSizeResolver) {
+        ZoomableImageSizeResolver(constraintsSizeResolver)
+    }
+    val painter = rememberAsyncImagePainter(
+        model = ImageRequest.Builder(LocalContext.current)
+            .data(imageUrl)
+            .size(zoomSizeResolver)
+            .build()
+    )
     val imageSize = painter.intrinsicSize
     val rotatedImageSize = if (rotationDegrees % 180f == 0f) imageSize
     else androidx.compose.ui.geometry.Size(imageSize.height, imageSize.width)
@@ -200,7 +216,7 @@ private fun ZoomableArticleImage(
             painter = painter,
             contentDescription = stringResource(R.string.article_image),
             contentScale = ContentScale.Fit,
-            modifier = imageModifier.graphicsLayer {
+            modifier = imageModifier.then(constraintsSizeResolver).graphicsLayer {
                 transformOrigin = TransformOrigin.Center
                 scaleX = scale
                 scaleY = scale
@@ -209,6 +225,31 @@ private fun ZoomableArticleImage(
                 translationY = offset.y
             }
         )
+    }
+}
+
+/** Decode at 1.5x the displayed area for useful pinch zoom without retaining huge source bitmaps. */
+private class ZoomableImageSizeResolver(
+    private val constraintsSizeResolver: SizeResolver
+) : SizeResolver {
+    override suspend fun size(): Size {
+        val viewportSize = constraintsSizeResolver.size()
+        val width = viewportSize.width.pxOrElse { MAX_DECODED_IMAGE_SIDE }
+        val height = viewportSize.height.pxOrElse { MAX_DECODED_IMAGE_SIDE }
+        val multiplier = min(
+            ZOOM_IMAGE_RESOLUTION_MULTIPLIER,
+            MAX_DECODED_IMAGE_SIDE / max(width, height).toFloat()
+        )
+
+        return Size(
+            width = (width * multiplier).roundToInt().coerceAtLeast(1),
+            height = (height * multiplier).roundToInt().coerceAtLeast(1)
+        )
+    }
+
+    private companion object {
+        const val ZOOM_IMAGE_RESOLUTION_MULTIPLIER = 1.5f
+        const val MAX_DECODED_IMAGE_SIDE = 3072
     }
 }
 

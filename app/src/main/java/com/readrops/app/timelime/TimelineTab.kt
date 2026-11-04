@@ -292,7 +292,8 @@ object TimelineTab : Tab {
             } ?: -1
             val target = if (current == -1) 0 else current + step
             if (target !in 0 until count) return@KeyboardShortcutHandler false
-            val itemWithFeed = items[target] ?: return@KeyboardShortcutHandler false
+            val itemWithFeed = items.itemSnapshotList.getOrNull(target)
+                ?: return@KeyboardShortcutHandler false
 
             // the list follows through the "keep in view" effect, once its reload settled
             openItem(itemWithFeed, target)
@@ -578,7 +579,7 @@ object TimelineTab : Tab {
                                                 count = items.itemCount,
                                                 key = items.itemKey { it.item.id },
                                             ) { index ->
-                                                val itemWithFeed = items[index]
+                                                val itemWithFeed = items.itemSnapshotList.getOrNull(index)
 
                                                 if (itemWithFeed != null) {
                                                     val itemForDisplay = itemWithFeed
@@ -815,15 +816,16 @@ object TimelineTab : Tab {
                     if (newLastFirstVisibleItemIndex - lastFirstVisibleItemIndex > 1) {
                         val difference = newLastFirstVisibleItemIndex - lastFirstVisibleItemIndex
 
+                        val snapshot = items.itemSnapshotList
                         for (subCount in 0 until difference) {
-                            val item = items[lastFirstVisibleItemIndex + subCount]?.item
+                            val item = snapshot.getOrNull(lastFirstVisibleItemIndex + subCount)?.item
 
                             if (item != null && !item.isRead && markReadOnScroll) {
                                 screenModel.setItemRead(item)
                             }
                         }
                     } else {
-                        val item = items[lastFirstVisibleItemIndex]?.item
+                        val item = items.itemSnapshotList.getOrNull(lastFirstVisibleItemIndex)?.item
 
                         if (item != null && !item.isRead && markReadOnScroll) {
                             screenModel.setItemRead(item)

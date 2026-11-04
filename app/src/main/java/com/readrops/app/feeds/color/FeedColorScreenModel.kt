@@ -33,6 +33,7 @@ class FeedColorScreenModel(
             val bitmap = imageLoader.execute(
                 ImageRequest.Builder(context)
                     .data(feed.iconUrl)
+                    .size(128, 128)
                     .allowHardware(false)
                     .build()
             ).image?.toBitmap()

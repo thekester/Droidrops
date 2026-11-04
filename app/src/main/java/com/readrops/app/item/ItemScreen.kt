@@ -195,17 +195,19 @@ class ItemScreen(
                     snapshotFlow { pagerState.currentPage }
                         .distinctUntilChanged { old, new -> old == new }
                         .collect { pageIndex ->
-                            if (items.isNotEmpty()) {
-                                items[pageIndex]?.let {
-                                    screenModel.setItemRead(it)
-                                }
+                            // Paging can temporarily publish an empty snapshot when a state
+                            // change invalidates the source (for example, toggling a favorite).
+                            // Read from one immutable snapshot so a stale pager page cannot race
+                            // the updated itemCount and throw IndexOutOfBoundsException.
+                            items.itemSnapshotList.getOrNull(pageIndex)?.let {
+                                screenModel.setItemRead(it)
                             }
                         }
                 }
 
                 KeyboardShortcutHandler { shortcut ->
                     val page = pagerState.currentPage
-                    val itemWithFeed = (if (page < items.itemCount) items.peek(page) else null)
+                    val itemWithFeed = items.itemSnapshotList.getOrNull(page)
                         ?: return@KeyboardShortcutHandler false
                     val item = itemWithFeed.item
 
@@ -243,7 +245,10 @@ class ItemScreen(
                     beyondViewportPageCount = 2,
                     key = items.itemKey { it.item.id }
                 ) { page ->
-                    val itemWithFeed = items[page]
+                    // The pager may still compose its current page while Paging replaces the
+                    // snapshot after a read/favorite state change. Avoid indexing a newer,
+                    // temporarily empty snapshot with that stale page number.
+                    val itemWithFeed = items.itemSnapshotList.getOrNull(page)
 
                     if (itemWithFeed != null) {
                         val accentColor = if (itemWithFeed.color != 0) {

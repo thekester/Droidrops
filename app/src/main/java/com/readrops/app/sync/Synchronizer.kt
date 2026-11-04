@@ -2,7 +2,6 @@ package com.readrops.app.sync
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.graphics.BitmapFactory
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.Builder
@@ -229,13 +228,8 @@ class Synchronizer(
                                 }
 
                                 database.feedDao().updateFeedIconUrl(feed.id, key)
-                                val bitmap =
-                                    BitmapFactory.decodeByteArray(favicon.data, 0, favicon.data.size)
-
-                                if (bitmap != null) {
-                                    val color = FeedColors.getFeedColor(bitmap)
-                                    database.feedDao().updateFeedColor(feed.id, color)
-                                }
+                                val color = FeedColors.getFeedColor(favicon.data)
+                                database.feedDao().updateFeedColor(feed.id, color)
                             } catch (e: Exception) {
                                 Log.e(TAG, "${feed.name}: ${e.message}")
                             }
