@@ -1,0 +1,2 @@
+Add Feedbin account support with API token authentication and synchronization.
+Add DecSync accounts and synchronize local feeds through a selected folder.

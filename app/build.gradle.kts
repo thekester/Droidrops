@@ -44,8 +44,8 @@ android {
     defaultConfig {
         applicationId = "com.droidrops.app"
 
-        versionCode = 59
-        versionName = "2.2.38"
+        versionCode = 60
+        versionName = "2.2.39"
 
         testInstrumentationRunner = "com.readrops.app.ReadropsTestRunner"
     }
@@ -128,6 +128,8 @@ android {
 }
 
 dependencies {
+    implementation(libs.decsync)
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.4.0")
     implementation(project(":api"))
     implementation(project(":db"))
 

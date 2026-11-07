@@ -30,6 +30,8 @@ import com.readrops.app.more.cleanup.ArticleCleanupScreenModel
 import com.readrops.app.notifications.NotificationsScreenModel
 import com.readrops.app.repositories.BaseRepository
 import com.readrops.app.repositories.FeverRepository
+import com.readrops.app.repositories.FeedbinRepository
+import com.readrops.app.repositories.DecsyncRepository
 import com.readrops.app.repositories.GReaderRepository
 import com.readrops.app.repositories.GetFoldersWithFeeds
 import com.readrops.app.repositories.LocalRSSRepository
@@ -114,6 +116,16 @@ val appModule = module {
                 database = get(),
                 account = account,
                 dataSource = get(parameters = { parametersOf(Credentials.toCredentials(account)) })
+            )
+
+            AccountType.FEEDBIN -> FeedbinRepository(
+                database = get(), account = account,
+                dataSource = get(parameters = { parametersOf(Credentials.toCredentials(account)) })
+            )
+
+            AccountType.DECSYNC -> DecsyncRepository(
+                database = get(), account = account, dataSource = get(),
+                preferences = get(), context = androidContext()
             )
 
             AccountType.FEVER -> FeverRepository(

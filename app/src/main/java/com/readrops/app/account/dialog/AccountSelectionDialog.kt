@@ -37,6 +37,8 @@ fun AccountSelectionDialog(
                 AccountType.NEXTCLOUD_NEWS,
                 AccountType.FRESHRSS,
                 AccountType.MINIFLUX,
+                AccountType.FEEDBIN,
+                AccountType.DECSYNC,
                 AccountType.FEVER,
                 AccountType.GREADER
             )

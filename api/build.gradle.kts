@@ -59,6 +59,7 @@ dependencies {
 
     implementation(libs.moshi)
     implementation(libs.jsoup)
+    implementation(libs.decsync)
 
     testImplementation(libs.junit4)
     testImplementation(libs.coroutines.test)

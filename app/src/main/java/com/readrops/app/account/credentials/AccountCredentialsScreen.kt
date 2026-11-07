@@ -1,5 +1,8 @@
 package com.readrops.app.account.credentials
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import android.provider.DocumentsContract
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -98,6 +101,21 @@ class AccountCredentialsScreen(
             koinScreenModel<AccountCredentialsScreenModel>(parameters = { parametersOf(account, mode) })
 
         val state by screenModel.state.collectAsStateWithLifecycle()
+        val decsyncDirectoryPicker = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocumentTree()) { uri ->
+            uri?.let {
+                runCatching {
+                    context.contentResolver.takePersistableUriPermission(
+                        it,
+                        android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION or android.content.Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                    )
+                }
+                val rootDocumentUri = DocumentsContract.buildDocumentUriUsingTree(
+                    it,
+                    DocumentsContract.getTreeDocumentId(it)
+                )
+                screenModel.onEvent(Event.URLEvent(rootDocumentUri.toString()))
+            }
+        }
 
         if (state.exitScreen) {
             if (mode == AccountCredentialsScreenMode.NEW_CREDENTIALS) {
@@ -184,9 +202,12 @@ class AccountCredentialsScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    ShortSpacer()
-
-                    OutlinedTextField(
+                    if (account.type != AccountType.DECSYNC) ShortSpacer()
+                    if (account.type == AccountType.DECSYNC) {
+                        TextButton(onClick = { decsyncDirectoryPicker.launch(null) }) {
+                            Text(if (state.url.startsWith("content://")) stringResource(R.string.decsync_folder_selected) else stringResource(R.string.choose_decsync_folder))
+                        }
+                    } else OutlinedTextField(
                         value = state.url,
                         onValueChange = { screenModel.onEvent(Event.URLEvent(it)) },
                         label = { Text(text = stringResource(id = R.string.account_url)) },
@@ -200,6 +221,9 @@ class AccountCredentialsScreen(
                                 ACCOUNT_APIS.any { it == account.type }  -> {
                                     Text(text = stringResource(R.string.provide_full_url))
                                 }
+                                account.type == AccountType.FEEDBIN -> {
+                                    Text(text = stringResource(R.string.feedbin_url_helper))
+                                }
                                 else -> {
                                     Text(text = stringResource(R.string.provide_root_url))
                                 }
@@ -212,9 +236,9 @@ class AccountCredentialsScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    ShortSpacer()
+                    if (account.type != AccountType.DECSYNC) ShortSpacer()
 
-                    OutlinedTextField(
+                    if (account.type != AccountType.DECSYNC) OutlinedTextField(
                         value = state.login,
                         onValueChange = { screenModel.onEvent(Event.LoginEvent(it)) },
                         label = { Text(text = stringResource(id = R.string.login)) },
@@ -224,6 +248,7 @@ class AccountCredentialsScreen(
                             when {
                                 state.loginError != null -> Text(text = state.loginError!!.errorText())
                                 account.type == AccountType.MINIFLUX -> Text(text = stringResource(R.string.miniflux_login_helper))
+                                account.type == AccountType.FEEDBIN -> Text(text = stringResource(R.string.feedbin_login_helper))
                             }
                         },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -233,9 +258,9 @@ class AccountCredentialsScreen(
                         ).fillMaxWidth()
                     )
 
-                    ShortSpacer()
+                    if (account.type != AccountType.DECSYNC) ShortSpacer()
 
-                    OutlinedTextField(
+                    if (account.type != AccountType.DECSYNC) OutlinedTextField(
                         value = state.password,
                         onValueChange = { screenModel.onEvent(Event.PasswordEvent(it)) },
                         label = { Text(text = stringResource(id = R.string.password)) },
@@ -272,6 +297,9 @@ class AccountCredentialsScreen(
                                 }
                                 account.type == AccountType.MINIFLUX -> {
                                     Text(text = stringResource(id = R.string.miniflux_password_helper))
+                                }
+                                account.type == AccountType.FEEDBIN -> {
+                                    Text(text = stringResource(id = R.string.feedbin_password_helper))
                                 }
                             }
                         },

@@ -22,6 +22,8 @@ data class AccountConfig(
             useSeparateState = false,
         )
 
+        val DECSYNC = LOCAL
+
         val NEXTCLOUD_NEWS = AccountConfig(
             isFeedUrlReadOnly = true,
             canCreateFolder = true,
@@ -46,6 +48,8 @@ data class AccountConfig(
             useSeparateState = true,
             canCreateFolder = true,
         )
+
+        val FEEDBIN = MINIFLUX.copy(canCreateFolder = false)
 
         val FEVER = AccountConfig(
             isFeedUrlReadOnly = false,

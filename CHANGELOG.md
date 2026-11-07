@@ -1,3 +1,12 @@
+# v2.2.39
+
+This release adds support for Feedbin and DecSync accounts.
+
+## Changes
+
+- Connect to Feedbin using its API token and sync feeds, articles, read state, and favourites.
+- Add DecSync accounts and synchronize local feeds through a user-selected DecSync folder.
+
 # v2.2.38
 
 This release fixes a crash that could occur when changing an article's read or favourite state while the timeline or reader was updating. It also reduces memory use when loading article images and feed icons.

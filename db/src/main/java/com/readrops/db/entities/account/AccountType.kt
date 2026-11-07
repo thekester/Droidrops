@@ -27,7 +27,13 @@ enum class AccountType(
         "https://miniflux.app/docs/api.html"
     ),
     FEVER(R.drawable.ic_fever, R.string.fever, AccountConfig.FEVER),
-    GREADER(R.drawable.ic_google_reader, R.string.greader, AccountConfig.GREADER)
+    GREADER(R.drawable.ic_google_reader, R.string.greader, AccountConfig.GREADER),
+    // Append new types: persisted accounts were historically encoded by enum ordinal.
+    FEEDBIN(
+        R.drawable.ic_freshrss, R.string.feedbin, AccountConfig.FEEDBIN,
+        "https://feedbin.com/help/api"
+    ),
+    DECSYNC(R.drawable.ic_local_account, R.string.decsync, AccountConfig.DECSYNC, "https://github.com/39aldo39/DecSync")
 }
 
 val ACCOUNT_APIS = listOf(AccountType.GREADER, AccountType.FEVER)

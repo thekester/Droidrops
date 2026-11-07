@@ -1,6 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Droidrops</string>
+    <string name="feedbin_login_helper">Feedbin account email</string>
+    <string name="feedbin_password_helper">Feedbin password</string>
+    <string name="feedbin_url_helper">Use the Feedbin API server: https://api.feedbin.com</string>
+    <string name="choose_decsync_folder">Choose DecSync folder</string>
+    <string name="decsync_folder_selected">DecSync folder selected</string>
     <string name="article_image">Article image</string>
     <string name="close_image_viewer">Close image viewer</string>
     <string name="rotate_image">Rotate image</string>

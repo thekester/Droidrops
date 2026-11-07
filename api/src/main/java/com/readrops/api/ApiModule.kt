@@ -25,6 +25,8 @@ import com.readrops.api.services.nextcloudnews.adapters.NextcloudNewsFoldersAdap
 import com.readrops.api.services.nextcloudnews.adapters.NextcloudNewsItemsAdapter
 import com.readrops.api.services.miniflux.MinifluxDataSource
 import com.readrops.api.services.miniflux.MinifluxService
+import com.readrops.api.services.feedbin.FeedbinDataSource
+import com.readrops.api.services.feedbin.FeedbinService
 import com.readrops.api.utils.AuthInterceptor
 import com.readrops.api.utils.ErrorInterceptor
 import com.readrops.api.utils.NetworkFailureInterceptor
@@ -134,6 +136,21 @@ val apiModule = module {
     }
 
     //endregion Miniflux
+
+    //region Feedbin
+
+    factory { params -> FeedbinDataSource(get(parameters = { params })) }
+
+    factory { (credentials: Credentials) ->
+        Retrofit.Builder()
+            .baseUrl(credentials.url)
+            .client(get())
+            .addConverterFactory(MoshiConverterFactory.create())
+            .build()
+            .create(FeedbinService::class.java)
+    }
+
+    //endregion Feedbin
 
     //region Fever
 

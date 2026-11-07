@@ -72,7 +72,7 @@ class AccountCredentialsScreenModel(
                 mutableState.update { it.copy(isLoginOnGoing = true) }
 
                 with(state.value) {
-                    val normalizedUrl = Utils.normalizeUrl(url)
+                    val normalizedUrl = if (account.type == AccountType.DECSYNC) url else Utils.normalizeUrl(url)
 
                     val newAccount = account.copy(
                         url = normalizedUrl,
@@ -135,12 +135,12 @@ class AccountCredentialsScreenModel(
             validate = false
         }
 
-        if (login.isEmpty() && account.type != AccountType.MINIFLUX) {
+        if (login.isEmpty() && account.type !in listOf(AccountType.MINIFLUX, AccountType.DECSYNC)) {
             mutableState.update { it.copy(loginError = TextFieldError.EmptyField) }
             validate = false
         }
 
-        if (password.isEmpty()) {
+        if (password.isEmpty() && account.type != AccountType.DECSYNC) {
             mutableState.update { it.copy(passwordError = TextFieldError.EmptyField) }
             validate = false
         }
@@ -163,6 +163,10 @@ class AccountCredentialsScreenModel(
             AccountType.MINIFLUX -> AccountCredentialsState(
                 url = context.getString(R.string.debug_local_url),
             )
+            AccountType.FEEDBIN -> AccountCredentialsState(
+                url = "https://api.feedbin.com",
+            )
+            AccountType.DECSYNC -> AccountCredentialsState()
             AccountType.FEVER -> AccountCredentialsState(
                 url = context.getString(R.string.debug_fever_url),
                 login = context.getString(R.string.debug_fever_login),
