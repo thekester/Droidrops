@@ -224,6 +224,9 @@ class AccountCredentialsScreen(
                                 account.type == AccountType.FEEDBIN -> {
                                     Text(text = stringResource(R.string.feedbin_url_helper))
                                 }
+                                account.type == AccountType.TINY_TINY_RSS -> {
+                                    Text(text = stringResource(R.string.tiny_tiny_rss_url_helper))
+                                }
                                 else -> {
                                     Text(text = stringResource(R.string.provide_root_url))
                                 }
@@ -249,6 +252,7 @@ class AccountCredentialsScreen(
                                 state.loginError != null -> Text(text = state.loginError!!.errorText())
                                 account.type == AccountType.MINIFLUX -> Text(text = stringResource(R.string.miniflux_login_helper))
                                 account.type == AccountType.FEEDBIN -> Text(text = stringResource(R.string.feedbin_login_helper))
+                                account.type == AccountType.TINY_TINY_RSS -> Text(text = stringResource(R.string.tiny_tiny_rss_login_helper))
                             }
                         },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Next),
@@ -300,6 +304,9 @@ class AccountCredentialsScreen(
                                 }
                                 account.type == AccountType.FEEDBIN -> {
                                     Text(text = stringResource(id = R.string.feedbin_password_helper))
+                                }
+                                account.type == AccountType.TINY_TINY_RSS -> {
+                                    Text(text = stringResource(id = R.string.tiny_tiny_rss_password_helper))
                                 }
                             }
                         },

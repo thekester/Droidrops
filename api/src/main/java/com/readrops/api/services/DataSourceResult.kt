@@ -16,6 +16,6 @@ data class DataSourceResult(
     var tags: List<Tag> = listOf(),
     /** Cursor for resuming a bounded initial import, used by Miniflux. */
     var syncCursor: String? = null,
-    /** Timestamp to use for incremental sync after the initial import is complete. */
+    /** Server watermark for incremental sync after the initial import (a timestamp or remote ID). */
     var initialSyncTimestamp: Long? = null
 )

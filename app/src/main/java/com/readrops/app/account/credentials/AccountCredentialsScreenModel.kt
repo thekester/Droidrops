@@ -166,6 +166,9 @@ class AccountCredentialsScreenModel(
             AccountType.FEEDBIN -> AccountCredentialsState(
                 url = "https://api.feedbin.com",
             )
+            AccountType.TINY_TINY_RSS -> AccountCredentialsState(
+                url = context.getString(R.string.debug_local_url),
+            )
             AccountType.DECSYNC -> AccountCredentialsState()
             AccountType.FEVER -> AccountCredentialsState(
                 url = context.getString(R.string.debug_fever_url),

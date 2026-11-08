@@ -39,6 +39,7 @@ fun AccountSelectionDialog(
                 AccountType.MINIFLUX,
                 AccountType.FEEDBIN,
                 AccountType.DECSYNC,
+                AccountType.TINY_TINY_RSS,
                 AccountType.FEVER,
                 AccountType.GREADER
             )

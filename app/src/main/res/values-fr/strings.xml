@@ -378,7 +378,10 @@
     <string name="use_default_color">Utiliser la couleur par défaut</string>
     <string name="warning">Attention</string>
     <string name="understand">J\'accepte</string>
-    <string name="greader_warning">Google Reader est une API ancienne et peu documentée, dont la compatibilité varie selon les agrégateurs. Miniflux : ajoutez-le avec le type de compte natif Miniflux REST. Tiny Tiny RSS : activez son extension de compatibilité Google Reader. L\'API native de Tiny Tiny RSS n\'est pas prise en charge. En cas de problème, signalez le type de serveur et l\'erreur dans le dépôt GitHub de Droidrops.</string>
+    <string name="greader_warning">Google Reader est une API ancienne et peu documentée, dont la compatibilité varie selon les agrégateurs. Miniflux : ajoutez-le avec le type de compte natif Miniflux REST. Tiny Tiny RSS : utilisez son type de compte natif pour l\'API JSON. En cas de problème, signalez le type de serveur et l\'erreur dans le dépôt GitHub de Droidrops.</string>
+    <string name="tiny_tiny_rss_url_helper">Saisissez l\'URL de votre serveur Tiny Tiny RSS. Activez l\'API dans les préférences utilisateur ; Droidrops ajoute automatiquement /api/.</string>
+    <string name="tiny_tiny_rss_login_helper">Nom d\'utilisateur Tiny Tiny RSS</string>
+    <string name="tiny_tiny_rss_password_helper">Mot de passe Tiny Tiny RSS</string>
     <string name="fever_warning">Fever est une vielle API, limitée et dépréciée. Elle ne supporte pas la gestion des flux et des dossiers. Elle est également mal documentée et risque de ne pas être implémentée de la même manière chez chaque agrégateur, ne permettant pas son bon fonctionnement.\n\nSi vous rencontrez des problèmes de synchronisation, merci de les remonter sur le dépôt GitHub de Droidrops.</string>
     <string name="api">API</string>
 

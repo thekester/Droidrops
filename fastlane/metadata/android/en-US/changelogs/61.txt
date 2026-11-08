@@ -1,0 +1,1 @@
+Connect to Tiny Tiny RSS with its native JSON API. Sync feeds, articles, read state, and favourites, with large initial imports continuing in batches. Also prevent local file links from opening as external tabs.

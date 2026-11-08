@@ -27,6 +27,8 @@ import com.readrops.api.services.miniflux.MinifluxDataSource
 import com.readrops.api.services.miniflux.MinifluxService
 import com.readrops.api.services.feedbin.FeedbinDataSource
 import com.readrops.api.services.feedbin.FeedbinService
+import com.readrops.api.services.tinytinyrss.TinyTinyRssDataSource
+import com.readrops.api.services.tinytinyrss.TinyTinyRssService
 import com.readrops.api.utils.AuthInterceptor
 import com.readrops.api.utils.ErrorInterceptor
 import com.readrops.api.utils.NetworkFailureInterceptor
@@ -151,6 +153,20 @@ val apiModule = module {
     }
 
     //endregion Feedbin
+
+    //region Tiny Tiny RSS
+
+    factory { params -> TinyTinyRssDataSource(get(parameters = { params })) }
+
+    factory { (credentials: Credentials) ->
+        Retrofit.Builder()
+            .baseUrl(credentials.url)
+            .client(get())
+            .build()
+            .create(TinyTinyRssService::class.java)
+    }
+
+    //endregion Tiny Tiny RSS
 
     //region Fever
 

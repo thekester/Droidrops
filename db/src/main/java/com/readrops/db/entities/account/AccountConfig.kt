@@ -51,6 +51,13 @@ data class AccountConfig(
 
         val FEEDBIN = MINIFLUX.copy(canCreateFolder = false)
 
+        val TINY_TINY_RSS = GREADER.copy(
+            canUpdateFeed = false,
+            canCreateFolder = false,
+            canUpdateFolder = false,
+            canDeleteFolder = false
+        )
+
         val FEVER = AccountConfig(
             isFeedUrlReadOnly = false,
             addNoFolder = true,

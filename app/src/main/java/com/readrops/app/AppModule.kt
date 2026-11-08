@@ -36,6 +36,7 @@ import com.readrops.app.repositories.GReaderRepository
 import com.readrops.app.repositories.GetFoldersWithFeeds
 import com.readrops.app.repositories.LocalRSSRepository
 import com.readrops.app.repositories.MinifluxRepository
+import com.readrops.app.repositories.TinyTinyRssRepository
 import com.readrops.app.repositories.NextcloudNewsRepository
 import com.readrops.app.sync.SyncAnalyzer
 import com.readrops.app.sync.Synchronizer
@@ -119,6 +120,11 @@ val appModule = module {
             )
 
             AccountType.FEEDBIN -> FeedbinRepository(
+                database = get(), account = account,
+                dataSource = get(parameters = { parametersOf(Credentials.toCredentials(account)) })
+            )
+
+            AccountType.TINY_TINY_RSS -> TinyTinyRssRepository(
                 database = get(), account = account,
                 dataSource = get(parameters = { parametersOf(Credentials.toCredentials(account)) })
             )

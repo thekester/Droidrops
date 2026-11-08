@@ -9,6 +9,7 @@
 
     <string name="local_account">Local account</string>
     <string name="decsync">DecSync</string>
+    <string name="tiny_tiny_rss" translatable="false">Tiny Tiny RSS</string>
     <string name="fever" translatable="false">Fever</string>
     <string name="greader" translatable="false">Google Reader</string>
 </resources>

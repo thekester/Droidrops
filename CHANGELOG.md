@@ -1,3 +1,13 @@
+# v2.2.40
+
+This release adds a native Tiny Tiny RSS integration and improves troubleshooting for article links.
+
+## Changes
+
+- Connect to Tiny Tiny RSS through its native JSON API. Enable API access in the Tiny Tiny RSS user preferences.
+- Sync feeds, categories, articles, read state, and favourites. Large initial imports continue in bounded batches.
+- Add a regression test for article links that point to local `file://` paths.
+
 # v2.2.39
 
 This release adds support for Feedbin and DecSync accounts.

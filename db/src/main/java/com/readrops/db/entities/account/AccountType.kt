@@ -33,7 +33,11 @@ enum class AccountType(
         R.drawable.ic_freshrss, R.string.feedbin, AccountConfig.FEEDBIN,
         "https://feedbin.com/help/api"
     ),
-    DECSYNC(R.drawable.ic_local_account, R.string.decsync, AccountConfig.DECSYNC, "https://github.com/39aldo39/DecSync")
+    DECSYNC(R.drawable.ic_local_account, R.string.decsync, AccountConfig.DECSYNC, "https://github.com/39aldo39/DecSync"),
+    TINY_TINY_RSS(
+        R.drawable.ic_freshrss, R.string.tiny_tiny_rss, AccountConfig.TINY_TINY_RSS,
+        "https://tt-rss.org/docs/API-Reference.html"
+    )
 }
 
 val ACCOUNT_APIS = listOf(AccountType.GREADER, AccountType.FEVER)
