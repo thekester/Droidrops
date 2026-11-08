@@ -34,7 +34,27 @@ class GReaderDataSource(private val service: GReaderService) {
         onProgress: suspend (String) -> Unit = {}
     ): DataSourceResult = withContext(Dispatchers.IO) {
         if (syncType == SyncType.INITIAL_SYNC) {
-            onProgress("Fetching initial folders, feeds, articles and read/star states")
+            onProgress(
+                if (syncData.continuation == null) {
+                    "Fetching initial folders, feeds, articles and read/star states"
+                } else {
+                    "Resuming initial article import after ${syncData.continuation}"
+                }
+            )
+            val itemsPage = getItemsPage(
+                listOf(GOOGLE_READ, GOOGLE_STARRED),
+                MAX_INITIAL_ITEMS_PER_SYNC,
+                null,
+                syncData.continuation
+            )
+            if (itemsPage.continuation == syncData.continuation && itemsPage.continuation != null) {
+                throw IllegalStateException("Google Reader API repeated the same article continuation")
+            }
+            onProgress(
+                "Fetched ${itemsPage.items.size} initial articles " +
+                        "(batch limit=$MAX_INITIAL_ITEMS_PER_SYNC" +
+                        "${if (itemsPage.continuation != null) ", more available" else ""})"
+            )
             DataSourceResult().apply {
                 awaitAll(
                     async {
@@ -46,10 +66,6 @@ class GReaderDataSource(private val service: GReaderService) {
                     async {
                         feeds = getFeeds()
                         onProgress("Fetched ${feeds.size} feeds")
-                    },
-                    async {
-                        items = getItems(listOf(GOOGLE_READ, GOOGLE_STARRED), MAX_ITEMS, null)
-                        onProgress("Fetched ${items.size} initial articles (limit=$MAX_ITEMS)")
                     },
                     async {
                         starredItems = getStarredItems(MAX_STARRED_ITEMS)
@@ -64,6 +80,8 @@ class GReaderDataSource(private val service: GReaderService) {
                         onProgress("Fetched ${starredIds.size} starred article IDs")
                     }
                 )
+                items = itemsPage.items
+                syncCursor = itemsPage.continuation
             }
         } else {
             onProgress(
@@ -118,6 +136,13 @@ class GReaderDataSource(private val service: GReaderService) {
     suspend fun getItems(excludeTargets: List<String>?, max: Int, lastModified: Long?): List<Item> {
         return service.getItems(excludeTargets, max, lastModified)
     }
+
+    suspend fun getItemsPage(
+        excludeTargets: List<String>?,
+        max: Int,
+        lastModified: Long?,
+        continuation: String?
+    ) = service.getItemsPage(excludeTargets, max, lastModified, continuation)
 
     suspend fun getStarredItems(max: Int) = service.getStarredItems(max)
 
@@ -213,6 +238,7 @@ class GReaderDataSource(private val service: GReaderService) {
 
     companion object {
         private const val MAX_ITEMS = 2500
+        private const val MAX_INITIAL_ITEMS_PER_SYNC = 500
 
         // item ids sent per edit-tag call, kept well below the PHP max_input_vars default of 1000
         private const val MAX_IDS_PER_REQUEST = 250

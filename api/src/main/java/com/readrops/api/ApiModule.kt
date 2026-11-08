@@ -17,6 +17,8 @@ import com.readrops.api.services.greader.adapters.FreshRSSUserInfoAdapter
 import com.readrops.api.services.greader.adapters.GReaderFeedsAdapter
 import com.readrops.api.services.greader.adapters.GReaderFoldersTagsAdapter
 import com.readrops.api.services.greader.adapters.GReaderItemsAdapter
+import com.readrops.api.services.greader.adapters.GReaderItemsPageAdapter
+import com.readrops.api.services.greader.adapters.GReaderItemsPage
 import com.readrops.api.services.greader.adapters.GReaderItemsIdsAdapter
 import com.readrops.api.services.nextcloudnews.NextcloudNewsDataSource
 import com.readrops.api.services.nextcloudnews.NextcloudNewsService
@@ -87,6 +89,7 @@ val apiModule = module {
                 Types.newParameterizedType(List::class.java, Item::class.java),
                 GReaderItemsAdapter()
             )
+            .add(GReaderItemsPage::class.java, GReaderItemsPageAdapter())
             .add(
                 Types.newParameterizedType(List::class.java, String::class.java),
                 GReaderItemsIdsAdapter()

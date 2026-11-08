@@ -1,3 +1,14 @@
+# v2.2.41
+
+This release makes large FreshRSS and Google Reader initial imports more reliable and improves feed diagnostics.
+
+## Changes
+
+- Import initial articles in batches of 500 and resume from the server continuation token on the next sync.
+- Keep the initial sync watermark unset until all article batches have been imported.
+- Add regression coverage for feed discovery, authentication challenges, and untrusted TLS certificates, including an Android TLS check.
+- Keep the account service picker scrollable on compact and foldable screens.
+
 # v2.2.40
 
 This release adds a native Tiny Tiny RSS integration and improves troubleshooting for article links.

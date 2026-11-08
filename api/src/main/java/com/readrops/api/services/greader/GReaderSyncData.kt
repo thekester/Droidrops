@@ -6,4 +6,5 @@ data class GReaderSyncData(
     var unreadIds: List<String> = listOf(),
     var starredIds: List<String> = listOf(),
     var unstarredIds: List<String> = listOf(),
+    var continuation: String? = null,
 )

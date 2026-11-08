@@ -38,7 +38,7 @@ class GReaderItemsAdapter : JsonAdapter<List<Item>>() {
         }
     }
 
-    private fun parseItems(reader: JsonReader, items: MutableList<Item>) = with(reader) {
+    internal fun parseItems(reader: JsonReader, items: MutableList<Item>) = with(reader) {
         beginArray()
 
         while (hasNext()) {

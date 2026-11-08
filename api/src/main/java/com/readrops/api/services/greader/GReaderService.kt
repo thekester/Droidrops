@@ -2,6 +2,7 @@ package com.readrops.api.services.greader
 
 import com.readrops.api.services.greader.adapters.FreshRSSUserInfo
 import com.readrops.api.services.greader.adapters.GReaderFoldersTags
+import com.readrops.api.services.greader.adapters.GReaderItemsPage
 import com.readrops.db.entities.Feed
 import com.readrops.db.entities.Item
 import okhttp3.ResponseBody
@@ -43,6 +44,14 @@ interface GReaderService {
         @Query("n") max: Int,
         @Query("ot") lastModified: Long?
     ): List<Item>
+
+    @GET("reader/api/0/stream/contents/user/-/state/com.google/reading-list")
+    suspend fun getItemsPage(
+        @Query("xt") excludeTarget: List<String>?,
+        @Query("n") max: Int,
+        @Query("ot") lastModified: Long?,
+        @Query("c") continuation: String?
+    ): GReaderItemsPage
 
     @GET("reader/api/0/stream/contents/user/-/state/com.google/starred")
     suspend fun getStarredItems(@Query("n") max: Int): List<Item>

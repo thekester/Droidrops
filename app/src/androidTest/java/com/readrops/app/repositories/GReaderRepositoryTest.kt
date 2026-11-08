@@ -72,7 +72,7 @@ class GReaderRepositoryTest : KoinTest {
         "iconUrl":"https://news.ycombinator.com/favicon.ico"}]}
     """.trimIndent()
 
-    private fun items(vararg ids: String) = """
+    private fun items(vararg ids: String, continuation: String? = null) = """
         {"id":"feed/1","updated":1625235516,"items":[
         ${
         ids.joinToString(",") {
@@ -82,7 +82,7 @@ class GReaderRepositoryTest : KoinTest {
             "categories":["user/-/state/com.google/reading-list"],
             "origin":{"streamId":"feed/1","title":"Hacker News"}}"""
         }
-    }]}
+    }]${continuation?.let { ",\"continuation\":\"$it\"" } ?: ""}}
     """.trimIndent()
 
     private fun item(id: String, title: String, content: String) = """
@@ -95,6 +95,49 @@ class GReaderRepositoryTest : KoinTest {
     """.trimIndent()
 
     private val noIds = """{"itemRefs":[]}"""
+
+    @Test
+    fun initialImportResumesAndOnlySetsWatermarkAfterLastPage() = runTest {
+        var readingListPage = 0
+        val pageCursors = mutableListOf<String?>()
+        val pageSizes = mutableListOf<String?>()
+        mockServer.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                with(request.path!!) {
+                    return when {
+                        contains("tag/list") -> ok(folders("Tech"))
+                        contains("subscription/list") -> ok(subscriptions("Tech"))
+                        contains("stream/items/ids") -> ok(noIds)
+                        contains("stream/contents/user/-/state/com.google/reading-list") -> {
+                            pageCursors += request.requestUrl?.queryParameter("c")
+                            pageSizes += request.requestUrl?.queryParameter("n")
+                            readingListPage++
+                            if (readingListPage == 1) {
+                                ok(items("item/1", continuation = "42"))
+                            } else {
+                                ok(items("item/2"))
+                            }
+                        }
+                        contains("stream/contents/user/-/state/com.google/starred") -> ok(items())
+                        else -> MockResponse().setResponseCode(404)
+                    }
+                }
+            }
+        }
+
+        val first = repository().synchronize()
+        assertTrue("first batch should request a continuation", first.continueSync)
+        assertEquals("42", account.syncCursor)
+        assertEquals(0L, account.lastModified)
+
+        val second = repository().synchronize()
+        assertTrue("second batch should finish the initial import", !second.continueSync)
+        assertEquals(null, account.syncCursor)
+        assertTrue("the incremental sync watermark is set after the last page", account.lastModified > 0)
+        assertEquals(listOf(null, "42"), pageCursors)
+        assertEquals(listOf("500", "500"), pageSizes)
+        assertEquals(2, database.itemDao().selectItems(database.feedDao().selectFeeds(account.id).single().id).size)
+    }
 
     /**
      * A GReader folder id embeds its name, so a rename looks like a delete plus a create. The local

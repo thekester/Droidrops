@@ -143,6 +143,34 @@ class GReaderDataSourceTest : KoinTest {
     }
 
     @Test
+    fun initialItemsCanResumeUsingFreshRssContinuation() = runTest {
+        mockServer.enqueueOKStream(
+            """{"items":[{"id":"42","published":1730000000,"title":"First page"}],"continuation":"42"}""".byteInputStream()
+        )
+        mockServer.enqueueOKStream("""{"items":[]}""".byteInputStream())
+
+        val firstPage = freshRSSDataSource.getItemsPage(
+            excludeTargets = listOf(GReaderDataSource.GOOGLE_READ, GReaderDataSource.GOOGLE_STARRED),
+            max = 500,
+            lastModified = null,
+            continuation = null
+        )
+        val secondPage = freshRSSDataSource.getItemsPage(
+            excludeTargets = listOf(GReaderDataSource.GOOGLE_READ, GReaderDataSource.GOOGLE_STARRED),
+            max = 500,
+            lastModified = null,
+            continuation = firstPage.continuation
+        )
+
+        assertEquals("42", firstPage.items.single().remoteId)
+        assertEquals("42", firstPage.continuation)
+        assertTrue(secondPage.items.isEmpty())
+        assertEquals(null, secondPage.continuation)
+        assertEquals(null, mockServer.takeRequest().requestUrl!!.queryParameter("c"))
+        assertEquals("42", mockServer.takeRequest().requestUrl!!.queryParameter("c"))
+    }
+
+    @Test
     fun starredItemsTest() = runTest {
         val stream = TestUtils.loadResource("services/greader/adapters/items.json")
         mockServer.enqueueOKStream(stream)

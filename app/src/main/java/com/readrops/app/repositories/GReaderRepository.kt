@@ -66,7 +66,8 @@ class GReaderRepository(
             starredIds = itemStateChanges.filter { it.starChange && it.starred }
                 .map { it.remoteId },
             unstarredIds = itemStateChanges.filter { it.starChange && !it.starred }
-                .map { it.remoteId }
+                .map { it.remoteId },
+            continuation = account.syncCursor
         )
 
         val syncType: SyncType
@@ -106,8 +107,17 @@ class GReaderRepository(
 
                 insertItemsIds(unreadIds, readIds, starredIds.toMutableList())
 
-                account.lastModified = newLastModified
-                database.accountDao().updateLastModified(newLastModified, account.id)
+                account.syncCursor = syncCursor
+                account.lastModified = if (syncType == SyncType.INITIAL_SYNC && syncCursor != null) {
+                    0L
+                } else {
+                    newLastModified
+                }
+                database.accountDao().updateSyncProgress(
+                    account.lastModified,
+                    account.syncCursor,
+                    account.id
+                )
 
                 database.itemStateChangeDao().resetStateChanges(account.id)
 
@@ -117,7 +127,11 @@ class GReaderRepository(
                     remoteItems = items.size + starredItems.size,
                     newItems = newItems.size
                 )
-                SyncResult(items = newItems, feeds = newFeeds)
+                SyncResult(
+                    items = newItems,
+                    feeds = newFeeds,
+                    continueSync = account.syncCursor != null
+                )
             }
         } catch (error: OutOfMemoryError) {
             diagnostics.outOfMemory()
