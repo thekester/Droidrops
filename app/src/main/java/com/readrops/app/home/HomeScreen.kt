@@ -129,8 +129,8 @@ object HomeScreen : AndroidScreen() {
                         }
                     ) {
                         // Fade through is the Material motion for switching bottom navigation
-                        // destinations. The target tab is rendered through saveableState, with
-                        // the key CurrentTab uses internally, so each tab keeps its own state.
+                        // destinations. AnimatedContent briefly keeps both tabs composed during a
+                        // transition, so each tab needs its own saveable-state key.
                         AnimatedContent(
                             targetState = tabNavigator.current,
                             transitionSpec = {
@@ -139,7 +139,7 @@ object HomeScreen : AndroidScreen() {
                             },
                             label = "tab"
                         ) { tab ->
-                            tabNavigator.saveableState(key = "currentTab", tab = tab) {
+                            tabNavigator.saveableState(key = "currentTab:${tab.key}", tab = tab) {
                                 tab.Content()
                             }
                         }

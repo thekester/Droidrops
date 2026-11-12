@@ -1,3 +1,11 @@
+# v2.2.42
+
+This release fixes a crash when switching tabs during their transition animation.
+
+## Fixes
+
+- Give each tab its own saved-state key so overlapping tab content cannot register the same Compose key.
+
 # v2.2.41
 
 This release makes large FreshRSS and Google Reader initial imports more reliable and improves feed diagnostics.
