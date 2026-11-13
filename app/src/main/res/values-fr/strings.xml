@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="refreshing_articles">Actualisation des articles…</string>
+    <string name="contact">Contact</string>
+    <string name="contact_heading">Contacter Droidrops</string>
+    <string name="contact_description">Pour toute question, demande d’aide ou remarque au sujet de l’application Droidrops, contactez son développeur à l’adresse ci-dessous.</string>
+    <string name="contact_email_association">Cette adresse e-mail est dédiée à Droidrops et à son développeur.</string>
+    <string name="contact_email_no_app">Aucune application de messagerie n’est disponible sur cet appareil.</string>
+    <string name="contact_website">Site Web de Droidrops</string>
     <string name="cleanup_title">Nettoyer le stockage</string>
     <string name="cleanup_account">Compte actuel : %1$s</string>
     <string name="cleanup_local_only_notice">Cette action supprime uniquement les copies d’articles stockées dans Droidrops sur ce téléphone, afin de libérer de l’espace. Elle ne supprime aucun article du serveur RSS connecté. Les API actuellement utilisées par Droidrops ne permettent pas non plus de supprimer du serveur les articles déjà lus. Les articles non lus peuvent être téléchargés de nouveau lors d’une synchronisation. Les changements de lecture ou de favori en attente de synchronisation sont conservés.</string>

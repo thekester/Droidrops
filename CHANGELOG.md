@@ -1,3 +1,12 @@
+# v2.2.43
+
+This release adds clear contact information for Droidrops in the app and on the project website.
+
+## Changes
+
+- Add a Contact page in More with the Droidrops support email and website.
+- Add a dedicated contact page to the website and link to it from the main navigation and footer.
+
 # v2.2.42
 
 This release fixes a crash when switching tabs during their transition animation.
