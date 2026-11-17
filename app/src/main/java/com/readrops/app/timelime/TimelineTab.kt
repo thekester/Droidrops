@@ -66,7 +66,6 @@ import androidx.compose.foundation.background
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import androidx.paging.compose.itemKey
 import androidx.paging.LoadState
 import cafe.adriel.voyager.koin.koinScreenModel
 import cafe.adriel.voyager.navigator.LocalNavigator
@@ -577,7 +576,14 @@ object TimelineTab : Tab {
                                         ) {
                                             items(
                                                 count = items.itemCount,
-                                                key = items.itemKey { it.item.id },
+                                                key = { index ->
+                                                    // Paging can replace its snapshot while LazyColumn is
+                                                    // resolving keys for the previous item count. Keep
+                                                    // that stale lookup in bounds during refreshes.
+                                                    items.itemSnapshotList.getOrNull(index)?.item?.id
+                                                        ?.let { "article:$it" }
+                                                        ?: "placeholder:$index"
+                                                },
                                             ) { index ->
                                                 val itemWithFeed = items.itemSnapshotList.getOrNull(index)
 

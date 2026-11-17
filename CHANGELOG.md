@@ -1,3 +1,11 @@
+# v2.2.44
+
+This release prevents the timeline from crashing if its paged article snapshot changes while Compose resolves list item keys.
+
+## Fixes
+
+- Safely resolve timeline keys during Paging refreshes, including when a stale list index points beyond the current snapshot.
+
 # v2.2.43
 
 This release adds clear contact information for Droidrops in the app and on the project website.
