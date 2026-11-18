@@ -12,7 +12,7 @@ import com.readrops.app.account.backup.LocalAccountBackupFormat.InvalidBackupExc
 import com.readrops.app.account.backup.AccountBackupManager
 import com.readrops.app.account.backup.BackupPreference
 import com.readrops.app.account.backup.describe
-import com.readrops.app.account.hasImportableFeeds
+import com.readrops.app.account.firstImportableFeedOrNull
 import com.readrops.app.home.TabScreenModel
 import com.readrops.app.repositories.ErrorResult
 import com.readrops.app.repositories.GetFoldersWithFeeds
@@ -151,14 +151,15 @@ class AccountScreenModel(
                 return@launch
             }
 
-            if (!foldersAndFeeds.hasImportableFeeds()) {
+            val firstFeed = foldersAndFeeds.firstImportableFeedOrNull()
+            if (firstFeed == null) {
                 _accountState.update { it.copy(error = context.getString(R.string.opml_no_feeds)) }
                 return@launch
             }
 
             openDialog(
                 DialogState.OPMLImport(
-                    currentFeed = foldersAndFeeds.values.first().first().name,
+                    currentFeed = firstFeed.name,
                     feedCount = 0,
                     feedMax = foldersAndFeeds.values.flatten().size
                 )

@@ -1,3 +1,12 @@
+# v2.2.45
+
+This release prevents crashes when a timeline refresh temporarily empties the Paging snapshot and when an OPML file starts with an empty folder.
+
+## Fixes
+
+- Read the visible timeline item safely while Paging refreshes, even if the previous scroll index is no longer present.
+- Find the first actual feed when importing OPML, skipping empty folders and reporting files that contain no feeds.
+
 # v2.2.44
 
 This release prevents the timeline from crashing if its paged article snapshot changes while Compose resolves list item keys.

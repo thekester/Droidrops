@@ -212,7 +212,10 @@ object TimelineTab : Tab {
             snapshotFlow {
                 val index = lazyListState.firstVisibleItemIndex
                 val offset = lazyListState.firstVisibleItemScrollOffset
-                VisibleTimelinePosition(index, offset, items.peek(index)?.item?.id)
+                // The lazy-list index can outlive the Paging snapshot during refresh. `peek`
+                // indexes the current snapshot directly and can throw while it is empty.
+                val itemId = items.itemSnapshotList.getOrNull(index)?.item?.id
+                VisibleTimelinePosition(index, offset, itemId)
             }.distinctUntilChanged().collect { position ->
                 val itemId = position.itemId ?: return@collect
                 positionStore.write(position.index, position.offset, itemId)
