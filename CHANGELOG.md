@@ -1,3 +1,13 @@
+# v2.2.46
+
+This release prevents local feed refreshes from inserting articles after the feed has been deleted.
+
+## Fixes
+
+- Save refreshed local feed tags and articles in one transaction, and skip persistence if the feed
+  was removed while its network request was in flight.
+- Add an emulator regression test for deleting a feed during refresh.
+
 # v2.2.45
 
 This release prevents crashes when a timeline refresh temporarily empties the Paging snapshot and when an OPML file starts with an empty folder.

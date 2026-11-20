@@ -14,11 +14,16 @@ import com.readrops.db.entities.account.AccountType
 import com.readrops.db.filters.QueryFilters
 import com.readrops.db.queries.ItemSelectionQueryBuilder
 import com.readrops.db.queries.ItemsQueryBuilder
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runTest
+import kotlinx.coroutines.withContext
+import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.mockwebserver.RecordedRequest
 import okio.Buffer
 import org.junit.After
 import org.junit.Before
@@ -29,6 +34,8 @@ import org.koin.test.KoinTest
 import org.koin.test.get
 import org.koin.test.inject
 import java.net.HttpURLConnection
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
@@ -109,6 +116,44 @@ class LocalRSSRepositoryTest : KoinTest {
         assertTrue {
             database.itemDao().itemExists(result.first.items.first().remoteId!!, account.id)
         }
+    }
+
+    @Test
+    fun synchronizeSkipsFeedDeletedWhileRequestIsInFlight() = runTest {
+        val requestReceived = CountDownLatch(1)
+        val allowResponse = CountDownLatch(1)
+        val feed = feeds.single()
+
+        mockServer.dispatcher = object : Dispatcher() {
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                requestReceived.countDown()
+                check(allowResponse.await(5, TimeUnit.SECONDS))
+
+                return MockResponse().setResponseCode(HttpURLConnection.HTTP_OK)
+                    .addHeader(ApiUtils.CONTENT_TYPE_HEADER, "application/rss+xml")
+                    .setBody("""
+                        <rss version="2.0"><channel><title>Deleted feed</title>
+                        <link>https://example.org</link>
+                        <item><title>Late article</title><link>https://example.org/late</link>
+                        <guid>late-article</guid></item></channel></rss>
+                    """.trimIndent())
+            }
+        }
+
+        val sync = async(Dispatchers.IO) { repository.synchronize(listOf(feed)) { } }
+        try {
+            assertTrue(withContext(Dispatchers.IO) {
+                requestReceived.await(5, TimeUnit.SECONDS)
+            })
+            database.feedDao().delete(feed)
+        } finally {
+            allowResponse.countDown()
+        }
+
+        val result = sync.await()
+        assertTrue(result.first.items.isEmpty())
+        assertTrue(result.second.isEmpty())
+        assertEquals(0, database.itemDao().count())
     }
 
     @Test

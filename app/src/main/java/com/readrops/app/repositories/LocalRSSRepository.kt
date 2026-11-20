@@ -1,5 +1,6 @@
 package com.readrops.app.repositories
 
+import androidx.room.withTransaction
 import android.util.Log
 import com.readrops.api.localfeed.LocalRSSDataSource
 import com.readrops.api.utils.ApiUtils
@@ -71,10 +72,6 @@ class LocalRSSRepository(
                             val pair = dataSource.queryRSSResource(feed.url!!, headers.build())
 
                             pair?.let { (_, pairItems) ->
-                                val itemsTags = pairItems.flatMap { it.tags }
-                                    .distinct()
-                                val allTags = insertTags(itemsTags)
-
                                 val maxItemsPerFeed = preferences.maxItemsPerFeed.flow.first()
                                 val newestItems = if (maxItemsPerFeed > 0) {
                                     pairItems.sortedWith(
@@ -84,14 +81,28 @@ class LocalRSSRepository(
                                 } else {
                                     pairItems
                                 }
-                                val pairNewItems = insertNewItems(newestItems, feed)
 
-                                if (maxItemsPerFeed > 0) {
-                                    database.itemDao().pruneUnstarredItems(feed.id, maxItemsPerFeed)
-                                }
+                                // The feed can be deleted while its network request is in flight.
+                                // Keep the existence check and every write that refers to it in one
+                                // transaction so a stale refresh cannot insert orphaned items.
+                                val pairNewItems = database.withTransaction {
+                                    if (!database.feedDao().feedExists(feed.id, account.id)) {
+                                        return@withTransaction emptyList()
+                                    }
 
-                                if (itemsTags.isNotEmpty()) {
-                                    insertItemsTags(pairNewItems, allTags)
+                                    val itemsTags = pairItems.flatMap { it.tags }.distinct()
+                                    val allTags = insertTags(itemsTags)
+                                    val insertedItems = insertNewItems(newestItems, feed)
+
+                                    if (maxItemsPerFeed > 0) {
+                                        database.itemDao().pruneUnstarredItems(feed.id, maxItemsPerFeed)
+                                    }
+
+                                    if (itemsTags.isNotEmpty()) {
+                                        insertItemsTags(insertedItems, allTags)
+                                    }
+
+                                    insertedItems
                                 }
 
                                 newItems.addAll(pairNewItems)

@@ -19,6 +19,9 @@ interface FeedDao : BaseDao<Feed> {
     @Query("Select * From Feed Where id = :feedId")
     suspend fun selectFeed(feedId: Int): Feed
 
+    @Query("Select Exists(Select 1 From Feed Where id = :feedId And account_id = :accountId)")
+    suspend fun feedExists(feedId: Int, accountId: Int): Boolean
+
     @Query("Select * From Feed Where folder_id = :folderId")
     suspend fun selectFeedsByFolder(folderId: Int): List<Feed>
 
