@@ -1,4 +1,4 @@
-# Unreleased
+# v2.2.47
 
 ## Fixes
 
