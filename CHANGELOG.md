@@ -1,3 +1,9 @@
+# Unreleased
+
+## Fixes
+
+- Load visible timeline articles from Paging so aggregated feeds do not remain stuck on placeholders.
+
 # v2.2.46
 
 This release prevents local feed refreshes from inserting articles after the feed has been deleted.

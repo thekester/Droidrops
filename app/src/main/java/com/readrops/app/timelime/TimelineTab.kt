@@ -588,7 +588,12 @@ object TimelineTab : Tab {
                                                         ?: "placeholder:$index"
                                                 },
                                             ) { index ->
-                                                val itemWithFeed = items.itemSnapshotList.getOrNull(index)
+                                                // Access through LazyPagingItems to request loads for
+                                                // visible placeholders. Reading only the snapshot
+                                                // leaves those rows stuck as skeletons. Refresh can
+                                                // still replace the snapshot between itemCount and
+                                                // this access, so keep the stale-index case harmless.
+                                                val itemWithFeed = items.loadItemSafely(index)
 
                                                 if (itemWithFeed != null) {
                                                     val itemForDisplay = itemWithFeed
@@ -852,6 +857,16 @@ object TimelineTab : Tab {
 }
 
 private data class VisibleTimelinePosition(val index: Int, val offset: Int, val itemId: Int?)
+
+private fun <T : Any> LazyPagingItems<T>.loadItemSafely(index: Int): T? {
+    if (index !in 0 until itemCount) return null
+
+    return try {
+        get(index)
+    } catch (_: IndexOutOfBoundsException) {
+        null
+    }
+}
 
 private fun LazyPagingItems<ItemWithFeed>.findLoadedIndex(itemId: Int?): Int? {
     if (itemId == null) return null
