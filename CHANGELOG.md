@@ -1,3 +1,9 @@
+# v2.2.48
+
+## Fixes
+
+- Prevent duplicate Voyager saveable-state keys during animated tab transitions and app exit.
+
 # v2.2.47
 
 ## Fixes

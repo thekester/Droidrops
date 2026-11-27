@@ -139,7 +139,10 @@ object HomeScreen : AndroidScreen() {
                             },
                             label = "tab"
                         ) { tab ->
-                            tabNavigator.saveableState(key = "currentTab:${tab.key}", tab = tab) {
+                            // Voyager already includes tab.key in the saveable-state key.
+                            // Keep the same suffix as CurrentTab() to avoid composing duplicate
+                            // keys while AnimatedContent transitions are interrupted on exit.
+                            tabNavigator.saveableState(key = "currentTab", tab = tab) {
                                 tab.Content()
                             }
                         }
