@@ -190,7 +190,9 @@ object TimelineTab : Tab {
         val topAppBarState = rememberTopAppBarState()
         val topAppBarScrollBehavior = TopAppBarDefaults.pinnedScrollBehavior(topAppBarState)
 
-        LaunchedEffect(state.filters) {
+        // Opening an article can update recentlyReadItemIds. Those IDs only keep read articles
+        // visible; they do not represent a filter change and must not reset the list to the top.
+        LaunchedEffect(state.filters.positionResetKey()) {
             val filters = state.filters
             if (!filters.isDefaultTimelinePositionScope()) {
                 lazyListState.scrollToItem(0)

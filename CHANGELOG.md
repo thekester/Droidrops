@@ -1,3 +1,9 @@
+# v2.2.49
+
+## Fixes
+
+- Keep the timeline position when opening an article changes the recently-read item list.
+
 # v2.2.48
 
 ## Fixes

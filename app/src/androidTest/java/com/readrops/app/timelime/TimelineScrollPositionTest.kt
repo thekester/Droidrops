@@ -6,6 +6,7 @@ import com.readrops.db.filters.MainFilter
 import com.readrops.db.filters.QueryFilters
 import com.readrops.db.filters.SubFilter
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNotEquals
 import org.junit.Test
 
 class TimelineScrollPositionTest {
@@ -34,6 +35,20 @@ class TimelineScrollPositionTest {
         assertEquals(
             false,
             QueryFilters(accountId = 7, searchQuery = "term").isDefaultTimelinePositionScope()
+        )
+    }
+
+    @Test
+    fun recentlyReadIdsDoNotChangeTimelinePositionResetKeyTest() {
+        val filters = QueryFilters(accountId = 7, mainFilter = MainFilter.NEW)
+
+        assertEquals(
+            filters.positionResetKey(),
+            filters.copy(recentlyReadItemIds = listOf(12, 34)).positionResetKey()
+        )
+        assertNotEquals(
+            filters.positionResetKey(),
+            filters.copy(mainFilter = MainFilter.ALL).positionResetKey()
         )
     }
 

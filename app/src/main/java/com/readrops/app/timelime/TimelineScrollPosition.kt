@@ -45,3 +45,6 @@ internal fun QueryFilters.isDefaultTimelinePositionScope(): Boolean =
         subFilter == SubFilter.ALL &&
         feedId == 0 && folderId == 0 && tagId == 0 &&
         searchQuery.isBlank() && !recentlyReadOnly
+
+/** Recently opened item IDs keep read articles visible without changing the active list filter. */
+internal fun QueryFilters.positionResetKey(): QueryFilters = copy(recentlyReadItemIds = emptyList())
